@@ -1,8 +1,8 @@
-classdef app1_1 < matlab.apps.AppBase
+classdef KLT < matlab.apps.AppBase
     
     % Properties that correspond to app components
     properties (Access = public)
-        KLTIVbetav1_0_UIFigure           matlab.ui.Figure
+        KLTIV_UIFigure                  matlab.ui.Figure
         CameraxyzLabel                  matlab.ui.control.Label
         RUNButton                       matlab.ui.control.Button
         ResolutionmpxEditFieldLabel     matlab.ui.control.Label
@@ -96,7 +96,7 @@ classdef app1_1 < matlab.apps.AppBase
     end
     
     properties (Access = public)
-        directory % Description
+        directory 
         file
         directory2
         file2
@@ -1007,20 +1007,6 @@ classdef app1_1 < matlab.apps.AppBase
         end %function
         
         
-        function [] =  flightPath(app)
-            if strcmp (app.FlightPathPlotSwitch.Value, 'On') == 1 && strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 0
-                f1 = figure(); % this plots the UAS flight path based on optimisation using GCPs
-                h1_1 = scatter3(app.cameraModelParameters(:,1),app.cameraModelParameters(:,2),app.cameraModelParameters(:,3));
-                hold on;
-                h1_2 = plot3(app.cameraModelParameters(:,1),app.cameraModelParameters(:,2),app.cameraModelParameters(:,3));
-                set(gca,'TickLabelInterpreter','latex');
-                title ('Camera location throughout the video')
-                zlabel('z coordinates [m]' , 'Interpreter','LaTex');
-                xlabel('x coordinates [m]', 'Interpreter','LaTex');
-                ylabel('y coordinates [m]', 'Interpreter','LaTex');
-            end
-        end
-        
         function [] = trajectoryAdjustments(app)
             if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
                 
@@ -1479,7 +1465,7 @@ classdef app1_1 < matlab.apps.AppBase
                         if max(i1) > 0
                             i1_idx = find (i1 == 1);
                             if strcmp(char(app.flexVars(1,i1)), 'UITable.Data') == 1
-                                app.UITable = uitable(app.KLTIVbetav1_0_UIFigure);
+                                app.UITable = uitable(app.KLTIV_UIFigure);
                                 app.UITable.Visible = 'on';
                                 app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
                                 app.UITable.RowName = {};
@@ -2405,7 +2391,7 @@ classdef app1_1 < matlab.apps.AppBase
                     app.GCPimageReal = joined;
                 end
                 
-                app.UITable = uitable(app.KLTIVbetav1_0_UIFigure);
+                app.UITable = uitable(app.KLTIV_UIFigure);
                 app.UITable.Visible = 'On';
                 app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
                 app.UITable.RowName = {};
@@ -3388,18 +3374,18 @@ classdef app1_1 < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app)
             
-            % Create KLTIVbetav1_0_UIFigure
-            app.KLTIVbetav1_0_UIFigure = uifigure;
-            app.KLTIVbetav1_0_UIFigure.Color = [ 1 1 1];
-            app.KLTIVbetav1_0_UIFigure.Position = [100 100 1287 538]; %width < 1366; hgt < 786
-            app.KLTIVbetav1_0_UIFigure.Name = 'KLT-IV (v1.1)';
-            app.KLTIVbetav1_0_UIFigure.Resize = 'off';
+            % Create KLTIV UIFigure
+            app.KLTIV_UIFigure = uifigure;
+            app.KLTIV_UIFigure.Color = [ 1 1 1];
+            app.KLTIV_UIFigure.Position = [100 100 1287 538]; %width < 1366; hgt < 786
+            app.KLTIV_UIFigure.Name = 'KLT-IV (v1.1)';
+            app.KLTIV_UIFigure.Resize = 'off';
             
             warning off Matlab:HandleGraphics:ObsoletedProperty:JavaFrame
             warning off Matlab:structOnObject
             while true
                 try
-                    figProps = struct(app.KLTIVbetav1_0_UIFigure);
+                    figProps = struct(app.KLTIV_UIFigure);
                     controller = figProps.Controller;
                     controllerProps = struct(controller);
                     platformHost = controllerProps.PlatformHost;
@@ -3425,20 +3411,20 @@ classdef app1_1 < matlab.apps.AppBase
             catch
             end
             
-            app.CONTROLDIMS = [app.KLTIVbetav1_0_UIFigure.Position(3),...
-                app.KLTIVbetav1_0_UIFigure.Position(4)];
+            app.CONTROLDIMS = [app.KLTIV_UIFigure.Position(3),...
+                app.KLTIV_UIFigure.Position(4)];
             
             % Create scrollPane
-            app.scrollPane = uipanel(app.KLTIVbetav1_0_UIFigure);
+            app.scrollPane = uipanel(app.KLTIV_UIFigure);
             app.scrollPane.AutoResizeChildren = 'off';
             app.scrollPane.BorderType = 'none';
             app.scrollPane.Position(1:4) = [0, ...
                 0,...
-                app.KLTIVbetav1_0_UIFigure.Position(3),...
-                app.KLTIVbetav1_0_UIFigure.Position(4)];
+                app.KLTIV_UIFigure.Position(3),...
+                app.KLTIV_UIFigure.Position(4)];
             
             % Inject CSS in head
-            app.WEBWINDOW = mlapptools.getWebWindow(app.KLTIVbetav1_0_UIFigure);
+            app.WEBWINDOW = mlapptools.getWebWindow(app.KLTIV_UIFigure);
             cssText = [...
                 '''<style>\n', ...
                 '  {@import url("https://fonts.googleapis.com/css?family=Ubuntu&display=swap") \n}'...
@@ -3496,7 +3482,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(scrollClassString);
             
             % Create VideoInputsLabel
-            app.VideoInputsLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.VideoInputsLabel = uilabel(app.KLTIV_UIFigure);
             app.VideoInputsLabel.FontName = 'Ubuntu';
             app.VideoInputsLabel.FontSize = 26;
             app.VideoInputsLabel.FontColor = [0.149 0.149 0.149];
@@ -3518,7 +3504,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
             
             % Define the processing mode label outline
-            app.ProcessingModeDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ProcessingModeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.ProcessingModeDropDownLabel.Position = [20 446 140 22];
             app.ProcessingModeDropDownLabel.Text = '';
             app.ControlHandles(i,18) = app.ProcessingModeDropDownLabel;
@@ -3527,19 +3513,19 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.ProcessingModeDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ProcessingModeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.ProcessingModeDropDownLabel.Position = [20 446 140 22];
             app.ProcessingModeDropDownLabel.Text = '    Mode';
             
             % Define the processing mode
-            app.ProcessingModeDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.ProcessingModeDropDown = uidropdown(app.KLTIV_UIFigure);
             app.ProcessingModeDropDown.Items = {'Make a selection', 'Single Video', 'Multiple Videos'};
             app.ProcessingModeDropDown.ValueChangedFcn = createCallbackFcn(app, @ProcessingModeDropDownValueChanged, true);
             app.ProcessingModeDropDown.Position = [170 446 140 22];
             app.ProcessingModeDropDown.Value = 'Single Video';
             app.ProcessingModeDropDown.FontName = 'Roboto';
             
-            app.AddVideoButtonLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 349 140 22];
             app.AddVideoButtonLabel.Text = '';
@@ -3549,13 +3535,13 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.AddVideoButtonLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 349 140 22];
             app.AddVideoButtonLabel.Text = '    Define Video(s)';
             
             %  Create AddVideoButton Label
-            app.AddVideoButtonLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 414 140 22];
             app.AddVideoButtonLabel.Text = '';
@@ -3565,13 +3551,13 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.AddVideoButtonLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 414 140 22];
             app.AddVideoButtonLabel.Text = '    Define Video(s)';
             
             %  Create AddVideoButton
-            app.AddVideoButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.AddVideoButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.AddVideoButton.Position = [170 414 140 22];
             app.AddVideoButton.Text = '';
             app.ControlHandles(i,2) = app.AddVideoButton;
@@ -3582,7 +3568,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
             app.AddVideoButton.VerticalAlignment = 'center';
             app.AddVideoButton.HorizontalAlignment = 'center';
-            app.AddVideoButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.AddVideoButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.AddVideoButton.ButtonPushedFcn = createCallbackFcn(app, @AddVideoButtonPushed, true);
             app.AddVideoButton.Position = [170 414 140 22];
             app.AddVideoButton.Text = 'Click here';
@@ -3591,7 +3577,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.AddVideoButton.HorizontalAlignment = 'center';
             
             % Create CameraTypeDropDownLabel
-            app.CameraTypeDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraTypeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.CameraTypeDropDownLabel.HorizontalAlignment = 'left';
             app.CameraTypeDropDownLabel.Position = [20 381 140 22];
             app.CameraTypeDropDownLabel.Text = '';
@@ -3601,13 +3587,13 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CameraTypeDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraTypeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.CameraTypeDropDownLabel.HorizontalAlignment = 'left';
             app.CameraTypeDropDownLabel.Position = [20 381 140 22];
             app.CameraTypeDropDownLabel.Text = '    Camera Type';
             
             % Create CameraTypeDropDown
-            app.CameraTypeDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.CameraTypeDropDown = uidropdown(app.KLTIV_UIFigure);
             app.CameraTypeDropDown.FontName = 'Roboto';
             app.CameraTypeDropDown.Items = {'Make a selection', ...
                 'DJI Phantom 2 Vision+',...
@@ -3626,7 +3612,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CameraTypeDropDown.Value = 'Make a selection';
             
             % Create OrientationDropDownLabel
-            app.OrientationDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OrientationDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.OrientationDropDownLabel.HorizontalAlignment = 'left';
             app.OrientationDropDownLabel.Position = [20 349 140 22];
             app.OrientationDropDownLabel.Text = '';
@@ -3636,13 +3622,13 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.OrientationDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OrientationDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.OrientationDropDownLabel.HorizontalAlignment = 'left';
             app.OrientationDropDownLabel.Position = [20 349 140 22];
             app.OrientationDropDownLabel.Text = '    Orientation';
             
             % Create OrientationDropDown
-            app.OrientationDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.OrientationDropDown = uidropdown(app.KLTIV_UIFigure);
             app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}; %, 'Planet [beta]'}
             app.OrientationDropDown.ValueChangedFcn = createCallbackFcn(app, @OrientationDropDownValueChanged, true);
             app.OrientationDropDown.FontName = 'Roboto';
@@ -3650,7 +3636,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.OrientationDropDown.Value = 'Make a selection:';
             
             % Create CameraxyzLabel
-            app.CameraxyzEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraxyzEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditFieldLabel.FontName = 'Ubuntu';
             app.CameraxyzEditFieldLabel.Position = [20 317 140 22];
             app.CameraxyzEditFieldLabel.Text = '';
@@ -3660,13 +3646,13 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CameraxyzEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraxyzEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditFieldLabel.Position = [20 317 140 22];
             app.CameraxyzEditFieldLabel.Text = '    Camera [x]';
             app.CameraxyzEditFieldLabel.FontName = 'Ubuntu';
             
             % Create CameraxyzEditField
-            app.CameraxyzEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CameraxyzEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CameraxyzEditField.ValueDisplayFormat = '%.2f';
             app.CameraxyzEditField.FontName = 'Roboto';
             app.CameraxyzEditField.FontColor = [0.149 0.149 0.149];
@@ -3674,7 +3660,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CameraxyzEditField.Value = 9;
             
             % Create CameraxyzLabel2
-            app.CameraxyzEditField_2Label = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraxyzEditField_2Label = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditField_2Label.FontName = 'Ubuntu';
             app.CameraxyzEditField_2Label.Position = [20 285 140 22];
             app.CameraxyzEditField_2Label.Text = '';
@@ -3684,14 +3670,14 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CameraxyzEditField_2Label = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraxyzEditField_2Label = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditField_2Label.FontName = 'Ubuntu';
             app.CameraxyzEditField_2Label.Position = [20 285 140 22];
             app.CameraxyzEditField_2Label.Text = '    Camera [y]';
             app.ControlHandles(i,6) = app.CameraxyzEditField_2Label;
             
             % Create CameraxyzEditField_2
-            app.CameraxyzEditField_2 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CameraxyzEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CameraxyzEditField_2.ValueDisplayFormat = '%.2f';
             app.CameraxyzEditField_2.FontName = 'Roboto';
             app.CameraxyzEditField_2.FontColor = [0.149 0.149 0.149];
@@ -3699,7 +3685,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CameraxyzEditField_2.Value = 15;
             
             % Create CameraxyzLabel3
-            app.CameraxyzEditField_3Label = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraxyzEditField_3Label = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditField_3Label.FontName = 'Ubuntu';
             app.CameraxyzEditField_3Label.Position = [20 253 140 22];
             app.CameraxyzEditField_3Label.Text = '';
@@ -3709,14 +3695,14 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CameraxyzEditField_3Label = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CameraxyzEditField_3Label = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditField_3Label.FontName = 'Ubuntu';
             app.CameraxyzEditField_3Label.Position = [20 253 140 22];
             app.CameraxyzEditField_3Label.Text = '    Camera [z]';
             app.ControlHandles(i,7) = app.CameraxyzEditField_3Label;
             
             % Create CameraxyzEditField_3
-            app.CameraxyzEditField_3 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CameraxyzEditField_3 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CameraxyzEditField_3.ValueDisplayFormat = '%.2f';
             app.CameraxyzEditField_3.FontName = 'Roboto';
             app.CameraxyzEditField_3.FontColor = [0.149 0.149 0.149];
@@ -3724,7 +3710,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CameraxyzEditField_3.Value = 36;
             
             % Create tickboxes for adjustment = xbox
-            app.Cameraxyz_modifyXbox = uicheckbox(app.KLTIVbetav1_0_UIFigure);
+            app.Cameraxyz_modifyXbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditFieldLabel.Position];
             tempPos(1) = tempPos(1) + 120;
             app.Cameraxyz_modifyXbox.Position = tempPos;
@@ -3732,7 +3718,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.Cameraxyz_modifyXbox.Value = 1; 
             
             % Create tickboxes for adjustment = ybox
-            app.Cameraxyz_modifyYbox = uicheckbox(app.KLTIVbetav1_0_UIFigure);
+            app.Cameraxyz_modifyYbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditField_2Label.Position];
             tempPos(1) = tempPos(1) + 120;
             app.Cameraxyz_modifyYbox.Position = tempPos;
@@ -3740,7 +3726,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.Cameraxyz_modifyYbox.Value = 1; 
 
             % Create tickboxes for adjustment = ybox
-            app.Cameraxyz_modifyZbox = uicheckbox(app.KLTIVbetav1_0_UIFigure);
+            app.Cameraxyz_modifyZbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditField_3Label.Position];
             tempPos(1) = tempPos(1) + 120;
             app.Cameraxyz_modifyZbox.Position = tempPos;
@@ -3748,7 +3734,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.Cameraxyz_modifyZbox.Value = 1; 
             
             % Create yawpitchrollEditFieldLabel
-            app.yawpitchrollEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.yawpitchrollEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.yawpitchrollEditFieldLabel.HorizontalAlignment = 'left';
             app.yawpitchrollEditFieldLabel.FontName = 'Ubuntu';
             app.yawpitchrollEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -3760,7 +3746,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.yawpitchrollEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.yawpitchrollEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.yawpitchrollEditFieldLabel.HorizontalAlignment = 'left';
             app.yawpitchrollEditFieldLabel.FontName = 'Ubuntu';
             app.yawpitchrollEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -3768,14 +3754,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.yawpitchrollEditFieldLabel.Text = '    [Yaw, Pitch, Roll]';
             
             % Create yawpitchrollEditField
-            app.yawpitchrollEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.yawpitchrollEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.yawpitchrollEditField.ValueDisplayFormat = '%.2f';
             app.yawpitchrollEditField.FontName = 'Roboto';
             app.yawpitchrollEditField.FontColor = [0.149 0.149 0.149];
             app.yawpitchrollEditField.Position = [170 221 45 22];
             
             % Create yawpitchrollEditField_2
-            app.yawpitchrollEditField_2 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.yawpitchrollEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.yawpitchrollEditField_2.ValueDisplayFormat = '%.2f';
             app.yawpitchrollEditField_2.FontName = 'Roboto';
             app.yawpitchrollEditField_2.FontColor = [0.149 0.149 0.149];
@@ -3783,7 +3769,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.yawpitchrollEditField_2.Value = 1.5708;
             
             % Create yawpitchrollEditField_3
-            app.yawpitchrollEditField_3 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.yawpitchrollEditField_3 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.yawpitchrollEditField_3.ValueDisplayFormat = '%.2f';
             app.yawpitchrollEditField_3.FontName = 'Roboto';
             app.yawpitchrollEditField_3.FontColor = [0.149 0.149 0.149];
@@ -3802,7 +3788,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
             
             % Create Settings label
-            app.VideoInputsLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.VideoInputsLabel = uilabel(app.KLTIV_UIFigure);
             app.VideoInputsLabel.FontName = 'Ubuntu';
             app.VideoInputsLabel.FontSize = 26;
             app.VideoInputsLabel.FontColor = [0.149 0.149 0.149];
@@ -3810,7 +3796,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.VideoInputsLabel.Text = '(2) Settings';
             
             % Create ExtractionratesEditFieldLabel
-            app.ExtractionratesEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExtractionratesEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.ExtractionratesEditFieldLabel.HorizontalAlignment = 'left';
             app.ExtractionratesEditFieldLabel.FontName = 'Ubuntu';
             app.ExtractionratesEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -3822,7 +3808,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.ExtractionratesEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExtractionratesEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.ExtractionratesEditFieldLabel.HorizontalAlignment = 'left';
             app.ExtractionratesEditFieldLabel.FontName = 'Ubuntu';
             app.ExtractionratesEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -3830,7 +3816,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.ExtractionratesEditFieldLabel.Text = '    Extract rate (s)';
             
             % Create ExtractionratesEditField
-            app.ExtractionratesEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.ExtractionratesEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.ExtractionratesEditField.ValueDisplayFormat = '%.2f';
             app.ExtractionratesEditField.FontName = 'Roboto';
             app.ExtractionratesEditField.FontColor = [0.149 0.149 0.149];
@@ -3838,7 +3824,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.ExtractionratesEditField.Value = 1;
             
             % Create BlocksizepxEditFieldLabel
-            app.BlocksizepxEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.BlocksizepxEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.BlocksizepxEditFieldLabel.HorizontalAlignment = 'left';
             app.BlocksizepxEditFieldLabel.FontName = 'Ubuntu';
             app.BlocksizepxEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -3850,7 +3836,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.BlocksizepxEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.BlocksizepxEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.BlocksizepxEditFieldLabel.HorizontalAlignment = 'left';
             app.BlocksizepxEditFieldLabel.FontName = 'Ubuntu';
             app.BlocksizepxEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -3858,7 +3844,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.BlocksizepxEditFieldLabel.Text = '    Block size (px)';
             
             % Create BlocksizepxEditField
-            app.BlocksizepxEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.BlocksizepxEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.BlocksizepxEditField.ValueDisplayFormat = '%.0f';
             app.BlocksizepxEditField.FontName = 'Roboto';
             app.BlocksizepxEditField.FontColor = [0.149 0.149 0.149];
@@ -3866,7 +3852,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.BlocksizepxEditField.Value = 31;
             
             % Create IgnoreEdgesDropDownLabel
-            app.IgnoreEdgesDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.IgnoreEdgesDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.IgnoreEdgesDropDownLabel.HorizontalAlignment = 'left';
             app.IgnoreEdgesDropDownLabel.FontName = 'Ubuntu';
             app.IgnoreEdgesDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -3878,7 +3864,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.IgnoreEdgesDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.IgnoreEdgesDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.IgnoreEdgesDropDownLabel.HorizontalAlignment = 'left';
             app.IgnoreEdgesDropDownLabel.FontName = 'Ubuntu';
             app.IgnoreEdgesDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -3887,7 +3873,7 @@ classdef app1_1 < matlab.apps.AppBase
             
             
             % Create IgnoreEdgesDropDown
-            app.IgnoreEdgesDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.IgnoreEdgesDropDown = uidropdown(app.KLTIV_UIFigure);
             app.IgnoreEdgesDropDown.Items = {'Make a selection', 'Yes', 'No'};
             app.IgnoreEdgesDropDown.ValueChangedFcn = createCallbackFcn(app, @IgnoreEdgesDropDownValueChanged, true);
             app.IgnoreEdgesDropDown.FontName = 'Roboto';
@@ -3896,7 +3882,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.IgnoreEdgesDropDown.Value = 'Make a selection';
             
             % Create VelocityDropDownLabel
-            app.VelocityDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.VelocityDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.VelocityDropDownLabel.HorizontalAlignment = 'left';
             app.VelocityDropDownLabel.FontName = 'Ubuntu';
             app.VelocityDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -3908,7 +3894,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.VelocityDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.VelocityDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.VelocityDropDownLabel.HorizontalAlignment = 'left';
             app.VelocityDropDownLabel.FontName = 'Ubuntu';
             app.VelocityDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -3916,7 +3902,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.VelocityDropDownLabel.Text = '    Vel. component';
             
             % Create VelocityDropDown
-            app.VelocityDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.VelocityDropDown = uidropdown(app.KLTIV_UIFigure);
             app.VelocityDropDown.Items = {'Velocity Magnitude', 'Normal Component'}; %'Make a selection:', 'Normal Component',
             app.VelocityDropDown.ValueChangedFcn = createCallbackFcn(app, @VelocityDropDownValueChanged, true);
             app.VelocityDropDown.FontName = 'Roboto';
@@ -3925,7 +3911,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.VelocityDropDown.Value = 'Velocity Magnitude';
             
             % Create GroundControlLabel
-            app.GroundControlLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.GroundControlLabel = uilabel(app.KLTIV_UIFigure);
             app.GroundControlLabel.FontName = 'Ubuntu';
             app.GroundControlLabel.FontSize = 26;
             app.GroundControlLabel.FontColor = [0.149 0.149 0.149];
@@ -3944,7 +3930,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
             
             % Create GCPDataDropDownLabel
-            app.GCPDataDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.GCPDataDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.GCPDataDropDownLabel.HorizontalAlignment = 'left';
             app.GCPDataDropDownLabel.FontName = 'Ubuntu';
             app.GCPDataDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -3956,7 +3942,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.GCPDataDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.GCPDataDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.GCPDataDropDownLabel.HorizontalAlignment = 'left';
             app.GCPDataDropDownLabel.FontName = 'Ubuntu';
             app.GCPDataDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -3964,7 +3950,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.GCPDataDropDownLabel.Text = '    GCP Data';
             
             % Create GCPDataDropDown
-            app.GCPDataDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.GCPDataDropDown = uidropdown(app.KLTIV_UIFigure);
             app.GCPDataDropDown.Items = {'Make a selection:', 'Inputted manually', 'From .csv file', 'Select from image'};
             app.GCPDataDropDown.ValueChangedFcn = createCallbackFcn(app, @GCPDataDropDownValueChanged, true);
             app.GCPDataDropDown.FontName = 'Roboto';
@@ -3973,7 +3959,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.GCPDataDropDown.Value = 'Make a selection:';
             
             % Create CheckGCPsSwitchLabel
-            app.CheckGCPsSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CheckGCPsSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.CheckGCPsSwitchLabel.HorizontalAlignment = 'left';
             app.CheckGCPsSwitchLabel.FontName = 'Ubuntu';
             app.CheckGCPsSwitchLabel.Position = [335 414 140 22];
@@ -3984,20 +3970,20 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CheckGCPsSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CheckGCPsSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.CheckGCPsSwitchLabel.HorizontalAlignment = 'left';
             app.CheckGCPsSwitchLabel.FontName = 'Ubuntu';
             app.CheckGCPsSwitchLabel.Position = [335 414 140 22];
             app.CheckGCPsSwitchLabel.Text = '    Check GCPs';
             
             % Create CheckGCPsSwitch
-            app.CheckGCPsSwitch = uiswitch(app.KLTIVbetav1_0_UIFigure, 'slider');
+            app.CheckGCPsSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.CheckGCPsSwitch.ValueChangedFcn = createCallbackFcn(app, @CheckGCPsSwitchValueChanged, true);
             app.CheckGCPsSwitch.FontName = 'Roboto';
             app.CheckGCPsSwitch.Position = [535 413 140 22];
             
             % Create ExportGCPdataSwitchLabel
-            app.ExportGCPdataSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExportGCPdataSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.ExportGCPdataSwitchLabel.FontName = 'Ubuntu';
             app.ExportGCPdataSwitchLabel.Position = [335 381 140 22];
             app.ExportGCPdataSwitchLabel.Text = '';
@@ -4007,18 +3993,18 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.ExportGCPdataSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExportGCPdataSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.ExportGCPdataSwitchLabel.FontName = 'Ubuntu';
             app.ExportGCPdataSwitchLabel.Position = [335 381 140 22];
             app.ExportGCPdataSwitchLabel.Text = '    Export GCPs?';
             
             % Create ExportGCPdataSwitch
-            app.ExportGCPdataSwitch = uiswitch(app.KLTIVbetav1_0_UIFigure, 'slider');
+            app.ExportGCPdataSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.ExportGCPdataSwitch.FontName = 'Roboto';
             app.ExportGCPdataSwitch.Position = [535 381 140 22];
             
             % Create UITable
-            app.UITable = uitable(app.KLTIVbetav1_0_UIFigure);
+            app.UITable = uitable(app.KLTIV_UIFigure);
             app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
             app.UITable.RowName = {};
             app.UITable.ColumnEditable = [true true true false false];
@@ -4028,7 +4014,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.UITable.Position = [335 153 290 219];
             
             % Create BufferaroundGCPsmetersEditFieldLabel
-            app.BufferaroundGCPsmetersEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.BufferaroundGCPsmetersEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.BufferaroundGCPsmetersEditFieldLabel.HorizontalAlignment = 'left';
             app.BufferaroundGCPsmetersEditFieldLabel.FontName = 'Ubuntu';
             app.BufferaroundGCPsmetersEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4040,7 +4026,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.BufferaroundGCPsmetersEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.BufferaroundGCPsmetersEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.BufferaroundGCPsmetersEditFieldLabel.HorizontalAlignment = 'left';
             app.BufferaroundGCPsmetersEditFieldLabel.FontName = 'Ubuntu';
             app.BufferaroundGCPsmetersEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4048,14 +4034,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.BufferaroundGCPsmetersEditFieldLabel.Text = '    GCP buffer (m)';
             
             % Create BufferaroundGCPsmetersEditField
-            app.BufferaroundGCPsmetersEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.BufferaroundGCPsmetersEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.BufferaroundGCPsmetersEditField.FontName = 'Roboto';
             app.BufferaroundGCPsmetersEditField.FontColor = [0.149 0.149 0.149];
             app.BufferaroundGCPsmetersEditField.Position = [485 120 140 22];
             app.BufferaroundGCPsmetersEditField.Value = 10;
             
             % Create CustomFOVEditFieldLabel_2
-            app.CustomFOVEditFieldLabel_2 = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CustomFOVEditFieldLabel_2 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_2.HorizontalAlignment = 'left';
             app.CustomFOVEditFieldLabel_2.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_2.Position = [335 77 140 22];
@@ -4066,38 +4052,38 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CustomFOVEditFieldLabel_2 = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CustomFOVEditFieldLabel_2 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_2.HorizontalAlignment = 'left';
             app.CustomFOVEditFieldLabel_2.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_2.Position = [335 77 140 22];
             app.CustomFOVEditFieldLabel_2.Text = '    Custom FOV:';
             
             % Create CustomFOVEditField_2
-            app.CustomFOVEditField_2 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CustomFOVEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_2.FontName = 'Roboto';
             app.CustomFOVEditField_2.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_2.Position = [526 96 27 22];
             
             % Create CustomFOVEditField_3
-            app.CustomFOVEditField_3 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CustomFOVEditField_3 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_3.FontName = 'Roboto';
             app.CustomFOVEditField_3.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_3.Position = [598 96 27 22];
             
             % Create CustomFOVEditField_4
-            app.CustomFOVEditField_4 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CustomFOVEditField_4 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_4.FontName = 'Roboto';
             app.CustomFOVEditField_4.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_4.Position = [526 63 27 22];
             
             % Create CustomFOVEditField_5
-            app.CustomFOVEditField_5 = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.CustomFOVEditField_5 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_5.FontName = 'Roboto';
             app.CustomFOVEditField_5.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_5.Position = [598 63 27 22];
             
             % Create CustomFOVEditFieldLabel_3
-            app.CustomFOVEditFieldLabel_3 = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CustomFOVEditFieldLabel_3 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_3.HorizontalAlignment = 'left';
             app.CustomFOVEditFieldLabel_3.FontName = 'Roboto';
             app.CustomFOVEditFieldLabel_3.FontColor = [0.149 0.149 0.149];
@@ -4105,7 +4091,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_3.Text = 'X min';
             
             % Create CustomFOVEditFieldLabel_4
-            app.CustomFOVEditFieldLabel_4 = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CustomFOVEditFieldLabel_4 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_4.HorizontalAlignment = 'left';
             app.CustomFOVEditFieldLabel_4.FontName = 'Roboto';
             app.CustomFOVEditFieldLabel_4.FontColor = [0.149 0.149 0.149];
@@ -4113,7 +4099,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_4.Text = 'X max';
             
             % Create CustomFOVEditFieldLabel_6
-            app.CustomFOVEditFieldLabel_6 = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CustomFOVEditFieldLabel_6 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_6.HorizontalAlignment = 'left';
             app.CustomFOVEditFieldLabel_6.FontName = 'Roboto';
             app.CustomFOVEditFieldLabel_6.FontColor = [0.149 0.149 0.149];
@@ -4121,7 +4107,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_6.Text = 'Y min';
             
             % Create CustomFOVEditFieldLabel_7
-            app.CustomFOVEditFieldLabel_7 = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CustomFOVEditFieldLabel_7 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_7.HorizontalAlignment = 'left';
             app.CustomFOVEditFieldLabel_7.FontName = 'Roboto';
             app.CustomFOVEditFieldLabel_7.FontColor = [0.149 0.149 0.149];
@@ -4129,14 +4115,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_7.Text = 'Y max';
             
             % Create WatersurfaceelevationmEditField
-            app.WatersurfaceelevationmEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.WatersurfaceelevationmEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.WatersurfaceelevationmEditField.FontName = 'Roboto';
             app.WatersurfaceelevationmEditField.FontColor = [0.149 0.149 0.149];
             app.WatersurfaceelevationmEditField.Position = [485 30 140 22];
             app.WatersurfaceelevationmEditField.Value = 0;
             
             % Create WatersurfaceelevationmEditFieldLabel
-            app.WatersurfaceelevationmEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.WatersurfaceelevationmEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.WatersurfaceelevationmEditFieldLabel.HorizontalAlignment = 'left';
             app.WatersurfaceelevationmEditFieldLabel.FontName = 'Ubuntu';
             app.WatersurfaceelevationmEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4148,7 +4134,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.WatersurfaceelevationmEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.WatersurfaceelevationmEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.WatersurfaceelevationmEditFieldLabel.HorizontalAlignment = 'left';
             app.WatersurfaceelevationmEditFieldLabel.FontName = 'Ubuntu';
             app.WatersurfaceelevationmEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4157,7 +4143,7 @@ classdef app1_1 < matlab.apps.AppBase
             
             %  Create AddLevel Button -- this is minimised unless multiple
             %  videos are being analysed
-            app.AddLevelButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.AddLevelButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.AddLevelButton.ButtonPushedFcn = createCallbackFcn(app, @AddLevelButtonPushed, true);
             app.AddLevelButton.Position = [485 30 140 22];
             app.AddLevelButton.Text = 'Click here';
@@ -4185,14 +4171,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
             
             % Create AnalysisLabel
-            app.AnalysisLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.AnalysisLabel = uilabel(app.KLTIV_UIFigure);
             app.AnalysisLabel.FontName = 'Ubuntu';
             app.AnalysisLabel.FontSize = 26;
             app.AnalysisLabel.Position = [730 482 240 34];
             app.AnalysisLabel.Text = '(4) Analysis';
             
             % Create output directory text
-            app.OutputDirectoryButtonText = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OutputDirectoryButtonText = uilabel(app.KLTIV_UIFigure);
             app.OutputDirectoryButtonText.Text = '';
             app.OutputDirectoryButtonText.FontName = 'Ubuntu';
             app.OutputDirectoryButtonText.FontColor = [0.149 0.149 0.149];
@@ -4203,21 +4189,21 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.OutputDirectoryButtonText = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OutputDirectoryButtonText = uilabel(app.KLTIV_UIFigure);
             app.OutputDirectoryButtonText.Text = '    Output Location';
             app.OutputDirectoryButtonText.FontName = 'Ubuntu';
             app.OutputDirectoryButtonText.FontColor = [0.149 0.149 0.149];
             app.OutputDirectoryButtonText.Position = [655 446 140 22];
             
             % Create OutputDirectoryButton
-            app.OutputDirectoryButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.OutputDirectoryButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.OutputDirectoryButton.ButtonPushedFcn = createCallbackFcn(app, @OutputDirectoryButtonPushed, true);
             app.OutputDirectoryButton.FontName = 'Roboto';
             app.OutputDirectoryButton.Position = [805 446 140 22];
             app.OutputDirectoryButton.Text = 'Click here';
             
             % Create ROI text
-            app.roiButtonText = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.roiButtonText = uilabel(app.KLTIV_UIFigure);
             app.roiButtonText.Text = '';
             app.roiButtonText.FontName = 'Ubuntu';
             app.roiButtonText.FontColor = [0.149 0.149 0.149];
@@ -4228,21 +4214,21 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.OutputDirectoryButtonText = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OutputDirectoryButtonText = uilabel(app.KLTIV_UIFigure);
             app.OutputDirectoryButtonText.Text = '    Define ROI';
             app.OutputDirectoryButtonText.FontName = 'Ubuntu';
             app.OutputDirectoryButtonText.FontColor = [0.149 0.149 0.149];
             app.OutputDirectoryButtonText.Position = [655 414 140 22];
             
             % Create ROI Button
-            app.roiButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.roiButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.roiButton.ButtonPushedFcn = createCallbackFcn(app, @roiButtonPushed, true);
             app.roiButton.FontName = 'Roboto';
             app.roiButton.Position = [805 414 140 22];
             app.roiButton.Text = 'Click here';
             
             % Create ExporttrajectoriesSwitchLabel
-            app.ExporttrajectoriesSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExporttrajectoriesSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.ExporttrajectoriesSwitchLabel.FontName = 'Ubuntu';
             app.ExporttrajectoriesSwitchLabel.Position = [655 382 140 22];
             app.ExporttrajectoriesSwitchLabel.Text = '';
@@ -4252,18 +4238,18 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.ExporttrajectoriesSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExporttrajectoriesSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.ExporttrajectoriesSwitchLabel.FontName = 'Ubuntu';
             app.ExporttrajectoriesSwitchLabel.Position = [655 382 140 22];
             app.ExporttrajectoriesSwitchLabel.Text = '    Export Velocity?';
             
             % Create ExporttrajectoriesSwitch
-            app.ExporttrajectoriesSwitch = uiswitch(app.KLTIVbetav1_0_UIFigure, 'slider');
+            app.ExporttrajectoriesSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.ExporttrajectoriesSwitch.FontName = 'Roboto';
             app.ExporttrajectoriesSwitch.Position = [850 382 140 22];
             
             % Create OrthophotosSwitchLabel
-            app.OrthophotosSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OrthophotosSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.OrthophotosSwitchLabel.FontName = 'Ubuntu';
             app.OrthophotosSwitchLabel.Position = [655 350 140 22];
             app.OrthophotosSwitchLabel.Text = '';
@@ -4273,18 +4259,18 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.OrthophotosSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.OrthophotosSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.OrthophotosSwitchLabel.FontName = 'Ubuntu';
             app.OrthophotosSwitchLabel.Position = [655 350 140 22];
             app.OrthophotosSwitchLabel.Text = '    Orthophotos?';
             
             % Create OrthophotosSwitch
-            app.OrthophotosSwitch = uiswitch(app.KLTIVbetav1_0_UIFigure, 'slider');
+            app.OrthophotosSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.OrthophotosSwitch.FontName = 'Roboto';
             app.OrthophotosSwitch.Position = [850 350 140 22];
             
             % Create ResolutionmpxEditFieldLabel
-            app.ResolutionmpxEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ResolutionmpxEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.ResolutionmpxEditFieldLabel.HorizontalAlignment = 'left';
             app.ResolutionmpxEditFieldLabel.FontName = 'Ubuntu';
             app.ResolutionmpxEditFieldLabel.Position = [655 318 140 22];
@@ -4295,20 +4281,20 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.ResolutionmpxEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ResolutionmpxEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.ResolutionmpxEditFieldLabel.HorizontalAlignment = 'left';
             app.ResolutionmpxEditFieldLabel.FontName = 'Ubuntu';
             app.ResolutionmpxEditFieldLabel.Position = [655 318 140 22];
             app.ResolutionmpxEditFieldLabel.Text = '    Resolution (m/px)';
             
             % Create ResolutionmpxEditField
-            app.ResolutionmpxEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.ResolutionmpxEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.ResolutionmpxEditField.FontName = 'Roboto';
             app.ResolutionmpxEditField.Position = [805 318 140 22];
             app.ResolutionmpxEditField.Value = 0.01;
             
             % Create FlightPathPlotSwitchLabel
-            app.FlightPathPlotSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.FlightPathPlotSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.FlightPathPlotSwitchLabel.HorizontalAlignment = 'left';
             app.FlightPathPlotSwitchLabel.FontName = 'Ubuntu';
             app.FlightPathPlotSwitchLabel.Position = [655 286 140 22];
@@ -4319,19 +4305,19 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements';
-            app.FlightPathPlotSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.FlightPathPlotSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.FlightPathPlotSwitchLabel.HorizontalAlignment = 'left';
             app.FlightPathPlotSwitchLabel.FontName = 'Ubuntu';
             app.FlightPathPlotSwitchLabel.Position = [655 286 140 22];
             app.FlightPathPlotSwitchLabel.Text = '    Plot Movement?';
             
             % Create FlightPathPlotSwitch
-            app.FlightPathPlotSwitch = uiswitch(app.KLTIVbetav1_0_UIFigure, 'slider');
+            app.FlightPathPlotSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.FlightPathPlotSwitch.FontName = 'Roboto';
             app.FlightPathPlotSwitch.Position = [850 286 140 22];
             
             % Create TrajectoriesPlotSwitchLabel
-            app.TrajectoriesPlotSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.TrajectoriesPlotSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.TrajectoriesPlotSwitchLabel.HorizontalAlignment = 'left';
             app.TrajectoriesPlotSwitchLabel.FontName = 'Ubuntu';
             app.TrajectoriesPlotSwitchLabel.Position = [655 254 140 22];
@@ -4342,19 +4328,19 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.TrajectoriesPlotSwitchLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.TrajectoriesPlotSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.TrajectoriesPlotSwitchLabel.HorizontalAlignment = 'left';
             app.TrajectoriesPlotSwitchLabel.FontName = 'Ubuntu';
             app.TrajectoriesPlotSwitchLabel.Position = [655 254 140 22];
             app.TrajectoriesPlotSwitchLabel.Text = '    Plot Velocity?';
             
             % Create TrajectoriesPlotSwitch
-            app.TrajectoriesPlotSwitch = uiswitch(app.KLTIVbetav1_0_UIFigure, 'slider');
+            app.TrajectoriesPlotSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.TrajectoriesPlotSwitch.FontName = 'Roboto';
             app.TrajectoriesPlotSwitch.Position = [850 254 140 22];
             
             % Create ExportDefaultValues Label
-            app.ExportDefaultValuesLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExportDefaultValuesLabel = uilabel(app.KLTIV_UIFigure);
             app.ExportDefaultValuesLabel.HorizontalAlignment = 'left';
             app.ExportDefaultValuesLabel.FontName = 'Ubuntu';
             app.ExportDefaultValuesLabel.Position = [655 222 140 22];
@@ -4365,21 +4351,21 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.ExportDefaultValuesLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ExportDefaultValuesLabel = uilabel(app.KLTIV_UIFigure);
             app.ExportDefaultValuesLabel.HorizontalAlignment = 'left';
             app.ExportDefaultValuesLabel.FontName = 'Ubuntu';
             app.ExportDefaultValuesLabel.Position = [655 222 140 22];
             app.ExportDefaultValuesLabel.Text = '    Export Settings';
             
             % Create ExportDefaultValuesButton
-            app.ExportDefaultValuesButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.ExportDefaultValuesButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.ExportDefaultValuesButton.ButtonPushedFcn = createCallbackFcn(app, @ExportDefaultValuesButtonPushed, true);
             app.ExportDefaultValuesButton.FontName = 'Roboto';
             app.ExportDefaultValuesButton.Position = [805 222 140 22];
             app.ExportDefaultValuesButton.Text = 'Click here';
             
             % Create ExportDefaultValues Label
-            app.LoadDefaultValuesLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.LoadDefaultValuesLabel = uilabel(app.KLTIV_UIFigure);
             app.LoadDefaultValuesLabel.HorizontalAlignment = 'left';
             app.LoadDefaultValuesLabel.FontName = 'Ubuntu';
             app.LoadDefaultValuesLabel.Position = [655 190 140 22];
@@ -4390,21 +4376,21 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.LoadDefaultValuesLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.LoadDefaultValuesLabel = uilabel(app.KLTIV_UIFigure);
             app.LoadDefaultValuesLabel.HorizontalAlignment = 'left';
             app.LoadDefaultValuesLabel.FontName = 'Ubuntu';
             app.LoadDefaultValuesLabel.Position = [655 190 140 22];
             app.LoadDefaultValuesLabel.Text = '    Load Settings';
             
             % Create ExportDefaultValuesButton
-            app.LoadDefaultValuesButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.LoadDefaultValuesButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.LoadDefaultValuesButton.ButtonPushedFcn = createCallbackFcn(app, @LoadDefaultValuesButtonPushed, true);
             app.LoadDefaultValuesButton.FontName = 'Roboto';
             app.LoadDefaultValuesButton.Position = [805 190 140 22];
             app.LoadDefaultValuesButton.Text = 'Click here';
             
             % Create RUNButton
-            app.RUNButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.RUNButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.RUNButton.ButtonPushedFcn = createCallbackFcn(app, @RUNButtonPushed, true);
             app.RUNButton.FontName = 'Ubuntu';
             app.RUNButton.FontColor = [0.149 0.149 0.149];
@@ -4423,14 +4409,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
             
             % Create AnalysisLabel
-            app.AnalysisLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.AnalysisLabel = uilabel(app.KLTIV_UIFigure);
             app.AnalysisLabel.FontName = 'Ubuntu';
             app.AnalysisLabel.FontSize = 26;
             app.AnalysisLabel.Position = [1045 482 240 34];
             app.AnalysisLabel.Text = '(5) Discharge';
             
             % Create CrossSectionDropDownLabel
-            app.CrossSectionDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CrossSectionDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.CrossSectionDropDownLabel.HorizontalAlignment = 'left';
             app.CrossSectionDropDownLabel.FontName = 'Ubuntu';
             app.CrossSectionDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -4442,7 +4428,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.CrossSectionDropDownLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.CrossSectionDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.CrossSectionDropDownLabel.HorizontalAlignment = 'left';
             app.CrossSectionDropDownLabel.FontName = 'Ubuntu';
             app.CrossSectionDropDownLabel.FontColor = [0.149 0.149 0.149];
@@ -4450,7 +4436,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CrossSectionDropDownLabel.Text = '    Cross-section Input';
             
             % Create CrossSectionDropDown
-            app.CrossSectionDropDown = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.CrossSectionDropDown = uidropdown(app.KLTIV_UIFigure);
             app.CrossSectionDropDown.Items = {'Make a selection:', 'Referenced survey [m]', 'Relative distances [m]'};
             app.CrossSectionDropDown.ValueChangedFcn = createCallbackFcn(app, @CrossSectionDropDownValueChanged, true);
             app.CrossSectionDropDown.FontName = 'Roboto';
@@ -4459,7 +4445,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CrossSectionDropDown.Value = 'Make a selection:';
             
             % Create Reference height label
-            app.ReferenceHeightLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ReferenceHeightLabel = uilabel(app.KLTIV_UIFigure);
             app.ReferenceHeightLabel.HorizontalAlignment = 'left';
             app.ReferenceHeightLabel.FontName = 'Ubuntu';
             app.ReferenceHeightLabel.FontColor = [0.149 0.149 0.149];
@@ -4471,7 +4457,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            app.ReferenceHeightLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.ReferenceHeightLabel = uilabel(app.KLTIV_UIFigure);
             app.ReferenceHeightLabel.HorizontalAlignment = 'left';
             app.ReferenceHeightLabel.FontName = 'Ubuntu';
             app.ReferenceHeightLabel.FontColor = [0.149 0.149 0.149];
@@ -4479,7 +4465,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.ReferenceHeightLabel.Text = '    Reference Height';
             
             % Create Reference height settings
-            app.ReferenceHeight = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.ReferenceHeight = uidropdown(app.KLTIV_UIFigure);
             app.ReferenceHeight.Items = {'Make a selection:', 'True bed elevation [m]', 'Water depth [m]'};
             %app.ReferenceHeight.ValueChangedFcn = createCallbackFcn(app, @ReferenceHeightValueChanged, true);
             app.ReferenceHeight.FontName = 'Roboto';
@@ -4488,7 +4474,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.ReferenceHeight.Value = 'Make a selection:';
             
             % Create UITable2
-            app.UITable2 = uitable(app.KLTIVbetav1_0_UIFigure);
+            app.UITable2 = uitable(app.KLTIV_UIFigure);
             app.UITable2.ColumnName = {'Chainage'; 'Elevation'};
             app.UITable2.RowName = {};
             app.UITable2.CellEditCallback = createCallbackFcn(app, @editCel2, true);
@@ -4496,7 +4482,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.UITable2.Position = [980 282 290 123];
             
             % Create SearchDistanceEditFieldLabel
-            app.SearchDistanceEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.SearchDistanceEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.SearchDistanceEditFieldLabel.HorizontalAlignment = 'left';
             app.SearchDistanceEditFieldLabel.FontName = 'Ubuntu';
             app.SearchDistanceEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4508,7 +4494,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.SearchDistanceEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.SearchDistanceEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.SearchDistanceEditFieldLabel.HorizontalAlignment = 'left';
             app.SearchDistanceEditFieldLabel.FontName = 'Ubuntu';
             app.SearchDistanceEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4516,14 +4502,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.SearchDistanceEditFieldLabel.Text = '    Search Distance (m)';
             
             % Create SearchDistanceEditField
-            app.SearchDistanceEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.SearchDistanceEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.SearchDistanceEditField.FontName = 'Roboto';
             app.SearchDistanceEditField.FontColor = [0.149 0.149 0.149];
             app.SearchDistanceEditField.Position = [1130 254 140 22];
             app.SearchDistanceEditField.Value = 0.5;
             
             % Create Interpoation method
-            app.InterpolationMethodLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.InterpolationMethodLabel = uilabel(app.KLTIV_UIFigure);
             app.InterpolationMethodLabel.HorizontalAlignment = 'left';
             app.InterpolationMethodLabel.FontName = 'Ubuntu';
             app.InterpolationMethodLabel.FontColor = [0.149 0.149 0.149];
@@ -4535,7 +4521,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.InterpolationMethodLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.InterpolationMethodLabel = uilabel(app.KLTIV_UIFigure);
             app.InterpolationMethodLabel.HorizontalAlignment = 'left';
             app.InterpolationMethodLabel.FontName = 'Ubuntu';
             app.InterpolationMethodLabel.FontColor = [0.149 0.149 0.149];
@@ -4543,7 +4529,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.InterpolationMethodLabel.Text = '    Interpolation method';
             
             % Create InterpolationMethod field
-            app.InterpolationMethod = uidropdown(app.KLTIVbetav1_0_UIFigure);
+            app.InterpolationMethod = uidropdown(app.KLTIV_UIFigure);
             app.InterpolationMethod.Items = {'Make a selection:', 'Quadratic Polynomial', 'Cubic Polynomial', 'Constant Froude' };
             app.InterpolationMethod.FontName = 'Roboto';
             app.InterpolationMethod.FontColor = [0.149 0.149 0.149];
@@ -4551,7 +4537,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.InterpolationMethod.Value = 'Make a selection:';
             
             % Create alphaEditFieldLabel
-            app.alphaEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.alphaEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.alphaEditFieldLabel.HorizontalAlignment = 'left';
             app.alphaEditFieldLabel.FontName = 'Ubuntu';
             app.alphaEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4563,7 +4549,7 @@ classdef app1_1 < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.alphaEditFieldLabel = uilabel(app.KLTIVbetav1_0_UIFigure);
+            app.alphaEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.alphaEditFieldLabel.HorizontalAlignment = 'left';
             app.alphaEditFieldLabel.FontName = 'Ubuntu';
             app.alphaEditFieldLabel.FontColor = [0.149 0.149 0.149];
@@ -4571,14 +4557,14 @@ classdef app1_1 < matlab.apps.AppBase
             app.alphaEditFieldLabel.Text = '    Alpha';
             
             % Create alphaEditField
-            app.alphaEditField = uieditfield(app.KLTIVbetav1_0_UIFigure, 'numeric');
+            app.alphaEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.alphaEditField.FontName = 'Roboto';
             app.alphaEditField.FontColor = [0.149 0.149 0.149];
             app.alphaEditField.Position = [1130 190 140 22];
             app.alphaEditField.Value = 0.85;
             
             % Create CALCULATEButton
-            app.CALCULATEButton = uibutton(app.KLTIVbetav1_0_UIFigure, 'push');
+            app.CALCULATEButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.CALCULATEButton.ButtonPushedFcn = createCallbackFcn(app, @CALCULATEButtonPushed, true);
             app.CALCULATEButton.FontName = 'Ubuntu';
             app.CALCULATEButton.FontColor = [0.149 0.149 0.149];
@@ -4586,7 +4572,7 @@ classdef app1_1 < matlab.apps.AppBase
             app.CALCULATEButton.Text = 'CALCULATE';
             
             % Create ListBox
-            app.ListBox = uilistbox(app.KLTIVbetav1_0_UIFigure);
+            app.ListBox = uilistbox(app.KLTIV_UIFigure);
             %app.ListBox.Items = {''};
             for x=1:1000 % create an empty listbox
                 app.ListBox.Items(x) = {['']};
@@ -4602,13 +4588,13 @@ classdef app1_1 < matlab.apps.AppBase
     methods (Access = public)
         
         % Construct app
-        function app = app1_1
+        function app = KLT
             
             % Create and configure components
             createComponents(app)
             
             % Register the app with App Designer
-            registerApp(app, app.KLTIVbetav1_0_UIFigure)
+            registerApp(app, app.KLTIV_UIFigure)
             
             % Execute the startup function
             runStartupFcn(app, @startupFcn)
@@ -4620,7 +4606,7 @@ classdef app1_1 < matlab.apps.AppBase
         
         % Code that executes before app deletion
         function delete(app)
-            delete(app.KLTIVbetav1_0_UIFigure) % Delete UIFigure when app is deleted
+            delete(app.KLTIV_UIFigure) % Delete UIFigure when app is deleted
         end
     end
 end
