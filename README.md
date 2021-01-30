@@ -7,9 +7,11 @@ To run KLT-IV using the source code:
 Ensure you have Matlab [insert dependables here].
 
 Clone this repository using Git:
+
 ```git clone https://github.com/CatchmentSci/KLT-IV.git```
 
 Additional ffmpeg files are also required:
+
 ```git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg```
 
 Compiled standalone binaries and installation instructions can be found here: https://sourceforge.net/projects/klt-iv/
