@@ -10,6 +10,9 @@ Clone this repository using Git:
 
 ```git clone https://github.com/CatchmentSci/KLT-IV.git```
 
+ git clone git@github.com:CatchmentSci/KLT-IV.git
+
+
 Additional ffmpeg files are also required:
 
 ```git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg```
