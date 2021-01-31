@@ -1,22 +1,20 @@
 function KLT_errorCallback(app,err)
 
-    errdir = app.directory_save;
+    errdir = getenv('USERPROFILE');
     errLogFileName = fullfile(errdir,...
-        ['KLTerrorLog.txt']);
+        ['KLT_errorLog.txt']);
     
     TextIn = {['An unexpected error occurred. Error code: ' err.identifier];...
-        ''; ...
-        'Error details are being written to the following file: ';...
-        errLogFileName;...
-        'KLT Status: Unexpected Error',...
-        'error'};
+        ['Error details are being written to the following file: '];...
+        [errLogFileName];...
+        ['KLT Status: Unexpected Error']};
     
-    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-    TimeIn = strjoin(TimeIn, ' ');
-    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    KLT_printItems(app)
-    pause(0.01);
-    app.ListBox.scroll('bottom');
+    %TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+    %TimeIn = strjoin(TimeIn, ' ');
+    %app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+    %KLT_printItems(app)
+    %pause(0.01);
+    %app.ListBox.scroll('bottom');
     
     i=1;
     texterr{i} = app.KLTIV_UIFigure.Name;

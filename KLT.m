@@ -96,7 +96,7 @@ classdef KLT < matlab.apps.AppBase
     end
     
     properties (Access = public)
-        directory 
+        directory
         file
         directory2
         file2
@@ -237,7 +237,7 @@ classdef KLT < matlab.apps.AppBase
         Cameraxyz_modifyZbox
         startingAppVals
     end
-        
+    
     
     methods (Access = private)
         
@@ -246,9 +246,9 @@ classdef KLT < matlab.apps.AppBase
             %saveState(app)
         end
         
-
+        
         % Button pushed function: RUNButton
-        function RUNButtonPushed(app, event) 
+        function RUNButtonPushed(app, event)
             if isempty(app.reloaded) % only run if the settings haven't been reloaded
                 app.GCPDataDropDown.Value =  'Make a selection:';
                 app.subSample = [];
@@ -318,7 +318,7 @@ classdef KLT < matlab.apps.AppBase
                     %resetApp(app,app.startingAppVals);
                     %flushBase(app)
                     %clear functions
-                else 
+                else
                     app.videoNumber = app.videoNumber + 1;
                 end
             end
@@ -811,7 +811,7 @@ classdef KLT < matlab.apps.AppBase
             else
                 RiverQValues(1:length(RiverLevelValues),1) = NaN;
             end
-                
+            
             TextIn = {'Matching videos to river level observations. Please wait.'};
             app.ListBox.Items = [app.ListBox.Items, TextIn'];
             KLT_printItems(app)
@@ -859,7 +859,7 @@ classdef KLT < matlab.apps.AppBase
             
         end
         
-        
+       
         function ExportDefaultValuesButtonPushed(app, event)
             KLT_saveState(app)
         end
@@ -1216,7 +1216,7 @@ classdef KLT < matlab.apps.AppBase
             tempPos(1) = tempPos(1) + 120;
             app.Cameraxyz_modifyXbox.Position = tempPos;
             app.Cameraxyz_modifyXbox.Text = '';
-            app.Cameraxyz_modifyXbox.Value = 1; 
+            app.Cameraxyz_modifyXbox.Value = 1;
             
             % Create tickboxes for adjustment = ybox
             app.Cameraxyz_modifyYbox = uicheckbox(app.KLTIV_UIFigure);
@@ -1224,15 +1224,15 @@ classdef KLT < matlab.apps.AppBase
             tempPos(1) = tempPos(1) + 120;
             app.Cameraxyz_modifyYbox.Position = tempPos;
             app.Cameraxyz_modifyYbox.Text = '';
-            app.Cameraxyz_modifyYbox.Value = 1; 
-
+            app.Cameraxyz_modifyYbox.Value = 1;
+            
             % Create tickboxes for adjustment = ybox
             app.Cameraxyz_modifyZbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditField_3Label.Position];
             tempPos(1) = tempPos(1) + 120;
             app.Cameraxyz_modifyZbox.Position = tempPos;
             app.Cameraxyz_modifyZbox.Text = '';
-            app.Cameraxyz_modifyZbox.Value = 1; 
+            app.Cameraxyz_modifyZbox.Value = 1;
             
             % Create yawpitchrollEditFieldLabel
             app.yawpitchrollEditFieldLabel = uilabel(app.KLTIV_UIFigure);
@@ -1978,7 +1978,7 @@ classdef KLT < matlab.apps.AppBase
             app.UITable2 = uitable(app.KLTIV_UIFigure);
             app.UITable2.ColumnName = {'Chainage'; 'Elevation'};
             app.UITable2.RowName = {};
-            app.UITable2.CellEditCallback = createCallbackFcn(app, KLT_editCel2, true);
+            app.UITable2.CellEditCallback = createCallbackFcn(app, @KLT_editCel2, true);
             app.UITable2.FontName = 'Roboto';
             app.UITable2.Position = [980 282 290 123];
             
@@ -2105,7 +2105,7 @@ classdef KLT < matlab.apps.AppBase
             catch err
                 
                 KLT_errorCallback(app,err)
-
+                
             end
             
             if nargout == 0
