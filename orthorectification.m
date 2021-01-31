@@ -39,7 +39,7 @@ if strcmp(app.ExportGCPdataSwitch.Enable, 'on') == 1
         
         TextIn = strjoin({'Export completed. Saved to ' app.directory_save '\GCP_data.csv'},'');
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
     end

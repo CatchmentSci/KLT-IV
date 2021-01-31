@@ -43,7 +43,7 @@ if strcmp(app.ExporttrajectoriesSwitch.Value, 'On') == 1
     
     TextIn = strjoin({'Export completed. Saved to ' app.directory_save},'');
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    KLT_printItems(app)
+    KLTprintItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
 end %if strcmp

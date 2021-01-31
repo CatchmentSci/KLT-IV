@@ -25,7 +25,7 @@ if app.videoNumber == 1 || app.startingVideo == 1
                     'stage_disharge_', newAppend, '.csv'},'');
                 TextIn = {strjoin({'Creating new file: ', app.QfileOut  },'')};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 pause(0.01)

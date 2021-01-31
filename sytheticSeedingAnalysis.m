@@ -304,7 +304,7 @@ while app.s2 < totNum
         fileNameIteration = [p1,p2];
         TextIn = {['Frame ' int2str(app.s2-1) ' of ' int2str(videoClip.* app.videoFrameRate) ' completed. Please wait']};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
     end

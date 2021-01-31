@@ -168,7 +168,7 @@ if length(app.firstFrame) > 1
                                 case 'Cancel' % this needs testing
                                     polyNum = 1;
                                     app.boundaryLimitsPx = [];
-                                    [roiPoints] = readPoints(referenceFrame,100,5,app,[])'; hold on;
+                                    [roiPoints] = KLT_readPoints(referenceFrame,100,5,app,[])'; hold on;
                                     roiPoints = replace_num(roiPoints,0,NaN);
                                     useVals = ~isnan(roiPoints(:,1));
                                     app.boundaryLimitsPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));

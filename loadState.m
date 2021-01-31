@@ -78,7 +78,7 @@ if length(settingsFileIn) > 1
 else
     TextIn = {'No settings file selected, please try again'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
 end

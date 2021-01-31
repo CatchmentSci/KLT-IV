@@ -77,11 +77,11 @@ if strcmp(app.CheckGCPsSwitch.Value, 'On') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         title ('See dialog box for instructions');
-        [newImageGCPs,newGCPimageReal] = readPoints(app.objectFrame,100,0,app,[]); hold on;
+        [newImageGCPs,newGCPimageReal] = KLT_readPoints(app.objectFrame,100,0,app,[]); hold on;
         [~, t1] = size(newImageGCPs);
         [~ ,t2] = size(newGCPimageReal);
         if ~isequal(t1,t2)

@@ -40,11 +40,11 @@ if strcmp ( app.OrientationDropDown.Value, 'Stationary: GCPs') == 1
     %distances = sqrt(sum(bsxfun(@minus, PotentialGCPs, double(mypoints.Position)).^2,2));
     %find the smallest distance and use that as an index into B:
     %closest = PotentialGCPs(find(distances==min(distances)),:);
-    %inder1 = min(find(app.UITable.Data(:,1) == 0));
-    
+        
     % Commented out the above so that the absolute px values
     % are used rather than the nearest to a feature. This is
     % only needed when tracking, and nota stable frame
+    inder1 = find(app.UITable.Data(:,1) == 0, 1 );
     app.UITable.Data(inder1,4:5) = double(mypoints.Position); % use the closest GCP
     
     % Manually input the corresponding real-world coordinates

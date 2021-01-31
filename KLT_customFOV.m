@@ -110,7 +110,7 @@ elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == false 
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn',...
                     errorIn', TextIn2', TextIn3', TextIn4', ];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 % Reduce reolution by a factor of two:
