@@ -19,7 +19,7 @@ TextIn = {'Begining image processing'};
 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
 TimeIn = strjoin(TimeIn, ' ');
 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-printItems(app)
+KLT_printItems(app)
 pause(0.01);
 app.ListBox.scroll('bottom');
 
@@ -114,7 +114,7 @@ while app.s2 < totNum
             % convert the ROI into metric units
             TextIn = {'Calculating ROI in metric units. Please wait'};
             app.ListBox.Items = [app.ListBox.Items, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
             if length(app.boundaryLimitsPx) > 1

@@ -236,1285 +236,7 @@ classdef KLT < matlab.apps.AppBase
         Cameraxyz_modifyYbox
         Cameraxyz_modifyZbox
     end
-    
-    methods (Access = private)
         
-        function  [] = customFOV(app)
-            if abs(app.CustomFOVEditField_2.Value) + abs(app.CustomFOVEditField_4.Value) > 0 || ...
-                    abs(app.CustomFOVEditField_2.Value) + abs(app.CustomFOVEditField_4.Value) > 0 ...
-                    && strcmp(app.CustomFOVEditField_2.Enable,'on') == true ...
-                    && strcmp(app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false
-                
-                % Lower resolution DEM
-                TransxIn = app.CustomFOVEditField_2.Value:0.1:app.CustomFOVEditField_4.Value;
-                TransyIn = app.CustomFOVEditField_3.Value:0.1:app.CustomFOVEditField_5.Value;
-                [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
-                [params] = size(app.TransX);
-                %disp(params)
-                demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                app.Transdem = demIn; % new insert - 20200510 (was 0 insead)
-                
-                % Large DEM
-                looper = 1;
-                while looper < 2
-                    try % Try in case of memory issues
-                        xIn = app.CustomFOVEditField_2.Value:app.ResolutionmpxEditField.Value:app.CustomFOVEditField_4.Value;
-                        yIn = app.CustomFOVEditField_3.Value:app.ResolutionmpxEditField.Value:app.CustomFOVEditField_5.Value;
-                        if (length(xIn) .* length(yIn)) > [180000000] % equivalent to 160 x 110m %[30000000] % equivalent to 40 x 60m
-                            % Reduce resolution by a factor of two:
-                            app.ResolutionmpxEditField.Value = app.ResolutionmpxEditField.Value.*2;
-                            TextIn2 = (['The specified resolution of the orthophotos is too high']);
-                            TextIn3 = (['Reducing the resolution and trying again']);
-                            TextIn4 = (['Changing resolution of orthophotos to ' num2str(app.ResolutionmpxEditField.Value) ' m/px' ]);
-                            TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                            TimeIn = strjoin(TimeIn, ' ');
-                            app.ListBox.Items = [app.ListBox.Items, TimeIn,...
-                                TextIn2', TextIn3', TextIn4', ];
-                            printItems(app)
-                            pause(0.01);
-                            app.ListBox.scroll('bottom');
-                            continue
-                        else
-                            [app.X,app.Y]=meshgrid(xIn,yIn);
-                            [params] = size(app.X);
-                            demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                            app.dem = demIn;
-                            looper = 2;
-                        end
-                    catch e
-                        TextIn = (['An error occurred. The message was:']);
-                        errorIn = {[ e.message ]};
-                        TextIn2 = (['The specified resolution of the orthophotos is too high']);
-                        TextIn3 = (['Reducing the resolution and trying again']);
-                        TextIn4 = (['Changing resolution of orthophotos to ' num2str(app.ResolutionmpxEditField.Value.*2) ' m/px' ]);
-                        TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                        TimeIn = strjoin(TimeIn, ' ');
-                        app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn',...
-                            errorIn', TextIn2', TextIn3', TextIn4', ];
-                        printItems(app)
-                        pause(0.01);
-                        app.ListBox.scroll('bottom');
-                        % Reduce reolution by a factor of two:
-                        app.ResolutionmpxEditField.Value = app.ResolutionmpxEditField.Value.*2;
-                    end
-                end
-                
-            elseif strcmp(app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
-                % Do nothing -- this is dealt with later on
-                
-            elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == false && ...
-                    strcmp (app.OrientationDropDown.Value,'Planet [beta]') == false
-                
-                % If no custom FOV has been defined
-                GCPbuffer = app.BufferaroundGCPsmetersEditField.Value; % modify the buffer value
-                
-                % Lower resolution DEM
-                TransxIn = nanmin(app.gcpA(:,1))-GCPbuffer:0.1:nanmax(app.gcpA(:,1))+GCPbuffer;
-                TransyIn = nanmin(app.gcpA(:,2))-GCPbuffer:0.1:nanmax(app.gcpA(:,2))+GCPbuffer;
-                [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
-                [params] = size(app.TransX);
-                
-                if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1% if the first video
- 
-                    looper = 1;% Large DEM
-                    while looper < 2
-                        try % Try in case of memory issues
-                            xIn = nanmin(app.gcpA(:,1))-GCPbuffer:app.ResolutionmpxEditField.Value:nanmax(app.gcpA(:,1))+GCPbuffer;
-                            yIn = nanmin(app.gcpA(:,2))-GCPbuffer:app.ResolutionmpxEditField.Value:nanmax(app.gcpA(:,2))+GCPbuffer;
-                            if (length(xIn) .* length(yIn)) > [30000000] % equivalent to 40 x 60m
-                                % Reduce resolution by a factor of two:
-                                app.ResolutionmpxEditField.Value = app.ResolutionmpxEditField.Value.*2;
-                                TextIn2 = (['The specified resolution of the orthophotos is too high']);
-                                TextIn3 = (['Reducing the resolution and trying again']);
-                                TextIn4 = (['Changing resolution of orthophotos to ' num2str(app.ResolutionmpxEditField.Value) ' m/px' ]);
-                                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                                TimeIn = strjoin(TimeIn, ' ');
-                                app.ListBox.Items = [app.ListBox.Items, TimeIn,...
-                                    TextIn2', TextIn3', TextIn4', ];
-                                printItems(app)
-                                pause(0.01);
-                                app.ListBox.scroll('bottom');
-                                continue
-                            else
-                                [app.X,app.Y]=meshgrid(xIn,yIn);
-                                [params] = size(app.X);
-                                demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                                app.dem = demIn;
-                                looper = 2;
-                            end
-                        catch e
-                            TextIn = (['An error occurred. The message was:']);
-                            errorIn = {[ e.message ]};
-                            TextIn2 = (['The specified resolution of the orthophotos is too high']);
-                            TextIn3 = (['Reducing the resolution and trying again']);
-                            TextIn4 = (['Changing resolution of orthophotos to ' num2str(app.ResolutionmpxEditField.Value.*2) ' m/px' ]);
-                            TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                            TimeIn = strjoin(TimeIn, ' ');
-                            app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn',...
-                                errorIn', TextIn2', TextIn3', TextIn4', ];
-                            printItems(app)
-                            pause(0.01);
-                            app.ListBox.scroll('bottom');
-                            % Reduce reolution by a factor of two:
-                            app.ResolutionmpxEditField.Value = app.ResolutionmpxEditField.Value.*2;
-                        end
-                    end
-                    
-                else % If not the first video
-                    [params] = size(app.X);
-                    demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                    app.dem = demIn;
-                end
-                
-            else
-                % If the known scale of the image is required
-                TransxIn = (1:1:size(app.firstFrame,2)).*app.imageResolution;
-                TransyIn = (1:1:size(app.firstFrame,1)).*app.imageResolution;
-                [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
-                [params] = size(app.TransX);
-                demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                app.Transdem = demIn;
-                app.dem = demIn;
-            end
-            
-            
-            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                
-                if isempty(app.videoNumber) % Specify the file index
-                    app.videoNumber = 1;
-                end
-                
-                % Bring in the video for analysis
-                
-                ffmpeg_conversion_batch(app)
-                
-                V = VideoReader(strjoin ({app.directory, '\', app.fileNameAnalysis{app.videoNumber}},''));
-                totNum = V.NumFrames;
-                if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
-                    app.videoDuration = V.Duration; % Extract the length of the video
-                    app.videoFrameRate = V.FrameRate; % Extract the frame rate of the video
-                end
-                
-                if app.videoNumber == 1 % Pre-allocate the stacked array
-                    app.objectFrameStacked = cell(1, totNum);
-                    for a = 1:totNum
-                        app.objectFrameStacked {a} = zeros(app.imgsz(1),app.imgsz(2),'uint8');
-                    end
-                end
-                
-                for a = 1:totNum
-                    app.objectFrameStacked{a} = images.internal.rgb2graymex(readFrame(V));
-                end
-                
-                % Define the save workspace
-                app.directory_save_multiple = strjoin ({app.directory_save, '\', app.fileNameAnalysis{app.videoNumber}},'');
-                app.directory_save_multiple = app.directory_save_multiple(1:end-4); % remove the extension
-                try
-                    mkdir (app.directory_save_multiple);
-                catch
-                end
-                app.WatersurfaceelevationmEditField.Value = app.riverLevelAnalysis(app.videoNumber);
-                demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                [params2] = size(app.Transdem);
-                app.Transdem(1:params2(1),1:params2(2)) = app.WatersurfaceelevationmEditField.Value;
-            else
-                demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-                [params2] = [size(TransyIn,2), size(TransxIn,2)];
-                app.Transdem = zeros(params2);
-                app.Transdem = replace_num(app.Transdem,0,app.WatersurfaceelevationmEditField.Value); % app.Transdem = demIn;
-            end
-            
-            
-        end
-        
-        function [] = imageAnalysis(app)  % Starting analysis
-            
-            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                V = VideoReader(strjoin ({app.directory, app.file},''));
-                app.videoDuration = V.Duration; % Extract the length of the video
-                app.videoFrameRate = V.FrameRate; % Extract the frame rate of the video
-                
-            end
-            
-            TextIn = {'Begining image processing'};
-            TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-            TimeIn = strjoin(TimeIn, ' ');
-            app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-            printItems(app)
-            pause(0.01);
-            app.ListBox.scroll('bottom');
-            
-            % Clear some necessary variables
-            app.visHR = [];
-            app.uvHR = [];
-            app.uvHR = [];
-            
-            % Configure the block size correctly
-            tempBlocksize = app.BlocksizepxEditField.Value;
-            if bitget(tempBlocksize,1) %odd
-                app.Blocksize = [app.BlocksizepxEditField.Value app.BlocksizepxEditField.Value];
-            else %even
-                app.Blocksize = [tempBlocksize+1 tempBlocksize+1];
-            end
-            
-            % Set the region of interest for analysis as the entire frame
-            objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; %[TopLeftX,TopLeftY,LengthX,LengthY]
-            
-            % Run the camera parameters function
-            cameraParameters(app)
-            
-            % Overwrite the default frame rate?
-            if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1% Only run for the first video
-                defaultValue = {num2str(app.videoFrameRate)};
-                titleBar = 'Manually overwrite the frame rate present in the meta-data?';
-                userPrompt = {'Defined frame rates: '};
-                caUserInput = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
-                app.videoFrameRate = str2num(caUserInput{1});
-            end
-            
-            % Define the total number of frames available
-            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                totNum = V.NumFrames;
-            else
-                totNum = length(app.objectFrameStacked);
-            end
-
-            nFrame = 1;
-            app.iter = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
-            restartWhen = (1:app.iter:totNum);
-            ii = 0;
-            
-            % Enter the start and stop of the video analysis
-            if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1 % Only run for the first video
-                defaultValue = {'0', num2str(round(app.videoDuration))};
-                titleBar = 'Define the start and end of the video in seconds';
-                userPrompt = {'Starting point (s): ', 'Finishing point (s): '};
-                caUserInput = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
-                app.videoStart = str2num(caUserInput{1});
-                app.videoClip = str2num(caUserInput{2});
-                %totNum = floor((app.videoClip.*app.videoFrameRate) + 1);
-            end
-            
-            % Ensure that the inputs for s2 and nFrame are okay for all
-            % orientations
-            if isempty (app.s2_mod)
-                app.s2 = round(1 + (app.videoStart.*app.videoFrameRate));
-                [~,idx] = min(abs(restartWhen-app.s2));
-                app.s2 = restartWhen(idx(1));
-                nFrame = app.s2;
-            else
-                app.s2 = round(1 + (app.s2_mod.*app.videoFrameRate));
-                nFrame = round(nFrame + (app.s2_mod.*app.videoFrameRate));
-            end
-            
-            % Run the stabilisation functions if required
-            if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true
-                stabiliseImageInput(app, V, totNum); % Stabilise all of the frames first
-            elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                stabiliseImageInputGPS2(app, V, totNum) % Stabilise all of the frames first
-            elseif strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
-                stabiliseImageInputPlanet(app, V, totNum) % Stabilise all of the frames first
-            end
-            
-            % This is the main part of the feature tracking
-            while app.s2 < totNum -1
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                    set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.s2-1)/totNum*100) '% Complete'},''));
-                    pause(0.01)
-                    
-                    if length(find(~cellfun(@isempty,app.ListBox.Items))) == 1000
-                        for x=1:1000 % create an empty listbox again
-                            app.ListBox.Items(x) = {['']};
-                        end
-                    end
-                    
-                end
-                if ~isempty(find(nFrame == restartWhen) > 0) || ii == 0 % If it is the start of a new loop or frame 1
-                    if ii == 0 % if its the first frame
-                        ii = 1;
-                        template = '00000';
-                        inputNum = num2str(app.s2);
-                        p1 = template(1:end-length(num2str(app.s2)));
-                        p2 = inputNum;
-                        fileNameIteration = [p1,p2];
-                        
-                        uvA = [];
-                        uvB = [];
-                        app.gcpA = app.UITable.Data;
-                        available = find(app.gcpA(:,4) > 0);
-                        app.gcpA = app.gcpA(available,:);
-                        
-                        if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                            if app.s2.*1/app.videoFrameRate < V.Duration
-                                V.CurrentTime = app.s2.*1/app.videoFrameRate;
-                            else
-                                break
-                            end
-                        end
-                        
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                                strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true || ...
-                                strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
-                            
-                            % Load the stabilised exported files
-                            listing = dir(app.subDir);
-                            for a = 1:length(listing)
-                                fileNamesIn(a,1) = cellstr(listing(a).name);
-                            end
-                            fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
-                            Index = find(contains(fileNamesIn,fileNameIteration));
-                            if Index > 0
-                                app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
-                            else
-                                break
-                            end
-                            
-                        elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                            % Load the stabilised exported files
-                            listing = dir (app.directory_stab);
-                            for a = 1:length(listing)
-                                fileNamesIn(a,1) = cellstr(listing(a).name);
-                            end
-                            fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
-                            Index = find(contains(fileNamesIn,fileNameIteration));
-                            if Index > 0% if s2 matches the first image in the sequence bring it in
-                                app.objectFrame = imread([app.directory_stab '\' char(fileNamesIn(Index))]);
-                                restartWhen = (app.s2:app.iter:totNum); % Feed in the correct values
-                            else
-                                % Otherwise do nothing
-                            end
-                            
-                            
-                        elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                            % Load the correct frame in the video sequence
-                            app.objectFrame = app.objectFrameStacked{nFrame};
-                            
-                        else
-                            app.objectFrame = images.internal.rgb2graymex(readFrame(V));
-                        end
-                        
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                            objectRegion = [1 1 flip(size(app.objectFrame))];
-                        end
-                        
-                        points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
-                        points = points.Location;
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                            % Create a polygon just inside the area of the image containing data
-                            th=10;
-                            a=app.objectFrame(:,:,1)>th; % find pixel values greater than 10
-                            a=bwareaopen(a,50); % find 50 connected pixels
-                            B = bwboundaries(a,'noholes');
-                            B1 = B{1,1};
-                            k = boundary(B1); %(:,1),B1(:,2),1); % [x,y]: outline
-                            filled = polyshape (B1(k,2),B1(k,1)); % polyshape
-                            
-                            % Next extract the points towards the edges of the image
-                            q_length = sqrt(polyarea(filled.Vertices(:,1),filled.Vertices(:,2)));
-                            q_length_t = q_length.*0.10;
-                            q = polybuffer(filled,-q_length_t); %shrink the boundary by the square root of the area imaged
-                            filteredIdx = inpolygon(points(:,1),points(:,2),q.Vertices(:,1),q.Vertices(:,2)); % filtered best points
-                            points = [points(filteredIdx,1),points(filteredIdx,2)];
-                            oldPoints = points; % Make a copy of the points to be used
-                            numPoints = double(oldPoints);% locate the origins of the GCPs
-                        else
-                            oldPoints = points; % Make a copy of the points to be used
-                            numPoints = double(oldPoints);% locate the origins of the GCPs
-                        end
-                        
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                            orthorectification(app) % Run the starting orthoscript
-                            camA_previous = app.camA;
-                            app.camA_first = app.camA;
-                            
-                            if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs') == true
-                                [sizer1, ~] = size(app.gcpA); % accounts for small numbers of GCPs
-                                for a = 1:sizer1 % automatically search for GCPs
-                                    temper4 = abs(numPoints(:,1)-app.gcpA(a,4)); % Less sensitive - just finds closest match
-                                    temper5 = abs(numPoints(:,2)-app.gcpA(a,5));
-                                    tot = min(temper4 + temper5);
-                                    val = find([temper4 + temper5] == tot);
-                                    if ~isempty(val)
-                                        app.k1(a,1:2) = [val,val];
-                                        app.gcpA(a,4:5) = [numPoints(val,1),numPoints(val,2)];
-                                    else
-                                        app.gcpA(a,1:5) = [NaN];
-                                    end
-                                    clear temp4 temp5
-                                end
-                            else
-                                temp11 = length(app.gcpA(:,4));
-                                app.k1(1:temp11,1) = app.gcpA(:,4);
-                                app.k1(1:temp11,2) = app.gcpA(:,5);
-                                clear temp11
-                            end
-                        end
-                        
-                        tracker = vision.PointTracker('MaxBidirectionalError', 1.0,...
-                            'BlockSize', app.Blocksize); % Create a new tracker; error allowed of up-to one cell
-                        initialize(tracker, points, app.objectFrame); % Restart the tracker for the new image (I.e. the 10th image is used as the base)
-                        clear oldInliersExtract temp2 app.k1
-                        
-                        % convert the ROI into metric units
-                        TextIn = {'Calculating ROI in metric units. Please wait'};
-                        app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                        printItems(app)
-                        pause(0.01);
-                        app.ListBox.scroll('bottom');
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                            if length(app.boundaryLimitsPx) > 1 && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false
-                                app.boundaryLimitsM = app.camA.invproject(app.boundaryLimitsPx,app.TransX,app.TransY,app.Transdem);
-                            elseif length(app.boundaryLimitsPx) > 1 && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == true
-                                app.boundaryLimitsM = app.boundaryLimitsPx.*app.imageResolution;
-                            elseif strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == true
-                                % do nothing
-                            end
-                        end
-                    else
-                        %% This is the end of the tracking sequence
-                        if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                            if app.s2.*1/app.videoFrameRate < V.Duration
-                                V.CurrentTime = app.s2.*1/app.videoFrameRate;
-                            else
-                                break
-                            end
-                        end
-                        
-                        % Update the file name input
-                        p1 = template(1:end-length(num2str(app.s2)));
-                        p2 = num2str(app.s2);
-                        fileNameIteration = [p1,p2];
-                        
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                                strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true || ...
-                                strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
-                            % Load the stabilised exported files
-                            listing = dir(app.subDir);
-                            for a = 1:length(listing)
-                                fileNamesIn(a,1) = cellstr(listing(a).name);
-                            end
-                            fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
-                            Index = find(contains(fileNamesIn,fileNameIteration));
-                            if Index > 0
-                                app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
-                            else
-                                break
-                            end
-                            
-                        elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                            % Load the stabilised exported files
-                            listing = dir ([app.directory_stab '\']);
-                            
-                            for a = 1:length(listing)
-                                fileNamesIn(a,1) = cellstr(listing(a).name);
-                            end
-                            fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
-                            Index = find(contains(fileNamesIn,fileNameIteration));
-                            if Index > 0% if s2 matches the first image in the sequence bring it in
-                                app.objectFrame = imread([app.directory_stab '\' char(fileNamesIn(Index))]);
-                            else % Otherwise bring in the first stabilised image
-                                break
-                            end
-                            
-                        elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                            % Load the correct frame in the video sequence
-                            app.objectFrame = app.objectFrameStacked{nFrame};
-                            
-                        else
-                            app.objectFrame = images.internal.rgb2graymex(readFrame(V));
-                        end
-                        
-                        % After bringing in the new object, detect the
-                        % succesfully tracked features
-                        [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the final frame of the sequence
-                        visiblePoints = app.newPoints(isFound, :);
-                        oldInliers = oldPoints(isFound, :);
-                        
-                        % Update the location of the GCPs
-                        if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs') == true
-                            [sizer1, ~] = size(app.gcpA); % accounts for small numbers of GCPs
-                            for a = 1:sizer1
-                                if app.newPoints(app.k1(a),1) > 0
-                                    app.gcpA(a,4) = app.newPoints(app.k1(a),1);
-                                    app.gcpA(a,5) = app.newPoints(app.k1(a),2); %this is not correct
-                                else
-                                    app.gcpA(a,4) = NaN;
-                                end
-                            end
-                        end
-                        
-                        [temp2, ~] = size(visiblePoints);
-                        xDist = ones(temp2,1); horizontalValue = ones(temp2,1); verticalValue = ones(temp2,1);
-                        horizontalValue2 = ones(temp2,1); verticalValue2 = ones(temp2,1);
-                        s = 1;
-                        while s < temp2 + 1
-                            oldInliersExtract = oldInliers(s,:);
-                            horizontalValue(s,1) = oldInliersExtract(1); % Extract the x-axis coordinates for the reference features
-                            verticalValue(s,1) = oldInliersExtract(2); % Extract the y-axis coordinates for the reference features
-                            horizontalValue2(s,1) = visiblePoints(s,1); % Extract the x-axis coordinates for the final tracked features
-                            verticalValue2(s,1) = visiblePoints(s,2); % Extract the y-axis coordinates for the final tracked features
-                            s = s + 1;
-                        end
-                        
-                        if strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == true && ...
-                                strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false % remove edges if required
-                            foi = horizontalValue(:,1) > app.imgsz(2)-0.9*app.imgsz(2) & horizontalValue(:,1) < 0.9*app.imgsz(2) & verticalValue(:,1) > app.imgsz(1)-0.9*app.imgsz(1) & verticalValue(:,1) < 0.9*app.imgsz(1);
-                        elseif strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == false && ...
-                                strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false
-                            foi = horizontalValue(:,1) > [0] & horizontalValue(:,1) < [app.imgsz(2)] & verticalValue(:,1) > [0] & verticalValue(:,1) < [app.imgsz(1)];
-                        elseif strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
-                            foi = (1:length(horizontalValue)); % use all of the data
-                        end
-                        
-                        if app.s2 > 0  && ~isempty(horizontalValue)
-                            %Extract the starting and finishing tracked positions
-                            uvA_initial(:,1) = vertcat(horizontalValue(foi)); %Place the starting x values into the first column
-                            uvA_initial(:,2) = vertcat (verticalValue(foi)); %Place the starting y cells in the second column
-                            uvB_initial(:,1) = vertcat(horizontalValue2(foi));%Place the finish x values into the first column
-                            uvB_initial(:,2) = vertcat(verticalValue2(foi));%Place the finish y values into the first column            %uvA = double(uvA_initial);
-                            
-                            if strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false
-                                camA_previous = app.camA;
-                            end
-                            
-                            if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                                orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
-                            end
-                            
-                            if strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
-                                    strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false
-                                if length(app.TransX) > 1
-                                    temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-                                    temper2 = app.camA.invproject(uvB_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-                                    if ~isempty(temper1)
-                                        xyz = [temper1(:,1:2); temper2(:,1:2)];
-                                        [initialSize, ~] = size(uvA_initial);
-                                        xyzA_initial = xyz(1:initialSize,1:2); % Starting positions that have been rectified
-                                        xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
-                                    else
-                                        temper1 = [];
-                                        tempter2 = [];
-                                    end
-                                else
-                                    temper1 = [];
-                                    tempter2 = [];
-                                end
-                            else
-                                if strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
-                                    app.imageResolution = app.ResolutionmpxEditField.Value; % Catch for GPS + IMU
-                                end
-                                temper1 = uvA_initial.*app.imageResolution;
-                                temper2 = uvB_initial.*app.imageResolution;
-                                xyz = [temper1(:,1:2); temper2(:,1:2)];
-                                [initialSize, ~] = size(uvA_initial);
-                                xyzA_initial = xyz(1:initialSize,1:2); % Starting positions that have been rectified
-                                xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
-                            end
-                            
-                            if length (uvA) > 1 && exist('xyzA','var') == 1
-                                [initialSize, ~] = size(uvA);
-                                [afterSize, ~] = size(uvA_initial);
-                                uvA(1:initialSize+afterSize,1) = vertcat(uvA(:,1),uvA_initial(:,1));
-                                uvA(1:initialSize+afterSize,2) = vertcat(uvA(1:initialSize,2),uvA_initial(:,2));
-                                uvB(1:initialSize+afterSize,1) = vertcat(uvB(:,1),uvB_initial(:,1));
-                                uvB(1:initialSize+afterSize,2) = vertcat(uvB(1:initialSize,2),uvB_initial(:,2));
-                                
-                                [initialSize, ~] = size(xyzA);
-                                [afterSize, ~] = size(xyzA_initial);
-                                xyzA(1:initialSize+afterSize,1) = vertcat(xyzA(:,1),xyzA_initial(:,1));
-                                xyzA(1:initialSize+afterSize,2) = vertcat(xyzA(1:initialSize,2),xyzA_initial(:,2));
-                                xyzB(1:initialSize+afterSize,1) = vertcat(xyzB(:,1),xyzB_initial(:,1));
-                                xyzB(1:initialSize+afterSize,2) = vertcat(xyzB(1:initialSize,2),xyzB_initial(:,2));
-                            else
-                                uvA = uvA_initial;
-                                uvB = uvB_initial;
-                                if exist('xyzA_initial','var')
-                                    xyzA = xyzA_initial;
-                                    xyzB = xyzB_initial;
-                                end
-                            end
-                        end
-                        clear xyzA_initial xyzB_initial uvA_initial uvB_initial verticalValue2 verticalValue horizontalValue2 horizontalValue
-                        
-                        %% restart the tracking sequence
-                        release (tracker)
-                        
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                            objectRegion = [1 1 flip(size(app.objectFrame))];
-                        end
-                        
-                        points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
-                        points = points.Location;
-                        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                            % Create a polygon just inside the area of the image containing data
-                            th=10;
-                            a=app.objectFrame(:,:,1)>th; % find pixel values greater than 10
-                            a=bwareaopen(a,50); % find 50 connected pixels
-                            B = bwboundaries(a,'noholes');
-                            B1 = B{1,1};
-                            k = boundary(B1); %(:,1),B1(:,2),1); % [x,y]: outline
-                            filled = polyshape (B1(k,2),B1(k,1)); % polyshape
-                            % Next extract the points towards the edges of the image
-                            q_length = sqrt(polyarea(filled.Vertices(:,1),filled.Vertices(:,2)));
-                            q_length_t = q_length.*0.10;
-                            q = polybuffer(filled,-q_length_t); %shrink the boundary by the square root of the area imaged
-                            filteredIdx = inpolygon(points(:,1),points(:,2),q.Vertices(:,1),q.Vertices(:,2)); % filtered best points
-                            points = [points(filteredIdx,1),points(filteredIdx,2)];
-                            oldPoints = points; % Make a copy of the points to be used
-                        else
-                            oldPoints = points; % Make a copy of the points to be used
-                        end
-                        
-                        tracker = vision.PointTracker('MaxBidirectionalError', 1.0,...
-                            'BlockSize', app.Blocksize); % Create a new tracker; error allowed of up-to one cell
-                        initialize(tracker, points, app.objectFrame); % Restart the tracker for the new image (I.e. the 10th image is used as the base)
-                        clear oldInliersExtract temp2 app.k1
-                        
-                        % find the locations of the GCPs again
-                        numPoints = double(oldPoints);
-                        if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs') == true
-                            [sizer1, ~] = size(app.gcpA); % accounts for small numbers of GCPs
-                            for a = 1:sizer1 % automatically search for GCPs
-                                temper4 = abs(numPoints(:,1)-app.gcpA(a,4)); % Less sensitive - just finds closest match
-                                temper5 = abs(numPoints(:,2)-app.gcpA(a,5));
-                                tot = min(temper4 + temper5);
-                                val = find([temper4 + temper5] == tot);
-                                if ~isempty(val)
-                                    app.k1(a,1:2) = [val,val];
-                                    app.gcpA(a,4:5) = [numPoints(val,1),numPoints(val,2)];
-                                else
-                                    app.gcpA(a,1:5) = [NaN];
-                                end
-                                clear temp4 temp5
-                            end
-                        else
-                            app.k1 = [];
-                            app.k1(:,1) = app.gcpA(:,4);
-                            app.k1(:,2) = app.gcpA(:,5);
-                        end
-                        
-                        %app.s2 = app.s2 + 1;
-                        %nFrame = nFrame + 1;
-                        %template = '00000';
-                        %inputNum = num2str(app.s2);
-                        %p1 = template(1:end-length(num2str(app.s2)));
-                        %p2 = inputNum;
-                        %fileNameIteration = [p1,p2];
-                        
-                    end
-                    
-                else % if its a normal (non extraction frame)
-                    
-                    if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                        if app.s2.*1/app.videoFrameRate < V.Duration
-                            V.CurrentTime = app.s2.*1/app.videoFrameRate;
-                        else
-                            break
-                        end
-                    end
-                    
-                    if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                            strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true || ...
-                            strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
-                        % Load the stabilised exported files
-                        listing = dir(app.subDir);
-                        for a = 1:length(listing)
-                            fileNamesIn(a,1) = cellstr(listing(a).name);
-                        end
-                        fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
-                        Index = find(contains(fileNamesIn,fileNameIteration));
-                        if Index > 0
-                            app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
-                        else
-                            break
-                        end
-                        
-                    elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                        
-                        % Do nothing
-                                                    
-                    elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                        % Load the correct frame in the video sequence
-                        app.objectFrame = app.objectFrameStacked{nFrame};
-                        
-                    else
-                        try
-                            app.objectFrame = images.internal.rgb2graymex(readFrame(V)); % if no more frames
-                        catch
-                            app.s2 = totNum-2; % cause it to exit on the next cycle
-                        end
-                    end
-                    
-                    if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                        [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
-                        visiblePoints = app.newPoints(isFound, :);
-                        oldInliers = oldPoints(isFound, :);
-                    end
-                    
-                end
-                app.s2 = app.s2 + 1;
-                template = '00000';
-                inputNum = num2str(app.s2);
-                p1 = template(1:end-length(num2str(app.s2)));
-                p2 = inputNum;
-                fileNameIteration = [p1,p2];
-                nFrame = nFrame + 1;
-                
-                TextIn = {['Frame ' int2str(app.s2) ' of ' int2str(totNum -1) ' completed. Please wait']};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-            end
-            clear uvAorig uvBorig uvIndex markers markerColors out
-            
-            try
-                if length(app.boundaryLimitsM)>1
-                    [in,on] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
-                    app.xyzA_final = xyzA(in,1:2);
-                    app.xyzB_final = xyzB(in,1:2);
-                else
-                    app.xyzA_final = xyzA(:,1:2);
-                    app.xyzB_final = xyzB(:,1:2);
-                end
-                TextIn = {'Image processing completed'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-            catch
-                TextIn = {'No trajectories stored. The program will terminate.'; ...
-                    'Check inputs e.g. custom FOV (if used) and WSE values and retry.'}; % Update the display
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                error('Breaking out of function');
-            end
-            
-        end %function
-        
-        
-        function [] = trajectoryAdjustments(app)
-            if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
-                
-                TextIn = {'Computing the normal component of the flow. Please wait.'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                [t1, t2] = size(app.objectFrame); % Ensure the start stop positions don't exceed the size of the image
-                if app.start1(1) < 0; app.start1(1) = 0; end
-                if app.start1(1) > t2; app.start1(1) = t2; end
-                if app.start1(2) < 0; app.start1(2) = 0; end
-                if app.start1(2) > t1; app.start1(2) = t1; end
-                if app.end1(1) < 0; app.end1(1) = 0; end
-                if app.end1(1) > t2; app.end1(1) = t2; end
-                if app.end1(2) < 0; app.end1(2) = 0; end
-                if app.end1(2) > t1; app.end1(2) = t1; end
-                
-                if strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
-                        strcmp (app.OrientationValue, 'Planet [beta]') == false
-                    start1_rw = app.camA_first.invproject(app.start1,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-                    end1_rw =   app.camA_first.invproject(app.end1,app.TransX,app.TransY,app.Transdem);
-                else
-                    start1_rw = app.start1.*app.imageResolution;
-                    end1_rw = app.end1.*app.imageResolution;
-                end
-                
-                TextIn = {'Estimating the length of time the trajectory corrections will take. Please wait.'};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                % Convert velocities to normal direction
-                tic;
-                if length(app.xyzA_final) > 100
-                    len1 = 1000;
-                else
-                    len1 = length(app.xyzA_final);
-                end
-                
-                for a = 1:len1
-                    temper1 = normalVector([app.xyzA_final(a,1:2)', app.xyzB_final(a,1:2)'],start1_rw(1:2),end1_rw(1:2));
-                end
-                time = toc;
-                
-                TextIn = {'Would you like to speed up analysis by sub-sampling the data? See dialog box'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                eachIter = time./a; % seconds per sample
-                timeS  = (length(app.xyzA_final)).*eachIter./60; %mins
-                prompt = ['app.subSample data? You have ' num2str(length(app.xyzB_final)) ' features. This will take '...
-                    num2str(round(timeS)) ' minutes'];
-                dlgtitle = 'Query';
-                definput = num2str(length(app.xyzA_final));
-                app.subSample = str2num(cell2mat(inputdlg(prompt,dlgtitle,[1 60],{definput})));
-                dataPoints = app.subSample;
-                ind1 = randperm(length(app.xyzA_final));
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                    set(app.RUNButton,'Text','Processing trajectories');
-                end
-                
-                TextIn = {'Adjusting trajectories, please wait'};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                for t = 1:dataPoints
-                    if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                        set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((t)/(dataPoints)*100) '% Complete'},''));
-                    end
-                    dataOut(t) = normalVector([app.xyzA_final(ind1(t),1:2)',app.xyzB_final(ind1(t),1:2)'],start1_rw(1:2),end1_rw(1:2));
-                end
-                
-                dataOut = replace_num(dataOut,0,NaN);
-                app.xyzA_final = app.xyzA_final(ind1(1:t),1:2);
-                app.xyzB_final = app.xyzB_final(ind1(1:t),1:2);
-                app.normalVelocity = abs(dataOut./(app.iter*1/app.videoFrameRate))'; % divided by time period between start and stop i.e. m s
-                app.vel = app.xyzB_final - app.xyzA_final;% The raw velocity values - not direction specific
-                app.adjustedVel = app.vel./(app.iter*1/app.videoFrameRate); % divided by time period between start and stop i.e. m s
-                
-                % Specify the minimum and maximum velocity for normal
-                % component analysis
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                    app.refValue = app.normalVelocity(:,1);
-                    if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1% if the first video
-                        defaultValue = {'0.1', num2str(Inf)};
-                        titleBar = 'Define the min and max velocities to be stored across all videos';
-                        userPrompt = {'Minimum (m/s): ', 'Maximum (m/s): '};
-                        caUserInput = inputdlg(userPrompt, titleBar, [1, 120], defaultValue);
-                        app.minVel = str2num(caUserInput{1});
-                        app.maxVel = str2num(caUserInput{2});
-                    end
-                    if ~isempty(app.minVel)
-                        remover1 = find(app.refValue < app.minVel | app.refValue > app.maxVel);
-                        app.refValue(remover1) = NaN;
-                    end
-                    
-                elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                    app.refValue = app.normalVelocity(:,1);
-                    if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1 % if the first video
-                        defaultValue = {'0.1', num2str(Inf)};
-                        titleBar = 'Define the minimum and maximum velocities to be stored';
-                        userPrompt = {'Minimum (m/s): ', 'Maximum (m/s): '};
-                        caUserInput = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
-                        app.minVel = str2num(caUserInput{1});
-                        app.maxVel = str2num(caUserInput{2});
-                    end
-                    if ~isempty(app.minVel)
-                        remover1 = find(app.refValue < app.minVel | app.refValue > app.maxVel);
-                        app.refValue(remover1) = NaN;
-                    end
-                end
-                
-                TextIn = {'Trajectory adjustments completed, continue'};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-            elseif strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
-                app.xyzA_final = app.xyzA_final(1:end,1:2);
-                app.xyzB_final = app.xyzB_final(1:end,1:2);
-                app.vel = app.xyzB_final - app.xyzA_final;% The raw velocity values - not direction specific
-                app.adjustedVel = app.vel./(app.iter*1/app.videoFrameRate); % divided by time period between start and stop i.e. m s
-                app.normalVelocity(1:length(app.xyzA_final),1) = NaN;
-                app.refValue = sqrt(app.adjustedVel(:,1).^2 + app.adjustedVel(:,2).^2);
-                
-                % Specify the minimum and maximum velocity
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                    if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1% if the first video
-                        defaultValue = {'0.1', num2str(Inf)};
-                        titleBar = 'Define the min and max velocities to be stored across all videos';
-                        userPrompt = {'Minimum (m/s): ', 'Maximum (m/s): '};
-                        caUserInput = inputdlg(userPrompt, titleBar, [1, 120], defaultValue);
-                        app.minVel = str2num(caUserInput{1});
-                        app.maxVel = str2num(caUserInput{2});
-                    end
-                    if ~isempty(app.minVel)
-                        remover1 = find(app.refValue < app.minVel | app.refValue > app.maxVel);
-                        app.refValue(remover1) = NaN;
-                    end
-
-                elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                    if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1% if the first video
-                        defaultValue = {'0.1', num2str(Inf)};
-                        titleBar = 'Define the minimum and maximum velocities to be stored';
-                        userPrompt = {'Minimum (m/s): ', 'Maximum (m/s): '};
-                        caUserInput = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
-                        app.minVel = str2num(caUserInput{1});
-                        app.maxVel = str2num(caUserInput{2});
-                    end
-                    if ~isempty(app.minVel)
-                        remover1 = find(app.refValue < app.minVel | app.refValue > app.maxVel);
-                        app.refValue(remover1) = NaN;
-                    end
-                end
-
-            end
-        end
-        
-        function [] = trajectories(app)
-            if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
-                try
-                    TextIn = {'Initiating the particle trajectories plot. Please wait.'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    xyzA_final2 = app.xyzA_final(:,1:2);
-                    xyzB_final2 = app.xyzB_final(:,1:2);
-                    
-                    limits = [nanmin(app.refValue); nanmax(app.refValue)];
-                    normalised = app.refValue./nanmax(app.refValue);
-                    f1 = figure ('units','pixels'); %,'outerposition',[0 0 1 1]);
-                    init = get(0, 'MonitorPositions');
-                    if size(init, 1) <= 1% v1.1 addition to account for dual monitors
-                        set(f1,'Position',[0.05*init(4), 0.05*init(4), 0.90.*init(4), 0.90.*init(4)]) % square filling half the screen height
-                    end
-                    a1 = axes;  
-                    hold on;
-                    axis equal
-                    axis tight
-                    
-                    % Plot the basemap image
-                    % Merge the images into one complete image of the reach
-                    if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                        app.masterImage = [];
-                        app.masterImageX = [];
-                        app.masterImageY = [];
-                        listing = dir([app.directory_stab]);
-                        for a = 1:app.iter: length(listing) % Show at the same rate as the extract rate
-                            temp1 = cellstr(listing(a).name);
-                            if ~isempty(temp1(contains(temp1,'.jpg')))
-                                imageIn = imread(strjoin([app.directory_stab '\' temp1],''));
-                                if isempty(app.masterImage)
-                                    app.masterImage = imageIn;
-                                end
-                                missingVal = find(app.masterImage == 0); % missing from master image
-                                valExists = find(imageIn > 10); % Exists in new image
-                                [val,~]=intersect(missingVal,valExists); % meets both
-                                if ~isempty(val)
-                                    app.masterImage(val) = imageIn(val);
-                                end
-                            end
-                        end
-                        [axis1, axis2] = size(app.masterImage);
-                        app.masterImageX = (1:axis2).*app.ResolutionmpxEditField.Value;
-                        %app.masterImageY = fliplr((1:axis1).*app.ResolutionmpxEditField.Value);
-                        app.masterImageY = (1:axis1).*app.ResolutionmpxEditField.Value;
-                        h1 = image(app.masterImageX,app.masterImageY,...
-                            app.masterImage,'CDataMapping','scaled');
-                    else
-                        h1 = image(app.X(1,:),app.Y(:,1),app.rgbHR,'CDataMapping','scaled');
-                    end
-                    
-                    colormap(gray);
-                    
-                    % Define axes based on minimum of inputs (image or trajectories)
-                    limOptTrajX = [nanmin([xyzA_final2(:,1); xyzB_final2(:,1)]), nanmax([xyzA_final2(:,1); xyzB_final2(:,1)])];
-                    limOptTrajY = [nanmin([xyzA_final2(:,2); xyzB_final2(:,2)]), nanmax([xyzA_final2(:,2); xyzB_final2(:,2)])];
-                    if ~isempty(app.X)
-                        limOptImageX = [nanmin(app.X(1,:)),nanmax(app.X(1,:))];
-                        limOptImageY = [nanmin(app.Y(:,1)),nanmax(app.Y(:,1))];
-                        set(a1,'xlim', [max(limOptTrajX(1),limOptImageX(1)),...
-                            min(limOptTrajX(2),limOptImageX(2))]);
-                        set(a1,'ylim', [max(limOptTrajY(1),limOptImageY(1)),...
-                            min(limOptTrajY(2),limOptImageY(2))]);
-                    else
-                        set(a1,'xlim', [nanmin([xyzA_final2(:,1); xyzB_final2(:,1)]), nanmax([xyzA_final2(:,1); xyzB_final2(:,1)])])
-                        set(a1,'ylim', [nanmin([xyzA_final2(:,2); xyzB_final2(:,2)]), nanmax([xyzA_final2(:,2); xyzB_final2(:,2)])])
-                    end
-                    
-                    xLims = get(a1,'xlim');
-                    yLims = get(a1,'ylim');
-                    set(a1,'xtick',[],'ytick',[]); %remove its ticks
-                    set(a1,'TickLabelInterpreter','latex')
-                    set(a1,'fontsize',14)
-                    
-                    a2 = axes;
-                    hold on;
-                    axis equal;
-                    axis tight
-                    set(a2,'xlim',xLims)
-                    set(a2,'ylim',yLims)
-                    set(a2,'color','none')
-                    set(a2,'TickLabelInterpreter','latex')
-                    set(a2,'fontsize',14)
-                    linkaxes([a1,a2],'xy'); % link the x and y-axis
-                    
-                    %Create the colobar and set appropriate position
-                    if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                        caxis([nanmin(app.refValue),prctile(app.refValue,99.99)])
-                    else
-                        caxis([nanmin(app.refValue),prctile(app.refValue,99)])
-                    end
-                    
-                    restoredSize1 = get(a1, 'Position');
-                    restoredSize2 = get(a2, 'Position');
-                    d = colorbar;
-                    set(a1, 'Position', restoredSize1 );
-                    set(a2, 'Position', restoredSize2 );
-                    
-                    if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
-                        ylabel(d, 'Velocity Magnitude $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
-                    elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-                        ylabel(d, 'Normal Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
-                    end
-                    
-                    d.FontSize = 14;
-                    d.Location = 'eastoutside';
-                    set(d,'TickLabelInterpreter','latex')
-                    cd = colormap(a2, parula); % take your pick (doc colormap)
-                    
-                    if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                        cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.99),length(cd)),cd,app.refValue); % map color to velocity values
-                    else
-                        cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99),length(cd)),cd,app.refValue); % map color to velocity values
-                    end
-                    cd = uint8(cd'*255); % need a 4xN uint8 array
-                    xlabel('X-axis coordinates (m)', 'Interpreter','LaTex')
-                    ylabel('Y-axis coordinates (m)', 'Interpreter','LaTex')
-                    
-                    if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
-                        zlabel(['Velocity Magnitude $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
-                    elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-                        zlabel(['Normal Velocity $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
-                    end
-                    
-                    % Query how many trajectories to plot
-                    if isempty(app.subSample)
-                        prompt = ['How many vectors would you like to display? ' num2str(length(app.refValue)) ' were extracted '];
-                        dlgtitle = 'Query';
-                        definput = num2str(10000); % default value
-                        if str2num(definput) > length(app.refValue)
-                            definput = num2str(length(app.refValue)); % limited by array size
-                        end
-                        app.subSample = str2num(cell2mat(inputdlg(prompt,dlgtitle,[1 60],{definput})));
-                    end
-                    
-                    dataPoints = app.subSample;
-                    ind1 = randperm(length(app.refValue));
-                    ind1 = ind1(1:dataPoints);
-                    
-                    % Catch to ensure too many are not attempted
-                    if length(ind1) > length(app.refValue)
-                        ind1 = ind1(1:length(app.refValue));
-                    end
-                    
-                    for aa = 1:length(ind1)
-                        h2 = plot([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
-                            [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)]);
-                        set(h2,'Color',cd(:,ind1(aa)))
-                        hold on;
-                    end
-                    
-                    TextIn = {'Exporting the plot of particle trajectories'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Specify the save file options
-                    if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                        try
-                            temp1 = [app.directory_save_multiple '\trajectories.png'];
-                            saveas(f1,temp1,'png')
-                            cla(a1);
-                            cla(a2);
-                            reset(gcf);
-                            reset(gca);
-                            close (f1)
-                            waitfor(f1)
-                        catch
-                        end
-                    else
-                        temp1 = [app.directory_save '\' app.file(1:end-4) '_trajectories.png'];
-                        saveas(f1,temp1,'png')                        
-                    end
-                    
-                    TextIn = {'Completed export of particle trajectories plot'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                catch
-                    TextIn = {'Unable to generate and export the plot'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                end %try
-            end %strmcmp switch
-        end % function
-        
-        function [] = exportVelocity(app)
-            
-            if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
-                Ze1 = app.refValue;
-                labels = {'X [m]', 'Y [m]', 'X component [m/s]', 'Y component [m/s]', 'Velocity magnitude [m/s]'};
-            elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-                Ze1 = app.normalVelocity(:,1);
-                labels = {'X [m]', 'Y [m]', 'X component [m/s]', 'Y component [m/s]', 'Normal component [m/s]'};
-                %Ze2 = app.tangentialVelocity(:,1);
-            end
-            outVars = ([app.xyzA_final, app.adjustedVel, Ze1]); % Populate the array
-            outVars = round(outVars*100)/100; % Round to two decimal places
-            dataOut = [labels;num2cell(outVars)];
-            
-            if strcmp(app.ExporttrajectoriesSwitch.Value, 'On') == 1
-                
-                TextIn = {'Initiating the export of velocity outputs'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                TextIn = {'Export started. Please wait.'};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                    writetable( cell2table(dataOut), strjoin({app.directory_save_multiple, '\', ...
-                        app.file(1:end-4), '_', char(datetime(now,'ConvertFrom','datenum','format', 'yyyyMMddHHmm' )), ...
-                        '_VelocityOutputs.csv'},''), ...
-                        'writevariablenames', false, 'quotestrings', true)
-                    TextIn = strjoin({'Export completed. Saved to ' app.directory_save_multiple},'');
-                else
-                    writetable( cell2table(dataOut), strjoin({app.directory_save, '\', ...
-                        app.file(1:end-4), '_', char(datetime(now,'ConvertFrom','datenum','format', 'yyyyMMddHHmm' )), ...
-                        '_VelocityOutputs.csv'},''), ...
-                        'writevariablenames', false, 'quotestrings', true);
-                end
-                
-                TextIn = strjoin({'Export completed. Saved to ' app.directory_save},'');
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-            end %if strcmp
-        end % function
-        
-        function [] = loadState(app)
-            TextIn = {'Select the settings to load.'};
-            app.ListBox.Items = [app.ListBox.Items, TextIn'];
-            printItems(app)
-            pause(0.01);
-            app.ListBox.scroll('bottom');
-            
-            if length(app.directory) < 1
-                % Create list of images inside the considered directory
-                [settingsFileIn, settingsDirIn] = uigetfile('*.mat');
-            else
-                [settingsFileIn, settingsDirIn] = uigetfile({'*.mat' 'All Files'},'Select a file',app.directory);
-            end
-            if length(settingsFileIn) > 1
-                direc = dir([settingsDirIn,filesep]); filenames={};
-                [filenames{1:length(direc),1}] = deal(direc.name);
-                filenames = sortrows(filenames); %sort all image files
-                amount = length(filenames);
-                textOutput = strjoin({settingsDirIn, settingsFileIn}, '');
-                
-                TextIn = strjoin({'Loading settings from: ' textOutput},'');
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                load(textOutput,'appEx');
-                
-                if exist('appEx','var')
-                    fields = fieldnames(app);
-                    for a = 1:length(fields)
-                        [i1] =  strcmp(app.flexVarsComp, fields(a));
-                        if max(i1) > 0
-                            i1_idx = find (i1 == 1);
-                            if strcmp(char(app.flexVars(1,i1)), 'UITable.Data') == 1
-                                app.UITable = uitable(app.KLTIV_UIFigure);
-                                app.UITable.Visible = 'on';
-                                app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
-                                app.UITable.RowName = {};
-                                app.UITable.ColumnEditable = [true true true false false];
-                                app.UITable.CellSelectionCallback = createCallbackFcn(app, @UITableCellSelection, true);
-                                app.UITable.ForegroundColor = [0.149 0.149 0.149];
-                                app.UITable.FontName = 'Ubuntu';
-                                app.UITable.Position = [335 153 290 219];
-                                eval(['app.' char(app.flexVars(1,i1))  '=' char(strjoin({'appEx.', char(app.flexVarsComp(1,i1_idx))},'')) ';'])
-                                %CheckTable1 = get(app.UITable,'Data')
-                                %set( app.UITable, 'Data', CheckTable1 )
-                                pause(0.5)
-                            else
-                                eval(['app.' char(app.flexVars(1,i1))  '=' char(strjoin({'appEx.', char(app.flexVarsComp(1,i1_idx))},'')) ';'])
-                                pause(0.5)
-                                try % only certain vars have this
-                                    eval(['app.' char(fields(a,1)) '.Visible = "Off";']);
-                                    pause(0.5)
-                                    eval(['app.' char(fields(a,1)) '.Visible = "On";']);
-                                    pause(0.5)
-                                catch
-                                    pause(0.5)
-                                end
-                            end
-                        end
-                    end
-                    OrientationDropDownValueChanged(app)
-                    VelocityDropDownValueChanged(app)
-                    bringInImage(app)
-                    %TextIn = strjoin({'Output directory is: ', char(app.directory_save)}, '');
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TextIn = 'Settings succesfully loaded.';
-                    app.ListBox.Items = [TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                end
-                
-            else
-                TextIn = {'No settings file selected, please try again'};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-            end
-        end
-        
-    end % methods
-    
     
     methods (Access = private)
         
@@ -1523,893 +245,7 @@ classdef KLT < matlab.apps.AppBase
             %saveState(app)
         end
         
-        function CrossSectionDropDownValueChanged(app, ~)
-            if strcmp (app.CrossSectionDropDown.Value, 'Referenced survey [m]') == 1
-                app.UITable2.Data = [];
-                app.xInder = [];
-                app.yInder = [];
-                [app.surveyFile, app.surveyDirectory] = uigetfile({'*.csv' '.csv Files'},'Select .csv containing cross-section survey data',app.directory);
-                if length(app.surveyFile) > 1
-                    % Update the display
-                    TextIn = {'Loading Cross-section survey data - please wait'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app);
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    [data_text,~] = readtext(strjoin({app.surveyDirectory app.surveyFile },''), ',', '','','textual'); % read in the csv file
-                    app.surveyIn = [];
-                    app.surveyIn(:,1) = str2double(data_text(2:end,1)); % Extract the X coordinate of the scan
-                    app.surveyIn(:,2) = str2double(data_text(2:end,2)); % Extract the Y coordinate of the scan
-                    app.surveyIn(:,3) = str2double(data_text(2:end,3)); % Extract the Z coordinate of the scan
-                    app.startXS = [ app.surveyIn(1,1),app.surveyIn(1,2) ];
-                    app.endXS = [ app.surveyIn(end,1),app.surveyIn(end,2) ];
-                    dist = abs(app.startXS - app.endXS); % [x y distances]
-                    app.transectLength = sqrt(dist(1,1).^2 + dist(1,2).^2);
-                    
-                    % Convert from real-world to relative distances
-                    out=cell2mat(cellfun(@(x) app.startXS-x ,{app.surveyIn(:,1:2)},'un',0));
-                    surveyTemp = [sqrt(out(:,1).^2 + out(:,2).^2),app.surveyIn(:,3)] ;
-                    app.UITable2.Data = surveyTemp;
-                    
-                    % Update the display
-                    TextIn = {'Cross-section survey data succesfully loaded'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    TextIn = {['Selected cross-section length is ' num2str(app.transectLength) 'm']; ...
-                        ['Please continue']};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                end
-                
-            elseif strcmp (app.CrossSectionDropDown.Value, 'Relative distances [m]') == 1
-                app.UITable2.Data = [];
-                app.xInder = [];
-                app.yInder = [];
-                
-                % Update the display
-                TextIn = {'Using the mouse first right click on the start location of the cross-section, then the end point of the cross-section'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                % Plot the basemap image
-                % Merge the images into one complete image of the reach
-                if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                    app.XS_pts = readPoints(app.masterImage, 2, 3, app); hold on;
-                    app.startXS = [app.masterImageX(1,round(app.XS_pts(1,1))),app.masterImageY(round(app.XS_pts(2,1)))];
-                    app.endXS = [app.masterImageX(1,round(app.XS_pts(1,2))),app.masterImageY(round(app.XS_pts(2,2)))];
-                else
-                    app.XS_pts = readPoints(app.firstOrthoImage, 2, 3, app); hold on;
-                    app.startXS = [app.X(1,round(app.XS_pts(1,1))),app.Y(round(app.XS_pts(2,1)))];
-                    app.endXS = [app.X(1,round(app.XS_pts(1,2))),app.Y(round(app.XS_pts(2,2)))];
-                end
-                
-                dist = abs(app.startXS - app.endXS); % [x y distances]
-                app.transectLength = sqrt(dist(1,1).^2 + dist(1,2).^2);
-                %msgbox(['Transect length is ' num2str(app.transectLength) 'm'],'Value');
-                TextIn = {['Selected cross-section length is ' num2str(app.transectLength) 'm']; ...
-                    ['Close the Figure window when ready to continue']};
-                printItems(app)
-                
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                TextIn = {'Loading Cross-section survey data - please wait'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                [app.surveyFile, app.surveyDirectory] = uigetfile({'*.csv' '.csv Files'},'Select .csv containing cross-section survey data',app.directory);
-                
-                [data_text,~] = readtext(strjoin({app.surveyDirectory app.surveyFile },''), ',', '','','textual'); % read in the csv file
-                surveyTemp(:,1) = data_text(2:end,1); % Extract the distance coordinate of the scan
-                surveyTemp(:,2) = data_text(2:end,2); % Extract the Z coordinate of the scan
-                surveyTemp = str2double(surveyTemp); % Convert to numeric if simple input
-                
-                in1 = (0:0.01:app.transectLength)'*(dist./app.transectLength);
-                out=cell2mat(cellfun(@(x) app.startXS-x ,{in1},'un',0));
-                out(:,3) = 0.01:0.01:(length(out)./100)';
-                
-                intermediateLength = surveyTemp (:,1); %sqrt(surveyIn(:,1).^2 + surveyIn(:,2).^2);
-                
-                for a = 1:length(intermediateLength)
-                    t1(a,1) = findnearest(intermediateLength(a,1),out(:,3));
-                end
-                app.surveyIn = out(t1,1:2);
-                app.UITable2.Data = surveyTemp;
-                
-            end
-            
-        end
-        
-        
-        % Value changed function: OrientationDropDown
-        function OrientationDropDownValueChanged(app, ~)
-            app.OrientationValue = app.OrientationDropDown.Value;
-            if strcmp (app.OrientationValue, 'Stationary: Nadir') == 1
-                app.s2 = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPfile = [];
-                app.GCPData = [];
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                app.gcpA = [0 0 0 0 0];
-                app.GCPDataDropDown.Enable = 'off';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'off') % disable the GCP buffer option
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.UITable.Enable = 'off';
-                app.ExportGCPdataSwitch.Enable = 'off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.CustomFOVEditField_2.Enable = 'on';
-                app.CustomFOVEditField_3.Enable = 'on';
-                app.CustomFOVEditField_4.Enable = 'on';
-                app.CustomFOVEditField_5.Enable = 'on';
-                app.yawpitchrollEditField.Value = [0];
-                app.yawpitchrollEditField.Enable = 'off';
-                app.yawpitchrollEditField_2.Value = [1.57];
-                app.yawpitchrollEditField_2.Enable = 'off';
-                app.yawpitchrollEditField_3.Value = [0];
-                app.yawpitchrollEditField_3.Enable = 'off';
-                app.CameraTypeDropDown.Enable = 'on';
-                app.CameraxyzEditField.Enable = 'on';
-                app.CameraxyzEditField_2.Enable = 'on';
-                app.CameraxyzEditField_3.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable ='on';
-                app.OrthophotosSwitch.Value = 'Off';
-                app.OrthophotosSwitch.Enable = 'on';
-                app.roiButton.Enable = 'on'; app.boundaryLimitsPx = [];
-                
-                TextIn = {'No GCPs are used for the optimisation process';...
-                    'The assumption is the camera is at nadir'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-            elseif strcmp (app.OrientationValue, 'Dynamic: GCPs + Stabilisation') == 1
-                
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                app.gcpA = [0 0 0 0 0];
-                app.s2 = [];
-                app.GCPfile = [];
-                app.GCPData = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.GCPDataDropDown.Enable = 'on';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'on') % disable the GCP buffer option
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.UITable.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.yawpitchrollEditField.Value = [0];
-                app.yawpitchrollEditField.Enable = 'on';
-                app.yawpitchrollEditField_2.Value = [1.57];
-                app.yawpitchrollEditField_2.Enable = 'on';
-                app.yawpitchrollEditField_3.Value = [0];
-                app.yawpitchrollEditField_3.Enable = 'on';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.CameraTypeDropDown.Enable = 'on';
-                app.CameraxyzEditField.Enable = 'on';
-                app.CameraxyzEditField_2.Enable = 'on';
-                app.CameraxyzEditField_3.Enable = 'on';
-                app.CustomFOVEditField_2.Enable = 'on';
-                app.CustomFOVEditField_3.Enable = 'on';
-                app.CustomFOVEditField_4.Enable = 'on';
-                app.CustomFOVEditField_5.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable = 'on';
-                app.OrthophotosSwitch.Value = 'Off';
-                app.OrthophotosSwitch.Enable = 'on';
-                app.roiButton.Enable = 'on'; app.boundaryLimitsPx = [];
-                
-                TextIn = {'The images are stabilised and then orthorectification is carried out'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-            elseif strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == true
-                
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                app.s2 = [];
-                app.GCPfile = [];
-                app.GCPData = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.GCPDataDropDown.Enable = 'off';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'off') % disable the GCP buffer option
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.UITable.Enable = 'off';
-                app.ExportGCPdataSwitch.Enable = 'off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.yawpitchrollEditField.Value = [0];
-                app.yawpitchrollEditField.Enable = 'off';
-                app.yawpitchrollEditField_2.Value = [1.57];
-                app.yawpitchrollEditField_2.Enable = 'off';
-                app.yawpitchrollEditField_3.Value = [0];
-                app.yawpitchrollEditField_3.Enable = 'off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.CameraTypeDropDown.Enable = 'off';
-                app.CameraxyzEditField.Enable = 'off';
-                app.CameraxyzEditField_2.Enable = 'off';
-                app.CameraxyzEditField_3.Enable = 'off';
-                app.CustomFOVEditField_2.Enable = 'off';
-                app.CustomFOVEditField_3.Enable = 'off';
-                app.CustomFOVEditField_4.Enable = 'off';
-                app.CustomFOVEditField_5.Enable = 'off';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable ='off';
-                app.OrthophotosSwitch.Value = 'Off';
-                app.OrthophotosSwitch.Enable = 'on';
-                app.roiButton.Enable = 'on'; app.boundaryLimitsPx = [];
-                
-                app.imageResolution = str2num(cell2mat(inputdlg(['What is the image resolution (m/px)?'],...
-                    'Query', [1 60], {num2str(0.01)})));
-                app.ResolutionmpxEditField.Value = app.imageResolution;
-                TextIn = {'Image resolution succesfully defined'};
-                TextIn2 = {['1 px equates to ' num2str(app.imageResolution) ' m' ]};
-                app.ListBox.Items = [app.ListBox.Items, TextIn', TextIn2'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                
-            elseif strcmp (app.OrientationValue, 'Planet [beta]') == 1
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                app.s2 = [];
-                app.GCPfile = [];
-                app.GCPData = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.GCPDataDropDown.Enable = 'off';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'off') % disable the GCP buffer option
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.UITable.Enable = 'off';
-                app.ExportGCPdataSwitch.Enable = 'off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.yawpitchrollEditField.Value = [0];
-                app.yawpitchrollEditField.Enable = 'off';
-                app.yawpitchrollEditField_2.Value = [1.57];
-                app.yawpitchrollEditField_2.Enable = 'off';
-                app.yawpitchrollEditField_3.Value = [0];
-                app.yawpitchrollEditField_3.Enable = 'off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.CameraTypeDropDown.Enable = 'off';
-                app.CameraxyzEditField.Enable = 'off';
-                app.CameraxyzEditField_2.Enable = 'off';
-                app.CameraxyzEditField_3.Enable = 'off';
-                app.CustomFOVEditField_2.Enable = 'off';
-                app.CustomFOVEditField_3.Enable = 'off';
-                app.CustomFOVEditField_4.Enable = 'off';
-                app.CustomFOVEditField_5.Enable = 'off';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable ='off';
-                app.OrthophotosSwitch.Value = 'Off';
-                app.OrthophotosSwitch.Enable = 'on';
-                
-                app.imageResolution = str2num(cell2mat(inputdlg(['What is the image resolution (m/px)?'],...
-                    'Query', [1 60], {num2str(0.01)})));
-                app.ResolutionmpxEditField.Value = app.imageResolution;
-                TextIn = {'Image resolution succesfully defined'};
-                TextIn2 = {['1 px equates to ' num2str(app.imageResolution) ' m' ]};
-                app.ListBox.Items = [app.ListBox.Items, TextIn', TextIn2'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                
-            elseif strcmp (app.OrientationValue, 'Stationary: GCPs') == 1
-                % Ensure that all of the required fields are enabled
-                app.s2 = [];
-                app.GCPfile = [];
-                app.GCPData = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.CameraxyzEditField.Enable = 'on';
-                app.CameraxyzEditField_2.Enable = 'on';
-                app.CameraxyzEditField_3.Enable = 'on';
-                app.yawpitchrollEditField.Enable = 'on';
-                app.yawpitchrollEditField_2.Enable = 'on';
-                app.yawpitchrollEditField_3.Enable = 'on';
-                app.GCPDataDropDown.Enable = 'on';
-                app.BufferaroundGCPsmetersEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.UITable.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.CustomFOVEditField_2.Enable = 'on';
-                app.CustomFOVEditField_3.Enable = 'on';
-                app.CustomFOVEditField_4.Enable = 'on';
-                app.CustomFOVEditField_5.Enable = 'on';
-                app.FlightPathPlotSwitch.Enable = 'on';
-                app.CameraTypeDropDown.Enable = 'on';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable ='on';
-                %app.VelocityDropDown.Value = 'Make a selection:';
-                app.VelocityDropDown.Enable = 'on';
-                app.IgnoreEdgesDropDown.Value = 'No';
-                app.IgnoreEdgesDropDown.Enable = 'on';
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                    app.roiButton.Enable = 'off';
-                else
-                    app.roiButton.Enable = 'on';
-                end
-                app.boundaryLimitsPx = [];
-                app.FlightPathPlotSwitch.Value = 'Off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.OrthophotosSwitch.Value = 'Off';
-                app.OrthophotosSwitch.Enable = 'on';
-                
-                TextIn = {'GCPs are used for optimisation of the camera model'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-            elseif strcmp (app.OrientationValue, 'Dynamic: GCPs') == 1
-                % Ensure that all of the required fields are enabled/diabled
-                app.s2 = [];
-                app.GCPfile = [];
-                app.GCPData = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.CameraxyzEditField.Enable = 'on';
-                app.CameraxyzEditField_2.Enable = 'on';
-                app.CameraxyzEditField_3.Enable = 'on';
-                app.yawpitchrollEditField.Enable = 'on';
-                app.yawpitchrollEditField_2.Enable = 'on';
-                app.yawpitchrollEditField_3.Enable = 'on';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'on') % disable to buffer field
-                app.GCPDataDropDown.Enable = 'on';
-                app.BufferaroundGCPsmetersEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.UITable.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'on') % disable the GCP buffer option
-                app.CheckGCPsSwitch.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.FlightPathPlotSwitch.Enable = 'on';
-                app.CameraTypeDropDown.Enable = 'on';
-                app.CustomFOVEditField_2.Enable = 'on';
-                app.CustomFOVEditField_3.Enable = 'on';
-                app.CustomFOVEditField_4.Enable = 'on';
-                app.CustomFOVEditField_5.Enable = 'on';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable ='on';
-                app.roiButton.Enable = 'on'; app.boundaryLimitsPx = [];
-                app.OrthophotosSwitch.Value = 'Off';
-                app.OrthophotosSwitch.Enable = 'on';
-                
-                TextIn = {'GCPs are used for optimisation of the camera model';...
-                    'Locations of the GCPs will be updated automatically'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-            elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
-                % Disable the required fields
-                app.s2 = [];
-                app.GCPfile = [];
-                app.GCPData = [];
-                set(app.RUNButton,'Text','RUN');
-                app.GCPDataDropDown.Value = 'Make a selection:';
-                app.CameraxyzEditField.Enable = 'off';
-                app.CameraxyzEditField_2.Enable = 'off';
-                app.CameraxyzEditField_3.Enable = 'off';
-                app.yawpitchrollEditField.Enable = 'off';
-                app.yawpitchrollEditField_2.Enable = 'off';
-                app.yawpitchrollEditField_3.Enable = 'off';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'off') % disable to buffer field
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                app.GCPDataDropDown.Enable = 'off';
-                app.BufferaroundGCPsmetersEditField.Enable = 'off';
-                app.WatersurfaceelevationmEditField.Enable = 'off';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.UITable.Enable = 'off';
-                app.ExportGCPdataSwitch.Enable = 'off';
-                app.FlightPathPlotSwitch.Enable = 'on';
-                app.CameraTypeDropDown.Enable = 'on';
-                app.CustomFOVEditField_2.Enable = 'off';
-                app.CustomFOVEditField_3.Enable = 'off';
-                app.CustomFOVEditField_4.Enable = 'off';
-                app.CustomFOVEditField_5.Enable = 'off';
-                app.ProcessingModeDropDown.Enable = 'on';
-                app.ResolutionmpxEditField.Enable ='on';
-                app.VelocityDropDown.Value = 'Velocity Magnitude';
-                app.VelocityDropDown.Enable = 'off';
-                app.IgnoreEdgesDropDown.Value = 'No';
-                app.IgnoreEdgesDropDown.Enable = 'off';
-                app.roiButton.Enable = 'off'; app.boundaryLimitsPx = [];
-                app.FlightPathPlotSwitch.Value = 'Off';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.OrthophotosSwitch.Value = 'On';
-                app.OrthophotosSwitch.Enable = 'off';
-                
-                % Reset the processing complete button
-                set(app.RUNButton,'Text','Processing UAS and GPS data');
-                pause(0.01)
-                
-                % Update the display
-                TextIn = {'Optimising the camera model'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                TextIn2 = {'Select .pos containing UAS GPS data'};
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn', TextIn2'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                [app.UAS_GPSfile, app.UAS_GPSdirectory] = uigetfile({'*.pos' '.pos Files'},'Select .pos containing UAS GPS data',app.directory);
-                if length(app.UAS_GPSfile) > 1
-                    % Update the display
-                    TextIn = {'Loading GPS data - please wait'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    [data_text,~] = readtext(strjoin({app.UAS_GPSdirectory app.UAS_GPSfile },''), ' ', '','','textual'); % read in the csv file
-                    GPST = join([data_text(11:end,1) data_text(11:end,2)]);
-                    GPST_numeric = datenum(GPST,'yyyy/mm/dd HH:MM:SS.FFF');
-                    latIn = data_text(11:end,5);
-                    longIn = data_text(11:end,8);
-                    uas_hgt = str2num(cell2mat(data_text(11:end,11)));
-                    UTMzone = utmzone(str2num(cell2mat(latIn(1))),str2num(cell2mat(longIn(1))));
-                    utmstruct = defaultm('utm');
-                    utmstruct.zone = UTMzone;
-                    utmstruct.geoid = wgs84Ellipsoid;
-                    utmstruct = defaultm(utmstruct);
-                    [uas_x,uas_y] = mfwdtran(utmstruct,str2num(cell2mat(latIn)),str2num(cell2mat(longIn)));
-                    
-                    % Update the display
-                    TextIn = {'GPS data converted from WGS84 to UTM'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    TextIn2 = {['Data acquired in UTM zone ' UTMzone]};
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn', TextIn2'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Update the display
-                    TextIn = {'Interpolating the GPS data to 0.01s sample intervals'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % linearlly interpolate the GPS data from 14Hz to 100Hz
-                    constant1 = 1.1574e-05/100; % one hundredth of a second i.e (0.01s)
-                    uas_x_interp = interp1(GPST_numeric,uas_x,min(GPST_numeric):constant1:max(GPST_numeric));
-                    uas_y_interp = interp1(GPST_numeric,uas_y,min(GPST_numeric):constant1:max(GPST_numeric));
-                    uas_hgt_interp = interp1(GPST_numeric,uas_hgt,min(GPST_numeric):constant1:max(GPST_numeric));
-                    
-                    % Show completion message
-                    TextIn = {'Process Completed'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Update the display
-                    TextIn = {'What time did the video start in GPS time (yyyy/mm/dd HH:MM:SS.FFF)'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Find out the time that the video started
-                    startingTime = cell2mat(inputdlg(['What time did the video start in GPS time (yyyy/mm/dd HH:MM:SS.FFF)'],...
-                        'Starting time', [1 60], {datestr(GPST_numeric(1),'yyyy/mm/dd HH:MM:SS.FFF')}));
-                    startingTimeNum = datenum(startingTime,'yyyy/mm/dd HH:MM:SS.FFF');
-                    
-                    obj = VideoReader(strjoin ({app.directory, app.file},''));
-                    app.videoDuration = obj.Duration; % Extract the length of the video
-                    frameRateIn = obj.FrameRate; % Extract the frame rate of the video
-                    clear obj
-                    
-                    % Show completion message
-                    TextIn = {'Process Completed'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Update the display
-                    TextIn = {'Specify the water surface elevation from GPS data (m)'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Find out the starting elevation of the UAS (i.e. water surface elevation)
-                    startingElevation = cell2mat(inputdlg(['Enter the water surface elevation from GPS (m)'],...
-                        'Water surface elevation', [1 60], {'30'}));
-                    startingElevation = str2num(startingElevation);
-                    app.WatersurfaceelevationmEditField.Value = startingElevation;
-                    
-                    % Show completion message
-                    TextIn = {'Process Completed'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Update the display
-                    TextIn = {'Mapping the video frames to the GPS data'};
-                    TextIn2 = {'Please wait'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn', TextIn2'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    % Calculate the time that each of the frames were collected
-                    for a = 1:(app.videoDuration*frameRateIn)
-                        if a == 1
-                            secPerFrame = 1/frameRateIn;
-                            [Y,M,D,H,MN,S_ori] = datevec(startingTimeNum);
-                            S = floor(S_ori);
-                            MS = S_ori - S;
-                            dt(a) = datetime(Y,M,D,H,MN,S,MS,'Format', 'yyyy-MM-dd HH:mm:ss.SSS');
-                            dt(a) = dt(a) + milliseconds(MS*1000);
-                        else
-                            dt(a) = dt(a-1) + seconds(secPerFrame); % add the secs per frame constant
-                        end
-                    end
-                    DN = datenum(dt);
-                    
-                    % Find the values closest to the interpolated times
-                    for a = 1:length(DN)
-                        [~,c] = findnearest(DN(a), min(GPST_numeric):constant1:max(GPST_numeric));
-                        idx1(a) = c(1);
-                    end
-                    
-                    % Interpolate the GPS data
-                    app.frame_uas_x = uas_x_interp(idx1);
-                    app.frame_uas_y = uas_y_interp(idx1);
-                    app.frame_uas_z = uas_hgt_interp(idx1) - startingElevation;
-                    
-                    % Would you like to start from the begining of the video?
-                    answer = str2num(cell2mat(inputdlg(['How many seconds from the start of the video should be ignored?'],...
-                        'Query', [1 60], {num2str(0)})));
-                    app.s2_mod = answer;
-                    startFrame = round((frameRateIn.*answer)+1);
-                    app.frame_uas_x = app.frame_uas_x(:,startFrame:end);
-                    app.frame_uas_y = app.frame_uas_y(:,startFrame:end);
-                    app.frame_uas_z = app.frame_uas_z(:,startFrame:end);
-                    
-                    % Show completion message
-                    TextIn = {'Process Completed'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                else
-                    app.OrientationDropDown.Value = 'Make a selection:';
-                    TextIn = {'No .pos file loaded, try again or choose an alternative method'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                end
-                
-                % Update the display
-                TextIn = {'Select .csv containing UAS onboard IMU data'};
-                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                % Load the onboard nav data
-                [app.UAS_onboardfile, app.UAS_onboarddirectory] = uigetfile({'*.csv' '.csv Files'},'Select .csv containing UAS onboard flight navation data',app.directory);
-                if length(app.UAS_onboardfile) > 1
-                    % Update the display
-                    TextIn = {'Loading UAS onboard navigation data - Please wait'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                    [data_text2,~] = readtext(strjoin({app.UAS_onboarddirectory app.UAS_onboardfile },''), ',', '','','textual'); % read in the csv file
-                    
-                    % find the indexes of the key navigation components
-                    %[i1 j1] = find(strcmp('datetime(utc)', data_text2) == 1);% AirData UAV
-                    %dateIn = data_text2(i1+1:end,j1);% AirData UAV
-                    %uas_dateTime = datenum(dateIn,'dd/mm/yyyy HH:MM:SS'); % AirData UAV
-                    
-                    [i1 j1] = find(strcmp('GPS(0):Date', data_text2) == 1);% Raw data
-                    dateIn = data_text2(i1+1:end,j1);% Raw data
-                    [i2 j2] = find(strcmp('GPS(0):Time', data_text2) == 1); % Raw data
-                    timeIn = data_text2(i2+1:end,j2); % Raw data
-                    uas_dateTime = datenum(strcat(dateIn,timeIn),'yyyymmddHHMMSS'); % Raw data
-                    
-                    [k1 k2] = unique(uas_dateTime);
-                    te1 = round(length(k2)./2);
-                    uas_dateTime2 = zeros(length(uas_dateTime),1);
-                    
-                    
-                    for a = 1:length(k2)-1
-                        sampleRateHz = k2(a+1) - k2(a);
-                        dt1 = k1(te1) - k1(te1-1);
-                        dt2 = (1/sampleRateHz);
-                        dt = dt1*dt2;
-                        %datenumfracsec = (k1(te1) - k1(te1-1))./(sampleRateHz-1);
-                        for b = 1:sampleRateHz%-1
-                            if b == 1
-                                uas_dateTime2(k2(a)) = uas_dateTime(k2(a)) + 0;
-                                t1(k2(a)+b-1,1) = findnearest(GPST_numeric,uas_dateTime2((k2(a)+b-1)));
-                                t1(k2(a)+b-1,1) = findnearest(GPST_numeric,uas_dateTime2((k2(a)+b-1)));
-                            else
-                                doIt = (k2(a)+b-1) < length(uas_dateTime);
-                                if doIt == 1
-                                    uas_dateTime2(k2(a)+b-1,1) = uas_dateTime2(k2(a)+b-2,1) + (dt);
-                                    t1(k2(a)+b-1,1) = findnearest(uas_dateTime2((k2(a)+b-1)),GPST_numeric); % [time, array]
-                                end
-                            end
-                        end
-                    end
-                    
-                    utcOffset = ( k1(te1) - k1(te1-1)) .*18;
-                    uas_dateTime2 = uas_dateTime2 + utcOffset; % add 18-secs to UAS time to convert to GPS time
-                    
-                    [i3 j3] = find(strcmp('IMU_ATTI(0):roll', data_text2) == 1); % Raw data
-                    %[i3 j3] = find(strcmp('roll(degrees)', data_text2) == 1); % AirData UAV
-                    rollRaw = str2double(data_text2(i3+1:end,j3));
-                    [i4 j4] = find(strcmp('IMU_ATTI(0):pitch', data_text2) == 1); % Raw data
-                    %[i4 j4] = find(strcmp('pitch(degrees)', data_text2) == 1); % AirData UAV
-                    pitchRaw = str2double(data_text2(i4+1:end,j4));
-                    [i5 j5] = find(strcmp('IMU_ATTI(0):yaw', data_text2) == 1); % Raw data
-                    %[i5 j5] = find(strcmp('IMU_heading(degrees)', data_text2) == 1); % AirData UAV
-                    % options:
-                    %(1) 'IMU_ATTI(0):yaw'; (2) IMU_ATTI(0):yaw360; (3) IMU_ATTI(0):magYaw; (4) Mag(0):magYaw; (5) Mag(1):magYaw
-                    yawRaw = str2double(data_text2(i5+1:end,j5));
-                    [i6 j6] = find(strcmp('GPS(0):heightMSL', data_text2) == 1);
-                    uasGPS = str2double(data_text2(i6+1:end,j6));
-                    
-                    clear idx1
-                    for a = 1:length(DN)
-                        [cc,~] = findnearest(DN(a),uas_dateTime2);
-                        idx1(a) = cc(1);
-                    end
-                    
-                    % Setup the yaw data -- this section is fine
-                    inT = yawRaw(idx1);
-                    inTidx = find(inT < 0);
-                    inT(inTidx) = 360-abs(inT(inTidx));
-                    inT = 360 - inT;
-                    inT = inT + 90; % adjust for 0 being East
-                    inT = smooth(inT,5); % smooth the data over every 5 points
-                    app.frameYprMatch = [];
-                    app.frameYprMatch(:,1) = deg2rad(inT);
-                    %plot(inT); hold on;
-                    clear inT inTidx
-                    
-                    % Setup the pitch data - normally no adjustment is
-                    % required when a gimball is being used
-                    inT = pitchRaw(idx1);
-                    %inT = (0-inT) + 90; % this is incorrect (v2)
-                    %inT = (inT) + 90; % this is correct -- current config (v1)
-                    inT(1:length(inT)) = 90; % v3 -- no adjustment for pitch
-                    app.frameYprMatch(:,2) = deg2rad(inT);
-                    clear inT inTidx
-                    
-                    % Setup the roll data - normally no adjustment is
-                    % required when a gimball is being used
-                    inT = rollRaw(idx1); % v1
-                    %inT = (0-inT); %v2
-                    inT(1:length(inT)) = 0; % v3 -- no adjustment for roll
-                    app.frameYprMatch(:,3) = deg2rad(inT);
-                    clear inT
-                    
-                    %Display the completion message
-                    TextIn = {'UAS flight navigation data processed'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    
-                else
-                    app.OrientationDropDown.Value = 'Make a selection:';
-                    TextIn = {'No .csv file loaded, try again or choose an alternative method'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                end
-                
-            else
-                app.GCPDataDropDown.Visible = 'on';
-                TextIn = {'The camera orientation will be optimised using the GCPs'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-            end
-            
-        end
-        
-        % Cell selection callback: UITable
-        function UITableCellSelection(app, event)
-            if strcmp ( app.OrientationDropDown.Value, 'Stationary: GCPs') == 1
-                
-                % Ensure that all of the required fields are enabled
-                app.CameraxyzEditField.Enable = 'on';
-                app.CameraxyzEditField_2.Enable = 'on';
-                app.CameraxyzEditField_3.Enable = 'on';
-                app.yawpitchrollEditField.Enable = 'on';
-                app.yawpitchrollEditField_2.Enable = 'on';
-                app.yawpitchrollEditField_3.Enable = 'off';
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'on') % disable to buffer field
-                app.GCPDataDropDown.Enable = 'on';
-                app.BufferaroundGCPsmetersEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Enable = 'on';
-                app.WatersurfaceelevationmEditField.Visible = 'on';
-                app.UITable.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.UITable.Data = [0 0 0 0 0]; % just one GCP to set orientation
-                set(app.BufferaroundGCPsmetersEditField, 'Enable', 'on') % disable the GCP buffer option
-                app.CheckGCPsSwitch.Enable = 'off';
-                app.UITable.Enable = 'off';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.FlightPathPlotSwitch.Enable = 'off';
-                app.ResolutionmpxEditField.Enable ='on';
-                
-                % Create a new figure of first image
-                myfig = figure('units','normalized','outerposition',[0 0 1 1]);
-                hold on;
-                myax = axes;
-                A = imshow(app.firstFrame);
-                objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; %[TopLeftX,TopLeftY,LengthX,LengthY]
-                
-                % Initialize data cursor object & import data to table
-                cursorobj = datacursormode(h.myfig);
-                waitfor(gcf,'CurrentCharacter',char(32));
-                mypoints = getCursorInfo(cursorobj);
-                
-                %compute Euclidean distances:
-                %distances = sqrt(sum(bsxfun(@minus, PotentialGCPs, double(mypoints.Position)).^2,2));
-                %find the smallest distance and use that as an index into B:
-                %closest = PotentialGCPs(find(distances==min(distances)),:);
-                %inder1 = min(find(app.UITable.Data(:,1) == 0));
-                
-                % Commented out the above so that the absolute px values
-                % are used rather than the nearest to a feature. This is
-                % only needed when tracking, and nota stable frame
-                app.UITable.Data(inder1,4:5) = double(mypoints.Position); % use the closest GCP
-                
-                % Manually input the corresponding real-world coordinates
-                answer = inputdlg('Enter corresponding real world coordinates [X,Y,Z] e.g. 100,100,200',...
-                    'GCP Definition', [1 50]);
-                newGCPs = str2double(split(answer,','));
-                app.UITable.Data(inder1,1:3) = newGCPs;
-                try
-                    close(myfig)
-                catch
-                end
-            end
-            
-        end
-        
-        % Value changed function: GCPDataDropDown
-        function GCPDataDropDownValueChanged(app, event)
-            app.GCPData = app.GCPDataDropDown.Value;
-            
-            checkGcpCsvData(app)
-            
-            if strcmp (app.GCPData, 'Inputted manually') == 1
-                app.CheckGCPsSwitch.Enable = 'on';
-                app.UITable.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                app.UITable.Data = [];
-                
-                app.UITable.Data = [0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0;...
-                    0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0;...
-                    0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0;...
-                    0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0]; % Maximum of 20 GCPs
-                
-                % Enable the definition of individual GCP points from the image
-            elseif strcmp (app.GCPData, 'Select from image') == 1
-                
-                app.UITable.Data = [];
-                app.CheckGCPsSwitch.Enable = 'on';
-                app.UITable.Enable = 'on';
-                app.ExportGCPdataSwitch.Enable = 'on';
-                
-                TextIn = {'Select the GCPs in the image by right clicking on them.';...
-                    'Then enter their [x y z] locations'; ...
-                    'Once all have been selected click Enter on the keyboard and close the window to continue'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                app.imageGCPs = []; app.GCPimageReal = [];
-                [app.imageGCPs, app.GCPimageReal] = readPoints(app.firstFrame,100,0); hold on;
-                [~, t1] = size(app.imageGCPs);
-                [~ ,t2] = size(app.GCPimageReal);
-                if ~isequal(t1,t2)
-                    in1 = [0; 0; 0];
-                    temp = [app.GCPimageReal];
-                    joined = [in1, temp];
-                    app.GCPimageReal = joined;
-                end
-                
-                app.UITable = uitable(app.KLTIV_UIFigure);
-                app.UITable.Visible = 'On';
-                app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
-                app.UITable.RowName = {};
-                app.UITable.ColumnEditable = [true true true false false];
-                app.UITable.CellSelectionCallback = createCallbackFcn(app, @UITableCellSelection, true);
-                app.UITable.ForegroundColor = [0.149 0.149 0.149];
-                app.UITable.FontName = 'Ubuntu';
-                app.UITable.Position = [335 153 290 219];
-                app.UITable.Data = [ app.GCPimageReal; app.imageGCPs]';
-                app.gcpA = app.UITable.Data ;
-                pause(0.5)
-                try
-                    close(f1)
-                catch
-                end
-            end
-        end
-        
+
         % Button pushed function: RUNButton
         function RUNButtonPushed(app, event) 
             if isempty(app.reloaded) % only run if the settings haven't been reloaded
@@ -2422,8 +258,7 @@ classdef KLT < matlab.apps.AppBase
                 app.startingVideo = [1];
                 set(app.RUNButton,'Text',{['Processing, please wait.']});
                 app.starterInd = 1;
-
-                customFOV(app)
+                KLT_customFOV(app)
             end
             
             for a = 1:length(app.fileNameAnalysis)
@@ -2439,19 +274,19 @@ classdef KLT < matlab.apps.AppBase
                     
                     try
                         if app.videoNumber > 1
-                            customFOV(app)
+                            KLT_customFOV(app)
                         end
-                        imageAnalysis(app)
-                        flightPath(app)
+                        KLT_imageAnalysis(app)
+                        KLT_flightPath(app)
                         trajectoryAdjustments(app)
-                        exportVelocity(app)
+                        KLT_exportVelocity(app)
                         trajectories(app)
                         CALCULATEButtonPushed(app)
-                        appendQoutputs(app)
+                        KLT_appendQoutputs(app)
                         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.videoNumber-1)/length(app.fileNameAnalysis)*100) '% Complete'},''));
                         TextIn = {['Discharge computed for video ', int2str(app.videoNumber), ' of ', num2str(length(app.fileNameAnalysis))]};
                         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                        printItems(app)
+                        KLT_printItems(app)
                         pause(0.01);
                         app.ListBox.scroll('bottom')
                         
@@ -2473,7 +308,7 @@ classdef KLT < matlab.apps.AppBase
                     catch
                         TextIn = {['Unable to process video ', char(app.fileNameAnalysis(app.videoNumber)) ' . Skipping this file.']};
                         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                        printItems(app)
+                        KLT_printItems(app)
                         pause(0.01);
                         app.ListBox.scroll('bottom')
                     end
@@ -2492,9 +327,9 @@ classdef KLT < matlab.apps.AppBase
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
                 imageAnalysis(app)
-                flightPath(app)
+                KLT_flightPath(app)
                 trajectoryAdjustments(app)
-                exportVelocity(app)
+                KLT_exportVelocity(app)
                 trajectories(app)
                 set(app.RUNButton,'Text','Processing: Complete');
                 pause(0.01)
@@ -2505,7 +340,7 @@ classdef KLT < matlab.apps.AppBase
         % If the ROI button is pushed
         function roiButtonPushed(app, event)
             if length(app.firstFrame) > 1
-                [roiPoints] = readPoints(app.firstFrame,100,4,app,[])'; hold on;
+                [roiPoints] = KLT_readPoints(app.firstFrame,100,4,app,[])'; hold on;
                 roiPoints = replace_num(roiPoints,0,NaN);
                 useVals = ~isnan(roiPoints(:,1));
                 app.boundaryLimitsPx = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
@@ -2536,7 +371,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 
@@ -2545,7 +380,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 app.OutputDirectoryButton.Text = 'Click here';
@@ -2580,7 +415,7 @@ classdef KLT < matlab.apps.AppBase
                     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                     TimeIn = strjoin(TimeIn, ' ');
                     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
+                    KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = textOutput;
@@ -2593,7 +428,7 @@ classdef KLT < matlab.apps.AppBase
                     
                     TextIn = {'Video file succesfully selected.'};
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
+                    KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = textOutput;
@@ -2604,7 +439,7 @@ classdef KLT < matlab.apps.AppBase
                     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                     TimeIn = strjoin(TimeIn, ' ');
                     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
+                    KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Click here';
@@ -2672,7 +507,7 @@ classdef KLT < matlab.apps.AppBase
                     
                     TextIn = strjoin({num2str(length(app.videoDirFileNames)) ' videos selected for analysis'},'');
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
+                    KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Multiple selected';
@@ -2682,7 +517,7 @@ classdef KLT < matlab.apps.AppBase
                     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                     TimeIn = strjoin(TimeIn, ' ');
                     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                    printItems(app)
+                    KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Click here';
@@ -2691,13 +526,13 @@ classdef KLT < matlab.apps.AppBase
             end
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
-                bringInImage(app); % Bring in the first image of the video
+                KLT_bringInImage(app); % Bring in the first image of the video
             else
                 
-                bringInImage(app)
+                KLT_bringInImage(app)
                 TextIn = {'Select the video to be used to generate/visualize GCP solutions'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 
@@ -2709,75 +544,11 @@ classdef KLT < matlab.apps.AppBase
                 
                 TextIn = {'Video successfully loaded'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             end
         end
-        
-        
-        function bringInImage(app) % Extract the first image from the video
-            
-            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
-                answer = questdlg('Would you like to re-encode the video(s)? (Default: No)', ...
-                    'Re-encode Video?', ...
-                    {'Yes','No'});
-                
-                switch answer
-                    case 'Yes'
-                        ffmpeg_conversion(app)
-                        
-                    case 'No'
-                        % Load in the original file
-                            try
-                                textOutput = strjoin({app.directory, app.file}, '');
-                                V=VideoReader(textOutput);
-                                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
-                                app.firstFrame = I;
-                                app.imgsz = [V.Height V.Width];
-                                TextIn = {'Original video succesfully loaded, please continue'};
-                                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                                printItems(app)
-                                pause(0.01);
-                                app.ListBox.scroll('bottom');
-                            catch
-                                TextIn = {'No video selected. The program will terminate. Check inputs and retry'}; % Update the display
-                                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                                TimeIn = strjoin(TimeIn, ' ');
-                                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                                printItems(app)
-                                pause(0.01);
-                                app.ListBox.scroll('bottom');
-                                error('Breaking out of function');
-                            end
-                        
-                    case 'Cancel'
-                            try
-                                % Load in the original file
-                                textOutput = strjoin({app.directory, app.file}, '');
-                                V=VideoReader(textOutput);
-                                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
-                                app.firstFrame = I;
-                                app.imgsz = [V.Height V.Width];
-                                TextIn = {'Original video succesfully loaded, please continue'};
-                                app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                                printItems(app)
-                                pause(0.01);
-                                app.ListBox.scroll('bottom');
-                            catch
-                                TextIn = {'No video selected. The program will terminate. Check inputs and retry'}; % Update the display
-                                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                                TimeIn = strjoin(TimeIn, ' ');
-                                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                                printItems(app)
-                                pause(0.01);
-                                app.ListBox.scroll('bottom');
-                                error('Breaking out of function');
-                            end
-                end
-            end
-        end
-        
         
         % Callback function
         function PlatformTypeDropDownValueChanged(app, event)
@@ -2788,7 +559,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             elseif strcmp(app.Platformvalue, 'Fixed installation') == 1
@@ -2796,7 +567,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             end
@@ -2809,12 +580,12 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 
                 % Define the normal flow direction
-                app.pts = readPoints(app.firstFrame,2,1); hold on;
+                app.pts = KLT_readPoints(app.firstFrame,2,1); hold on;
                 disp(app.pts)
                 try
                     close(f1)
@@ -2842,7 +613,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             end
@@ -2850,7 +621,7 @@ classdef KLT < matlab.apps.AppBase
         
         
         % Cell edit callback: UITable2
-        function editCel2(app,event)
+        function KLT_editCel2(app,event)
             
             if strcmp (app.CrossSectionDropDown.Value, 'Relative distances [m]') == 1
                 
@@ -2894,7 +665,7 @@ classdef KLT < matlab.apps.AppBase
         function CALCULATEButtonPushed(app, event)
             clear app.UITable2.Data M2 xsVelocity xsStd
             
-            editCel2(app)
+            KLT_editCel2(app)
             
             % Create the finalised cross-section
             if app.UITable2.Data(1,1) ~= 0
@@ -3180,7 +951,7 @@ classdef KLT < matlab.apps.AppBase
             TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
             TimeIn = strjoin(TimeIn, ' ');
             app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
         end % function
@@ -3198,7 +969,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 
@@ -3207,7 +978,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             end
@@ -3226,7 +997,7 @@ classdef KLT < matlab.apps.AppBase
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 
@@ -3255,7 +1026,7 @@ classdef KLT < matlab.apps.AppBase
                 
                 TextIn = {'Multiple video analysis mode selected'; 'Please click Define Video(s) and select the folder containing the videos to be analysed'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 
@@ -3313,7 +1084,7 @@ classdef KLT < matlab.apps.AppBase
                 
             TextIn = {'Matching videos to river level observations. Please wait.'};
             app.ListBox.Items = [app.ListBox.Items, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
             try
@@ -3345,13 +1116,13 @@ classdef KLT < matlab.apps.AppBase
                 
                 TextIn = {[num2str(length(app.fileNameAnalysis)) ' videos were matched to river level observations. Please continue']};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom')
             catch
                 TextIn = {'No videos were matched river level observations. Check inputs and retry.'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom')
             end
@@ -3399,7 +1170,7 @@ classdef KLT < matlab.apps.AppBase
             % Try to load the correct icon
             try
                 if isdeployed % Stand-alone mode.
-                    [status, result] = system('path');
+                    [~, result] = system('path');
                     currentDir = char(regexpi(result, 'Path=(.*?);', 'tokens', 'once'));
                     win =   platformHostProps.CEF;
                     win.Icon = [currentDir '\' 'KLT_icon.ico'];
@@ -3630,7 +1401,7 @@ classdef KLT < matlab.apps.AppBase
             % Create OrientationDropDown
             app.OrientationDropDown = uidropdown(app.KLTIV_UIFigure);
             app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}; %, 'Planet [beta]'}
-            app.OrientationDropDown.ValueChangedFcn = createCallbackFcn(app, @OrientationDropDownValueChanged, true);
+            app.OrientationDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_OrientationDropDownValueChanged, true);
             app.OrientationDropDown.FontName = 'Roboto';
             app.OrientationDropDown.Position = [170 349 140 22];
             app.OrientationDropDown.Value = 'Make a selection:';
@@ -3952,7 +1723,7 @@ classdef KLT < matlab.apps.AppBase
             % Create GCPDataDropDown
             app.GCPDataDropDown = uidropdown(app.KLTIV_UIFigure);
             app.GCPDataDropDown.Items = {'Make a selection:', 'Inputted manually', 'From .csv file', 'Select from image'};
-            app.GCPDataDropDown.ValueChangedFcn = createCallbackFcn(app, @GCPDataDropDownValueChanged, true);
+            app.GCPDataDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_GCPDataDropDownValueChanged, true);
             app.GCPDataDropDown.FontName = 'Roboto';
             app.GCPDataDropDown.FontColor = [0.149 0.149 0.149];
             app.GCPDataDropDown.Position = [485 446 140 22];
@@ -4008,7 +1779,7 @@ classdef KLT < matlab.apps.AppBase
             app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
             app.UITable.RowName = {};
             app.UITable.ColumnEditable = [true true true false false];
-            app.UITable.CellSelectionCallback = createCallbackFcn(app, @UITableCellSelection, true);
+            app.UITable.CellSelectionCallback = createCallbackFcn(app, @KLT_UITableCellSelection, true);
             app.UITable.ForegroundColor = [0.149 0.149 0.149];
             app.UITable.FontName = 'Roboto';
             app.UITable.Position = [335 153 290 219];
@@ -4438,7 +2209,7 @@ classdef KLT < matlab.apps.AppBase
             % Create CrossSectionDropDown
             app.CrossSectionDropDown = uidropdown(app.KLTIV_UIFigure);
             app.CrossSectionDropDown.Items = {'Make a selection:', 'Referenced survey [m]', 'Relative distances [m]'};
-            app.CrossSectionDropDown.ValueChangedFcn = createCallbackFcn(app, @CrossSectionDropDownValueChanged, true);
+            app.CrossSectionDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_CrossSectionDropDownValueChanged, true);
             app.CrossSectionDropDown.FontName = 'Roboto';
             app.CrossSectionDropDown.FontColor = [0.149 0.149 0.149];
             app.CrossSectionDropDown.Position = [1130 446 140 22];
@@ -4477,7 +2248,7 @@ classdef KLT < matlab.apps.AppBase
             app.UITable2 = uitable(app.KLTIV_UIFigure);
             app.UITable2.ColumnName = {'Chainage'; 'Elevation'};
             app.UITable2.RowName = {};
-            app.UITable2.CellEditCallback = createCallbackFcn(app, @editCel2, true);
+            app.UITable2.CellEditCallback = createCallbackFcn(app, KLT_editCel2, true);
             app.UITable2.FontName = 'Roboto';
             app.UITable2.Position = [980 282 290 123];
             
@@ -4590,14 +2361,22 @@ classdef KLT < matlab.apps.AppBase
         % Construct app
         function app = KLT
             
-            % Create and configure components
-            createComponents(app)
-            
-            % Register the app with App Designer
-            registerApp(app, app.KLTIV_UIFigure)
-            
-            % Execute the startup function
-            runStartupFcn(app, @startupFcn)
+            try
+                
+                % Create and configure components
+                createComponents(app)
+                
+                % Register the app with App Designer
+                registerApp(app, app.KLTIV_UIFigure)
+                
+                % Execute the startup function
+                runStartupFcn(app, @startupFcn)
+                
+            catch err
+                
+                KLT_errorCallback(app,err)
+
+            end
             
             if nargout == 0
                 clear app

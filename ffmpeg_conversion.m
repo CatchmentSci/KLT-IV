@@ -11,7 +11,7 @@ while t < 3
     
     TextIn = {'Converting the video to an optimal format. Please wait'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -40,7 +40,7 @@ while t < 3
             
             TextIn = {'Conversion complete. Please continue'};
             app.ListBox.Items = [app.ListBox.Items, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
             t = 3;

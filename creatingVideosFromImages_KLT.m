@@ -32,7 +32,7 @@ if strcmp(answer,'Yes') == 1 % only run if new frames have been written
     
     TextIn = {'Generating a video using the stabilised frames. Please wait.'};
     app.ListBox.Items = [app.ListBox.Items, TextIn];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -47,7 +47,7 @@ if strcmp(answer,'Yes') == 1 % only run if new frames have been written
     line1 = {['Video of image sequence saved to:' ]};
     line2 = {[inputLocation '\stabilisedFramesOut.avi']};
     app.ListBox.Items = [app.ListBox.Items, line1, line2];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     

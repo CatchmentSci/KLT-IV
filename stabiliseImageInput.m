@@ -87,7 +87,7 @@ while pass < 3
             TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
             TimeIn = strjoin(TimeIn, ' ');
             app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
             error('Breaking out of function');
@@ -180,7 +180,7 @@ while pass < 3
         % Display the updated status
         TextIn = {['Stabilisation for frame ' num2str(s3) ' completed']};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         s3 = s3 + 1;

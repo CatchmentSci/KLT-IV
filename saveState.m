@@ -1,7 +1,7 @@
 function [] = saveState(app)
 TextIn = {'Saving the current settings. Please wait.'};
 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-printItems(app)
+KLT_printItems(app)
 pause(0.01);
 app.ListBox.scroll('bottom');
 if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true

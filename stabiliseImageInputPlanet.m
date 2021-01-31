@@ -5,7 +5,7 @@ if length(app.firstFrame) > 1
     polyNum = 1;
     looper = true;
     app.boundaryLimitsPx = {};
-    [roiPoints] = readPoints(app.firstFrame,100,5,app,[])'; hold on;
+    [roiPoints] = KLT_readPoints(app.firstFrame,100,5,app,[])'; hold on;
     roiPoints = replace_num(roiPoints,0,NaN);
     useVals = ~isnan(roiPoints(:,1));
     app.boundaryLimitsPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
@@ -20,7 +20,7 @@ if length(app.firstFrame) > 1
         switch answer
             case 'Yes'
                 polyNum = polyNum + 1;
-                [roiPoints] = readPoints(app.firstFrame,100,5,app,[])'; hold on;
+                [roiPoints] = KLT_readPoints(app.firstFrame,100,5,app,[])'; hold on;
                 roiPoints = replace_num(roiPoints,0,NaN);
                 useVals = ~isnan(roiPoints(:,1));
                 app.boundaryLimitsPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
@@ -177,7 +177,7 @@ if length(app.firstFrame) > 1
             % Display the updated status
             TextIn = {['Stabilisation for frame ' num2str(s3) ' completed']};
             app.ListBox.Items = [app.ListBox.Items, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
             s3 = s3 + 1;

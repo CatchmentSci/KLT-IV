@@ -27,7 +27,7 @@ switch app.batchAnswer
             
             TextIn = {'Converting the video to an optimal format. Please wait'};
             app.ListBox.Items = [app.ListBox.Items, TextIn'];
-            printItems(app)
+            KLT_printItems(app)
             pause(0.01);
             app.ListBox.scroll('bottom');
             
@@ -56,7 +56,7 @@ switch app.batchAnswer
                     
                     TextIn = {'Conversion complete. Please continue'};
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    printItems(app)
+                    KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     t = 3;
@@ -100,7 +100,7 @@ switch app.batchAnswer
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             catch

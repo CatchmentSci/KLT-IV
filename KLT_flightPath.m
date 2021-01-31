@@ -1,4 +1,4 @@
-function flightPath(app)
+function KLT_flightPath(app)
 if strcmp (app.FlightPathPlotSwitch.Value, 'On') == 1 && strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 0
     f1 = figure(); % this plots the UAS flight path based on optimisation using GCPs
     h1_1 = scatter3(app.cameraModelParameters(:,1),app.cameraModelParameters(:,2),app.cameraModelParameters(:,3));

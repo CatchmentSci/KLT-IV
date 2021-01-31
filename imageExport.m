@@ -69,7 +69,7 @@ if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
 end

@@ -1,7 +1,7 @@
 function [] = orthorectification(app)
 
 app.rollingGCPs = [];
-checkGcpCsvData(app)
+KLT_checkGcpCsvData(app)
 
 A = (app.firstFrame);
 app.InitialGCP = app.gcpA;
@@ -18,7 +18,7 @@ if strcmp(app.ExportGCPdataSwitch.Enable, 'on') == 1
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -26,7 +26,7 @@ if strcmp(app.ExportGCPdataSwitch.Enable, 'on') == 1
     dataOut = [app.UITable.ColumnName';num2cell(outVars)];
     TextIn = {'Export started. Please wait.'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     

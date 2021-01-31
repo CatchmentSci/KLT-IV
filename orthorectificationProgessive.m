@@ -9,13 +9,13 @@ if strcmp(app.CheckGCPsSwitch.Value, 'On') == 1
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
     for a = 1:length(app.gcpA(:,4))
         if ~isnan(app.gcpA(a,4))
-            [outTemp1] = readPoints(app.objectFrame,1,2, app, a); hold on;
+            [outTemp1] = KLT_readPoints(app.objectFrame,1,2, app, a); hold on;
             if length(outTemp1) == 2
                 app.imageGCPs(a, 1:2) = outTemp1;
             else
@@ -37,7 +37,7 @@ if strcmp(app.CheckGCPsSwitch.Value, 'On') == 1
             switch answer % Handle response
                 case 'Yes'
                     % Initialize data cursor object & import data to table
-                    [app.imageGCPs(a, 1:2)] = readPoints(app.objectFrame,1,[], app, a); hold on;
+                    [app.imageGCPs(a, 1:2)] = KLT_readPoints(app.objectFrame,1,[], app, a); hold on;
                     try
                         close (f1)
                     catch
@@ -61,7 +61,7 @@ if strcmp(app.CheckGCPsSwitch.Value, 'On') == 1
     
     TextIn = {'Option to load new GCPs if they have become visible'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
