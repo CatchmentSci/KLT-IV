@@ -235,6 +235,8 @@ classdef KLT < matlab.apps.AppBase
         Cameraxyz_modifyXbox
         Cameraxyz_modifyYbox
         Cameraxyz_modifyZbox
+        GCPbuffer_modifyBox
+        CustomFOV_modifyBox
         startingAppVals
     end
     
@@ -315,9 +317,6 @@ classdef KLT < matlab.apps.AppBase
                     end
                     app.videoNumber = app.videoNumber + 1;
                     app.startingVideo = [0];
-                    %resetApp(app,app.startingAppVals);
-                    %flushBase(app)
-                    %clear functions
                 else
                     app.videoNumber = app.videoNumber + 1;
                 end
@@ -574,9 +573,7 @@ classdef KLT < matlab.apps.AppBase
             end
         end
         
-        
-        
-        
+
         function plotFcn(app, absDistance, velocityIn, missingInd)
             f1 = figure(); hold on;
             ax1 = gca;
@@ -688,7 +685,7 @@ classdef KLT < matlab.apps.AppBase
         
         % Value changed function: CheckGCPsSwitch
         function CheckGCPsSwitchValueChanged(app, event)
-            
+            % empty function
         end
         
         % Value changed function: IgnoreEdgesDropDown
@@ -1372,7 +1369,6 @@ classdef KLT < matlab.apps.AppBase
             app.IgnoreEdgesDropDownLabel.Position = [20 60 140 22];
             app.IgnoreEdgesDropDownLabel.Text = '    Ignore Edges?';
             
-            
             % Create IgnoreEdgesDropDown
             app.IgnoreEdgesDropDown = uidropdown(app.KLTIV_UIFigure);
             app.IgnoreEdgesDropDown.Items = {'Make a selection', 'Yes', 'No'};
@@ -1534,6 +1530,14 @@ classdef KLT < matlab.apps.AppBase
             app.BufferaroundGCPsmetersEditFieldLabel.Position = [335 120 140 22];
             app.BufferaroundGCPsmetersEditFieldLabel.Text = '    GCP buffer (m)';
             
+            % Create tickboxes for adjustment = GCP buffer
+            app.GCPbuffer_modifyBox = uicheckbox(app.KLTIV_UIFigure);
+            tempPos = [app.BufferaroundGCPsmetersEditFieldLabel.Position];
+            tempPos(1) = tempPos(1) + 120;
+            app.GCPbuffer_modifyBox.Position = tempPos;
+            app.GCPbuffer_modifyBox.Text = '';
+            app.GCPbuffer_modifyBox.Value = 1;
+            
             % Create BufferaroundGCPsmetersEditField
             app.BufferaroundGCPsmetersEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.BufferaroundGCPsmetersEditField.FontName = 'Roboto';
@@ -1558,6 +1562,14 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_2.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_2.Position = [335 77 140 22];
             app.CustomFOVEditFieldLabel_2.Text = '    Custom FOV:';
+            
+            % Create tickboxes for adjustment = custom FOV buffer
+            app.CustomFOV_modifyBox = uicheckbox(app.KLTIV_UIFigure);
+            tempPos = [app.CustomFOVEditFieldLabel_2.Position];
+            tempPos(1) = tempPos(1) + 120;
+            app.CustomFOV_modifyBox.Position = tempPos;
+            app.CustomFOV_modifyBox.Text = '';
+            app.CustomFOV_modifyBox.Value = 0;
             
             % Create CustomFOVEditField_2
             app.CustomFOVEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
