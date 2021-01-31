@@ -3,7 +3,7 @@ function [] = KLT_appendQoutputs(app)
 
 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     
-    checkQoutputs(app)
+    KLT_checkQoutputs(app)
     
     try
         % Write the data to a csv file

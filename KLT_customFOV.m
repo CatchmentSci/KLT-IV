@@ -144,7 +144,7 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     
     % Bring in the video for analysis
     
-    ffmpeg_conversion_batch(app)
+    KLT_ffmpeg_conversion_batch(app)
     
     V = VideoReader(strjoin ({app.directory, '\', app.fileNameAnalysis{app.videoNumber}},''));
     totNum = V.NumFrames;

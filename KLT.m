@@ -235,6 +235,7 @@ classdef KLT < matlab.apps.AppBase
         Cameraxyz_modifyXbox
         Cameraxyz_modifyYbox
         Cameraxyz_modifyZbox
+        startingAppVals
     end
         
     
@@ -278,10 +279,10 @@ classdef KLT < matlab.apps.AppBase
                         end
                         KLT_imageAnalysis(app)
                         KLT_flightPath(app)
-                        trajectoryAdjustments(app)
+                        KLT_trajectoryAdjustments(app)
                         KLT_exportVelocity(app)
-                        trajectories(app)
-                        CALCULATEButtonPushed(app)
+                        KLT_trajectories(app)
+                        KLT_CALCULATEButtonPushed(app)
                         KLT_appendQoutputs(app)
                         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.videoNumber-1)/length(app.fileNameAnalysis)*100) '% Complete'},''));
                         TextIn = {['Discharge computed for video ', int2str(app.videoNumber), ' of ', num2str(length(app.fileNameAnalysis))]};
@@ -291,15 +292,15 @@ classdef KLT < matlab.apps.AppBase
                         app.ListBox.scroll('bottom')
                         
                         if app.starterInd == 1
-                            startingAppVals = app; % create a copy of the settings
-                            startingAppVals.uvHR = [];
-                            startingAppVals.visHR = [];
-                            startingAppVals.xyzA_final = [];
-                            startingAppVals.xyzB_final = [];
-                            startingAppVals.vel = [];
-                            startingAppVals.refValue = [];
-                            startingAppVals.objectFrameStacked = {};
-                            startingAppVals.normalVelocity = [];
+                            app.startingAppVals = app; % create a copy of the settings
+                            app.startingAppVals.uvHR = [];
+                            app.startingAppVals.visHR = [];
+                            app.startingAppVals.xyzA_final = [];
+                            app.startingAppVals.xyzB_final = [];
+                            app.startingAppVals.vel = [];
+                            app.startingAppVals.refValue = [];
+                            app.startingAppVals.objectFrameStacked = {};
+                            app.startingAppVals.normalVelocity = [];
                             app.starterInd = app.starterInd + 1;
                         else
                             app.starterInd = app.starterInd + 1;
@@ -314,7 +315,7 @@ classdef KLT < matlab.apps.AppBase
                     end
                     app.videoNumber = app.videoNumber + 1;
                     app.startingVideo = [0];
-                    %resetApp(app,startingAppVals);
+                    %resetApp(app,app.startingAppVals);
                     %flushBase(app)
                     %clear functions
                 else 
@@ -326,11 +327,11 @@ classdef KLT < matlab.apps.AppBase
             pause(0.01)
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
-                imageAnalysis(app)
+                KLT_imageAnalysis(app)
                 KLT_flightPath(app)
-                trajectoryAdjustments(app)
+                KLT_trajectoryAdjustments(app)
                 KLT_exportVelocity(app)
-                trajectories(app)
+                KLT_trajectories(app)
                 set(app.RUNButton,'Text','Processing: Complete');
                 pause(0.01)
             end
@@ -573,279 +574,8 @@ classdef KLT < matlab.apps.AppBase
             end
         end
         
-        % Value changed function: VelocityDropDown
-        function VelocityDropDownValueChanged(app, event)
-            if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
-                TextIn = {'Normal component selected:'; 'The streamwise velocity will be computed'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                KLT_printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-                
-                % Define the normal flow direction
-                app.pts = KLT_readPoints(app.firstFrame,2,1); hold on;
-                disp(app.pts)
-                try
-                    close(f1)
-                catch
-                end
-                
-                % insert error catches for the following:
-                % No suitable video
-                % No start and stop trajectories defined
-                
-                xIn = app.pts(1,:)';
-                yIn = app.pts(2,:)';
-                %xIn(1:2,2) = 1;
-                %b = xIn\yIn;
-                %rangeIn = [0, length(app.firstFrame)];
-                %extrap =  b(1).* rangeIn+b(2) ;
-                %app.start1 = [rangeIn(1) extrap(1)];
-                %app.end1 = [rangeIn(2) extrap(2)];
-                app.start1 = [xIn(1), yIn(1)];
-                app.end1 = [xIn(2), yIn(2)];
-                
-                
-            elseif strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
-                TextIn = {'Velocity magnitude selected:'; 'The velocity of flow will be calculated independent of direction'};
-                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                TimeIn = strjoin(TimeIn, ' ');
-                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                KLT_printItems(app)
-                pause(0.01);
-                app.ListBox.scroll('bottom');
-            end
-        end
         
         
-        % Cell edit callback: UITable2
-        function KLT_editCel2(app,event)
-            
-            if strcmp (app.CrossSectionDropDown.Value, 'Relative distances [m]') == 1
-                
-                if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-                    app.startXS = [app.masterImageX(1,round(app.XS_pts(1,1))),app.masterImageY(round(app.XS_pts(2,1)))];
-                    app.endXS = [app.masterImageX(1,round(app.XS_pts(1,2))),app.masterImageY(round(app.XS_pts(2,2)))];
-                else
-                    app.startXS = [app.X(1,round(app.XS_pts(1,1))),app.Y(round(app.XS_pts(2,1)))];
-                    app.endXS = [app.X(1,round(app.XS_pts(1,2))),app.Y(round(app.XS_pts(2,2)))];
-                end
-                
-                sumX = (app.endXS(1) - app.startXS(1)); % Total change in x
-                sumY = (app.endXS(2) - app.startXS(2)); % Total change in y
-                
-                fractX = app.UITable2.Data(:,1)./app.transectLength; % Fraction of change in X
-                fractY = app.UITable2.Data(:,1)./app.transectLength; % Fraction of change in Y
-                
-                %originalLength = length(app.xInder);
-                app.xInder = app.startXS(1) + (fractX.*sumX);
-                app.yInder = app.startXS(2) + (fractY.*sumY);
-                app.xInder = transpose(replace_num(app.xInder,NaN,0));
-                app.yInder = transpose(replace_num(app.yInder,NaN,0));
-                
-            elseif strcmp (app.CrossSectionDropDown.Value, 'Referenced survey [m]') == 1
-                
-                sumX = (app.endXS(1) - app.startXS(1)); % Total change in x
-                sumY = (app.endXS(2) - app.startXS(2)); % Total change in y
-                
-                fractX = app.UITable2.Data(:,1)./app.transectLength; % Fraction of change in X
-                fractY = app.UITable2.Data(:,1)./app.transectLength; % Fraction of change in Y
-                
-                %originalLength = length(app.xInder);
-                app.xInder = app.startXS(1) + (fractX.*sumX);
-                app.yInder = app.startXS(2) + (fractY.*sumY);
-                app.xInder = transpose(replace_num(app.xInder,NaN,0));
-                app.yInder = transpose(replace_num(app.yInder,NaN,0));
-            end
-        end % function
-        
-        % Button pushed function: CALCULATEButton
-        function CALCULATEButtonPushed(app, event)
-            clear app.UITable2.Data M2 xsVelocity xsStd
-            
-            KLT_editCel2(app)
-            
-            % Create the finalised cross-section
-            if app.UITable2.Data(1,1) ~= 0
-                M1 = app.startXS;
-                N1 = [0];
-                D1 = [0];
-            else
-                M1 = [];
-                N1 = [];
-                D1 = [];
-            end
-            
-            if app.UITable2.Data(end,1) ~= app.transectLength
-                M3 = app.endXS;
-                N3 = [app.transectLength];
-                D3 = [0];
-            else
-                M3 = [];
-                N3 = [];
-                D3 = [];
-            end
-            
-            N2 = app.UITable2.Data(~isnan(app.UITable2.Data(:,1)));
-            A2 = {N1, N2, N3};
-            crossSectionPlot = cat(1,A2{:});
-            
-            t1 = size(app.xInder);
-            M2 =  [app.xInder; app.yInder]';
-            A1 = {M1, M2, M3};
-            crossSectionIn = cat(1,A1{:});
-            
-            if strcmp(app.ReferenceHeight.Value, 'Water depth [m]') == 1
-                D2 =  app.UITable2.Data(~isnan(app.UITable2.Data(:,1)),2);
-                t1 = find(D2<0);
-                if ~isempty(t1)
-                    D2(t1) = 0;
-                end
-                A3 = {D1, D2, D3};
-                depthIn = cat(1,A3{:});
-                continuer = 1;
-            elseif strcmp(app.ReferenceHeight.Value, 'True bed elevation [m]') == 1
-                D2 =  app.UITable2.Data(~isnan(app.UITable2.Data(:,1)),2);
-                D2 = app.WatersurfaceelevationmEditField.Value - D2;
-                t1 = find(D2<0);
-                if ~isempty(t1)
-                    D2(t1) = 0;
-                end
-                A3 = {D1, D2, D3};
-                depthIn = cat(1,A3{:});
-                continuer = 1;
-            else
-                continuer = 0;
-            end
-            
-            
-            if continuer == 1
-                for s = 1:length(crossSectionIn)
-                    [~, dis] = knnsearch(crossSectionIn(s,1:2), app.xyzA_final(:,1:2));
-                    use1 = find(dis < app.SearchDistanceEditField.Value); % find within 2.5% of the transect distance as default
-                    if ~isempty(use1)
-                        numberPoints(s) = length(use1);
-                        if strcmp(app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
-                            temp1 = app.refValue; % uses the velocity magnitude if normal component hasn't been calculated
-                            xsVelocity(s) = nanmedian(temp1(use1));
-                        elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-                            xsVelocity(s) = nanmedian(app.normalVelocity(use1));
-                            xsStd(s) = nanstd(app.normalVelocity(use1));
-                        end
-                    end
-                    
-                    % Assign the start and stop positions with zero values
-                    if s == 1 || s == length(crossSectionIn)
-                        numberPoints(s) = 0;
-                        xsVelocity(s) = 0;
-                        xsStd(s) = 0;
-                    end
-                end
-                
-                xsVelocity(2:end-1) = replace_num(xsVelocity(2:end-1),0,NaN);
-                xsVelocity = xsVelocity.*app.alphaEditField.Value; % Apply the alpha coefficient
-                xsVelocity(~depthIn' > 0) = 0; % Ensure limited to teh water extent
-                xsStd(2:end-1) = replace_num(xsStd(2:end-1),0,NaN);
-                
-                % Ensure x-data is distance along xs
-                out=cell2mat(cellfun(@(x) app.startXS-x ,{crossSectionIn},'un',0));
-                absDistance = sqrt(out(:,1).^2+out(:,2).^2);
-                missingInd = find(isnan(xsVelocity));
-                
-                if strcmp(app.InterpolationMethod.Value, 'Quadratic Polynomial') == 1
-                    QuadraticVelocity = xsVelocity';
-                    [xData, yData] = prepareCurveData( absDistance, QuadraticVelocity );
-                    ft = fittype( 'poly2' );% Set up fittype and options (3rd order polynomial)
-                    [fitresult, ~] = fit( xData, yData, ft );% Fit model to data.
-                    
-                    QuadraticVelocity(missingInd) = fitresult.p1.*absDistance(missingInd).^2 + fitresult.p2.*absDistance(missingInd) + fitresult.p3;
-                    rem1 = find(QuadraticVelocity < 0);
-                    QuadraticVelocity(rem1) = 0;
-                    plotFcn(app, absDistance, QuadraticVelocity, missingInd);
-                    
-                    % Discharge calculated using the velocity area mid-section method and cubic extrapolation (Herschy, 1993)
-                    for a = 1:length(absDistance)
-                        if a == 1
-                            q(a) = QuadraticVelocity(a) .* ((absDistance(a+1,1) - absDistance(a,1))./2) .* depthIn(a);
-                        elseif a == length(QuadraticVelocity)
-                            q(a) = QuadraticVelocity(a) .* ((absDistance(a,1) - absDistance(a-1,1))./2) .* depthIn(a);
-                            totalQ_quad = sum(q);
-                            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                                message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
-                                msgbox(message1,'Value');
-                            else
-                                app.totalQ(app.videoNumber) = totalQ_quad;
-                            end
-                        else
-                            q(a) = QuadraticVelocity(a) .* ((absDistance(a+1,1) - absDistance(a-1,1))./2) .*depthIn(a);
-                        end
-                    end
-                    
-                elseif strcmp(app.InterpolationMethod.Value, 'Cubic Polynomial') == 1
-                    CubicVelocity = xsVelocity';
-                    [xData, yData] = prepareCurveData( absDistance, CubicVelocity );
-                    ft = fittype( 'poly3' );% Set up fittype and options (3rd order polynomial)
-                    [fitresult, ~] = fit( xData, yData, ft );% Fit model to data.
-                    
-                    CubicVelocity(missingInd) = fitresult.p1.*absDistance(missingInd).^3 + fitresult.p2.*absDistance(missingInd).^2 ...
-                        + fitresult.p3.*absDistance(missingInd) + fitresult.p4;
-                    rem1 = find(CubicVelocity < 0);
-                    CubicVelocity(rem1) = 0;
-                    plotFcn(app, absDistance, CubicVelocity, missingInd);
-                    
-                    % Discharge calculated using the velocity area mid-section method and cubic extrapolation (Herschy, 1993)
-                    for a = 1:length(absDistance)
-                        if a == 1
-                            q(a) = CubicVelocity(a).*((absDistance(a+1,1) - absDistance(a,1))./2) .* depthIn(a);
-                        elseif a == length(CubicVelocity)
-                            q(a) = CubicVelocity(a).*((absDistance(a,1) - absDistance(a-1,1))./2) .* depthIn(a);
-                            totalQ_cubic = sum(q);
-                            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                                message1 = ['Q = ' num2str(round(totalQ_cubic,2)) ' m' char(179) '/s'];
-                                msgbox(message1,'Value');
-                            else
-                                app.totalQ(app.videoNumber) = totalQ_cubic;
-                            end
-                        else
-                            q(a) = CubicVelocity(a).*((absDistance(a+1,1) - absDistance(a-1,1))./2) .* depthIn(a);
-                        end
-                    end
-                    
-                elseif strcmp(app.InterpolationMethod.Value, 'Constant Froude') == 1
-                    [xData, yData] = prepareCurveData( depthIn, xsVelocity' );
-                    ft = fittype( 'poly1' );% Set up fittype and options.
-                    [fitresult, ~] = fit( xData, yData, ft );% Fit model to data.
-                    
-                    % Discharge calculated using the velocity area mid-section method and constant froude number assumption (Herschy, 1993)
-                    for a = 1:length(xsVelocity)
-                        if a == 1
-                            froudeVelocity = xsVelocity';
-                            froudeVelocity(missingInd) = NaN;
-                            dlm = fitlm(depthIn,froudeVelocity,'Intercept',false);
-                            froudeVelocity(missingInd) = depthIn(missingInd).* table2array(dlm.Coefficients(1,1));
-                            plotFcn(app, absDistance, froudeVelocity, missingInd);
-                            distance1(a) = absDistance(a+1,1) - absDistance(a,1);
-                            qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a,1))./2) .* depthIn(a);
-                        elseif a == length(xsVelocity)
-                            distance1(a) = absDistance(a,1) - absDistance(a-1,1);
-                            qfroude(a) = froudeVelocity(a) .* ((absDistance(a,1) - absDistance(a,1))./2) .* depthIn(a);
-                            totalQ_froude = sum(qfroude);
-                            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                                message1 = ['Q = ' num2str(round(totalQ_froude,2)) ' m' char(179) '/s'];
-                                msgbox(message1,'Value');
-                            else
-                                app.totalQ(app.videoNumber) = totalQ_froude;
-                            end
-                        else
-                            distance1(a) = absDistance(a+1,1) - absDistance(a-1,1);
-                            qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a-1,1))./2) .* depthIn(a);
-                        end
-                    end % for length velocity measurements
-                end % interpolation method
-            end % continuer
-        end % function
         
         function plotFcn(app, absDistance, velocityIn, missingInd)
             f1 = figure(); hold on;
@@ -1131,11 +861,11 @@ classdef KLT < matlab.apps.AppBase
         
         
         function ExportDefaultValuesButtonPushed(app, event)
-            saveState(app)
+            KLT_saveState(app)
         end
         
         function LoadDefaultValuesButtonPushed(app, event)
-            loadState(app)
+            KLT_loadState(app)
         end
     end
     
@@ -1675,7 +1405,7 @@ classdef KLT < matlab.apps.AppBase
             % Create VelocityDropDown
             app.VelocityDropDown = uidropdown(app.KLTIV_UIFigure);
             app.VelocityDropDown.Items = {'Velocity Magnitude', 'Normal Component'}; %'Make a selection:', 'Normal Component',
-            app.VelocityDropDown.ValueChangedFcn = createCallbackFcn(app, @VelocityDropDownValueChanged, true);
+            app.VelocityDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_VelocityDropDownValueChanged, true);
             app.VelocityDropDown.FontName = 'Roboto';
             app.VelocityDropDown.FontColor = [0.149 0.149 0.149];
             app.VelocityDropDown.Position = [170 30 140 22];
@@ -2336,7 +2066,7 @@ classdef KLT < matlab.apps.AppBase
             
             % Create CALCULATEButton
             app.CALCULATEButton = uibutton(app.KLTIV_UIFigure, 'push');
-            app.CALCULATEButton.ButtonPushedFcn = createCallbackFcn(app, @CALCULATEButtonPushed, true);
+            app.CALCULATEButton.ButtonPushedFcn = createCallbackFcn(app, @KLT_CALCULATEButtonPushed, true);
             app.CALCULATEButton.FontName = 'Ubuntu';
             app.CALCULATEButton.FontColor = [0.149 0.149 0.149];
             app.CALCULATEButton.Position = [980 162 290 22];

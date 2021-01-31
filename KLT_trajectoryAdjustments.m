@@ -1,4 +1,4 @@
-function [] = trajectoryAdjustments(app)
+function [] = KLT_trajectoryAdjustments(app)
 if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
     
     TextIn = {'Computing the normal component of the flow. Please wait.'};
@@ -43,7 +43,7 @@ if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
     end
     
     for a = 1:len1
-        temper1 = normalVector([app.xyzA_final(a,1:2)', app.xyzB_final(a,1:2)'],start1_rw(1:2),end1_rw(1:2));
+        temper1 = KLT_normalVector([app.xyzA_final(a,1:2)', app.xyzB_final(a,1:2)'],start1_rw(1:2),end1_rw(1:2));
     end
     time = toc;
     
@@ -70,7 +70,7 @@ if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
     
     TextIn = {'Adjusting trajectories, please wait'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -78,7 +78,7 @@ if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
         if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
             set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((t)/(dataPoints)*100) '% Complete'},''));
         end
-        dataOut(t) = normalVector([app.xyzA_final(ind1(t),1:2)',app.xyzB_final(ind1(t),1:2)'],start1_rw(1:2),end1_rw(1:2));
+        dataOut(t) = KLT_normalVector([app.xyzA_final(ind1(t),1:2)',app.xyzB_final(ind1(t),1:2)'],start1_rw(1:2),end1_rw(1:2));
     end
     
     dataOut = replace_num(dataOut,0,NaN);
@@ -123,7 +123,7 @@ if strcmp (app.VelocityDropDown.Value, 'Normal Component') == 1
     
     TextIn = {'Trajectory adjustments completed, continue'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     

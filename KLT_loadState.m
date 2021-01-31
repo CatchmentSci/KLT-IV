@@ -1,5 +1,5 @@
 
-function [] = loadState(app)
+function [] = KLT_loadState(app)
 TextIn = {'Select the settings to load.'};
 app.ListBox.Items = [app.ListBox.Items, TextIn'];
 KLT_printItems(app)
@@ -64,7 +64,7 @@ if length(settingsFileIn) > 1
             end
         end
         KLT_OrientationDropDownValueChanged(app)
-        VelocityDropDownValueChanged(app)
+        KLT_VelocityDropDownValueChanged(app)
         KLT_bringInImage(app)
         %TextIn = strjoin({'Output directory is: ', char(app.directory_save)}, '');
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};

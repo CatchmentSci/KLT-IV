@@ -1,4 +1,4 @@
-function  [] = imageExport(app)
+function  [] = KLT_imageExport(app)
 if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
     A = double(app.objectFrame);
     try

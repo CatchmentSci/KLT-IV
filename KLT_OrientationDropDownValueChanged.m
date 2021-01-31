@@ -135,7 +135,7 @@ elseif strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == true
     TextIn = {'Image resolution succesfully defined'};
     TextIn2 = {['1 px equates to ' num2str(app.imageResolution) ' m' ]};
     app.ListBox.Items = [app.ListBox.Items, TextIn', TextIn2'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -181,7 +181,7 @@ elseif strcmp (app.OrientationValue, 'Planet [beta]') == 1
     TextIn = {'Image resolution succesfully defined'};
     TextIn2 = {['1 px equates to ' num2str(app.imageResolution) ' m' ]};
     app.ListBox.Items = [app.ListBox.Items, TextIn', TextIn2'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -236,7 +236,7 @@ elseif strcmp (app.OrientationValue, 'Stationary: GCPs') == 1
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -281,7 +281,7 @@ elseif strcmp (app.OrientationValue, 'Dynamic: GCPs') == 1
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -335,7 +335,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
     TimeIn = strjoin(TimeIn, ' ');
     TextIn2 = {'Select .pos containing UAS GPS data'};
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn', TextIn2'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -346,7 +346,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -369,14 +369,14 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = strjoin(TimeIn, ' ');
         TextIn2 = {['Data acquired in UTM zone ' UTMzone]};
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn', TextIn2'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
         % Update the display
         TextIn = {'Interpolating the GPS data to 0.01s sample intervals'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -389,7 +389,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         % Show completion message
         TextIn = {'Process Completed'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -398,7 +398,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -415,7 +415,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         % Show completion message
         TextIn = {'Process Completed'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -424,7 +424,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -437,7 +437,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         % Show completion message
         TextIn = {'Process Completed'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -447,7 +447,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn', TextIn2'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -489,7 +489,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         % Show completion message
         TextIn = {'Process Completed'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -499,7 +499,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
     end
@@ -507,7 +507,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
     % Update the display
     TextIn = {'Select .csv containing UAS onboard IMU data'};
     app.ListBox.Items = [app.ListBox.Items, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -517,7 +517,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         % Update the display
         TextIn = {'Loading UAS onboard navigation data - Please wait'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -615,7 +615,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         %Display the completion message
         TextIn = {'UAS flight navigation data processed'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         
@@ -625,7 +625,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == 1
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
     end
@@ -636,7 +636,7 @@ else
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
 end

@@ -31,7 +31,7 @@ end
 objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; %[TopLeftX,TopLeftY,LengthX,LengthY]
 
 % Run the camera parameters function
-cameraParameters(app)
+KLT_cameraParameters(app)
 
 % Overwrite the default frame rate?
 if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1% Only run for the first video
@@ -79,11 +79,11 @@ end
 % Run the stabilisation functions if required
 if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
         strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true
-    stabiliseImageInput(app, V, totNum); % Stabilise all of the frames first
+    KLT_stabiliseImageInput(app, V, totNum); % Stabilise all of the frames first
 elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-    stabiliseImageInputGPS2(app, V, totNum) % Stabilise all of the frames first
+    KLT_stabiliseImageInputGPS(app, V, totNum) % Stabilise all of the frames first
 elseif strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
-    stabiliseImageInputPlanet(app, V, totNum) % Stabilise all of the frames first
+    KLT_stabiliseImageInputPlanet(app, V, totNum) % Stabilise all of the frames first
 end
 
 % This is the main part of the feature tracking
@@ -193,7 +193,7 @@ while app.s2 < totNum -1
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                orthorectification(app) % Run the starting orthoscript
+                KLT_orthorectification(app) % Run the starting orthoscript
                 camA_previous = app.camA;
                 app.camA_first = app.camA;
                 
@@ -353,7 +353,7 @@ while app.s2 < totNum -1
                 end
                 
                 if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                    orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
+                    KLT_orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
                 end
                 
                 if strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
@@ -550,7 +550,7 @@ try
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     
@@ -560,7 +560,7 @@ catch
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');
     app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-    printItems(app)
+    KLT_printItems(app)
     pause(0.01);
     app.ListBox.scroll('bottom');
     error('Breaking out of function');

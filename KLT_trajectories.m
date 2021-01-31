@@ -1,4 +1,4 @@
-function [] = trajectories(app)
+function [] = KLT_trajectories(app)
 if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
     try
         TextIn = {'Initiating the particle trajectories plot. Please wait.'};
@@ -182,7 +182,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         TextIn = {'Completed export of particle trajectories plot'};
         app.ListBox.Items = [app.ListBox.Items, TextIn'];
-        printItems(app)
+        KLT_printItems(app)
         pause(0.01);
         app.ListBox.scroll('bottom');
         

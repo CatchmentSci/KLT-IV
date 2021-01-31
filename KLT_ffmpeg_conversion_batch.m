@@ -1,4 +1,4 @@
-function []  = ffmpeg_conversion_batch(app)
+function []  = KLT_ffmpeg_conversion_batch(app)
 
 if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1 
 app.batchAnswer = questdlg('Would you like to re-encode the video(s)? (Default: No)', ...
@@ -126,7 +126,7 @@ switch app.batchAnswer
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
             catch
@@ -134,7 +134,7 @@ switch app.batchAnswer
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
                 app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
-                printItems(app)
+                KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 error('Breaking out of function');
