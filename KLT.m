@@ -250,17 +250,36 @@ classdef KLT < matlab.apps.AppBase
         
         
         % Button pushed function: RUNButton
-        function RUNButtonPushed(app, event)
-            if isempty(app.reloaded) % only run if the settings haven't been reloaded
-                app.GCPDataDropDown.Value =  'Make a selection:';
-                app.subSample = [];
-                app.videoNumber = [];
-                app.s2 = [];
+        function RUNButtonPushed(app, ~)
+            
+            switch app.OrientationDropDown.Value
+                case 'Make a selection:'
+                    
+                    % Update the dialog box
+                    TextIn             = {'No Orientation was selected. Please select a value and retry.'};
+                    TimeIn             = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+                    TimeIn             = strjoin(TimeIn, ' ');
+                    app.ListBox.Items  = [app.ListBox.Items, TimeIn, TextIn'];
+                    msg                = 'Error occurred.';
+                    KLT_printItems(app)
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    error(msg)
+                
+            end
+            
+            
+            % only run if the settings haven't been reloaded
+            if isempty(app.reloaded)
+                app.GCPDataDropDown.Value   =  'Make a selection:';
+                app.subSample               = [];
+                app.videoNumber             = [];
+                app.s2                      = [];
                 app.directory_save_multiple = [];
-                app.QfileOut = [];
-                app.startingVideo = [1];
+                app.QfileOut                = [];
+                app.startingVideo           = 1;
+                app.starterInd              = 1;
                 set(app.RUNButton,'Text',{['Processing, please wait.']});
-                app.starterInd = 1;
                 KLT_customFOV(app)
             end
             
@@ -281,7 +300,7 @@ classdef KLT < matlab.apps.AppBase
                         end
                         KLT_imageAnalysis(app)
                         KLT_flightPath(app)
-                        KLT_trajectoryAdjustments(app)
+                        KLT_vectorRotation(app)
                         KLT_exportVelocity(app)
                         KLT_trajectories(app)
                         KLT_CALCULATEButtonPushed(app)
@@ -294,18 +313,18 @@ classdef KLT < matlab.apps.AppBase
                         app.ListBox.scroll('bottom')
                         
                         if app.starterInd == 1
-                            app.startingAppVals = app; % create a copy of the settings
-                            app.startingAppVals.uvHR = [];
-                            app.startingAppVals.visHR = [];
-                            app.startingAppVals.xyzA_final = [];
-                            app.startingAppVals.xyzB_final = [];
-                            app.startingAppVals.vel = [];
-                            app.startingAppVals.refValue = [];
+                            app.startingAppVals             = app; % create a copy of the settings
+                            app.startingAppVals.uvHR        = [];
+                            app.startingAppVals.visHR       = [];
+                            app.startingAppVals.xyzA_final  = [];
+                            app.startingAppVals.xyzB_final  = [];
+                            app.startingAppVals.vel         = [];
+                            app.startingAppVals.refValue    = [];
+                            app.starterInd                  = app.starterInd + 1;
                             app.startingAppVals.objectFrameStacked = {};
                             app.startingAppVals.normalVelocity = [];
-                            app.starterInd = app.starterInd + 1;
                         else
-                            app.starterInd = app.starterInd + 1;
+                            app.starterInd                  = app.starterInd + 1;
                         end
                         
                     catch
@@ -328,7 +347,7 @@ classdef KLT < matlab.apps.AppBase
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
                 KLT_imageAnalysis(app)
                 KLT_flightPath(app)
-                KLT_trajectoryAdjustments(app)
+                KLT_vectorRotation(app)
                 KLT_exportVelocity(app)
                 KLT_trajectories(app)
                 set(app.RUNButton,'Text','Processing: Complete');
@@ -391,14 +410,14 @@ classdef KLT < matlab.apps.AppBase
         function AddVideoButtonPushed(app, event)
             
             %app.VelocityDropDown.Value = 'Make a selection:';
-            app.k1 =  [];
-            app.s2 = [];
-            set(app.RUNButton,'Text','RUN');
-            app.GCPfile = [];
-            app.GCPData = [];
-            app.masterImage = [];
-            app.firstOrthoImage = [];
+            app.k1                    = [];
+            app.s2                    = [];
+            app.GCPfile               = [];
+            app.GCPData               = [];
+            app.masterImage           = [];
+            app.firstOrthoImage       = [];
             app.GCPDataDropDown.Value = 'Make a selection:';
+            set(app.RUNButton,'Text','RUN');
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
                 if length(app.directory) < 2
@@ -409,12 +428,13 @@ classdef KLT < matlab.apps.AppBase
                 end
                 
                 if length(app.file) > 1
-                    textOutput = strjoin({app.directory, app.file}, '');
-                    TextIn = {'Single video file selected is:'; textOutput; ...
-                        'Please wait while it is loaded.'};
-                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-                    TimeIn = strjoin(TimeIn, ' ');
-                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+                    textOutput          = strjoin({app.directory, app.file}, '');
+                    TextIn              = {'Single video file selected is:'; textOutput; ...
+                                        'Please wait while it is loaded.'};
+                    TimeIn              = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+                    TimeIn              = strjoin(TimeIn, ' ');
+                    app.ListBox.Items   = [app.ListBox.Items, TimeIn, TextIn'];
+                    
                     KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
@@ -446,50 +466,52 @@ classdef KLT < matlab.apps.AppBase
                 end
                 
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-                if length(app.directory) < 1
-                    % Create list of images inside the considered directory
-                    %[app.file, app.directory] = uigetfile('*', 'MultiSelect', 'on' );
-                    app.directory = uigetdir;
-                else
-                    app.directory = uigetdir;
-                    %[app.directory] = uigetfile({'*' 'All Files'},'Select a file',app.directory, 'MultiSelect', 'on');
-                end
-                
+                % Create list of images inside the considered directory
+                app.directory = uigetdir;
+                    
                 if length(app.directory) > 1
                     
                     % Provide alternative templates for the year format +
                     % find the index of this from the user input xxxxxxyyyymmdd_HHMM
                     template = inputdlg('Provide the template of the filename inputs e.g. xxxxxxxxyyyymmdd_HHMM',...
                         'Provide the filename template', [1 60]);
+                    
                     if length(cell2mat(strfind(template,'y'))) == 4
-                        yearsFormat = 'yyyy';
-                        yearInIdx = cell2mat(strfind(template,'y'));
+                        yearsFormat     = 'yyyy';
+                        yearInIdx       = cell2mat(strfind(template,'y'));
+                        
                     elseif length(cell2mat(strfind(template,'y'))) == 2
-                        yearsFormat = 'yy';
-                        yearInIdx = cell2mat(strfind(template,'y'));
-                        preYear = '20';
+                        yearsFormat     = 'yy';
+                        yearInIdx       = cell2mat(strfind(template,'y'));
+                        preYear         = '20';
                     end
-                    monthInIdx = cell2mat(strfind(template,'m'));
-                    dateInIdx = cell2mat(strfind(template,'d'));
-                    hourInIdx = cell2mat(strfind(template,'H'));
-                    minuteInIdx = cell2mat(strfind(template,'M'));
-                    direc = dir([app.directory,filesep]); app.videoDirFileNames={};
+                    
+                    monthInIdx          = cell2mat(strfind(template,'m'));
+                    dateInIdx           = cell2mat(strfind(template,'d'));
+                    hourInIdx           = cell2mat(strfind(template,'H'));
+                    minuteInIdx         = cell2mat(strfind(template,'M'));
+                    direc               = dir([app.directory,filesep]); app.videoDirFileNames={};
                     [app.videoDirFileNames{1:length(direc),1}] = deal(direc.name);
                     app.videoDirFileNames = sortrows(app.videoDirFileNames); %sort all image files
                     app.videoDirFileNames = app.videoDirFileNames(3:end);
+                    
                     for a = 1:length(app.videoDirFileNames)
                         try
-                            temp = app.videoDirFileNames{a};
+                            temp        = app.videoDirFileNames{a};
+                            
                             if length(cell2mat(strfind(template,'y'))) == 4
-                                yearIn = temp(yearInIdx(1):yearInIdx(1)+3);
+                                yearIn  = temp(yearInIdx(1):yearInIdx(1)+3);
+                                
                             elseif length(cell2mat(strfind(template,'y'))) == 2
-                                yearIn = {preYear, temp(yearInIdx(1):yearInIdx(1)+1)};
+                                yearIn  = {preYear, temp(yearInIdx(1):yearInIdx(1)+1)};
                             end
-                            monthIn = temp(monthInIdx:monthInIdx+1);
-                            dateIn = temp(dateInIdx:dateInIdx+1);
-                            hourIn = temp(hourInIdx:hourInIdx+1);
-                            minuteIn = temp(minuteInIdx:minuteInIdx+1);
+                            
+                            monthIn     = temp(monthInIdx:monthInIdx+1);
+                            dateIn      = temp(dateInIdx:dateInIdx+1);
+                            hourIn      = temp(hourInIdx:hourInIdx+1);
+                            minuteIn    = temp(minuteInIdx:minuteInIdx+1);
                             app.videoDatesFormatted{a,1} = [yearIn monthIn dateIn '_' hourIn minuteIn];
+                            
                             if isempty(str2num([yearIn monthIn dateIn])) % esnure it can be converted to a number
                                 app.videoDatesFormattedNum(a,1) = 0;
                             else
@@ -501,9 +523,9 @@ classdef KLT < matlab.apps.AppBase
                     end
                     % Simplify the arrays so that only properly formatted
                     % files are used
-                    idxKeep = app.videoDatesFormattedNum > 0;
-                    app.videoDatesFormattedNum = app.videoDatesFormattedNum(idxKeep);
-                    app.videoDirFileNames = app.videoDirFileNames(idxKeep);
+                    idxKeep                     = app.videoDatesFormattedNum > 0;
+                    app.videoDatesFormattedNum  = app.videoDatesFormattedNum(idxKeep);
+                    app.videoDirFileNames       = app.videoDirFileNames(idxKeep);
                     
                     TextIn = strjoin({num2str(length(app.videoDirFileNames)) ' videos selected for analysis'},'');
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
@@ -775,7 +797,6 @@ classdef KLT < matlab.apps.AppBase
                 
             end
         end
-        
         
         
         function AddLevelButtonPushed(app, event)

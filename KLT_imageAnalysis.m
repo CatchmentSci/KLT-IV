@@ -1,45 +1,49 @@
 function [] = KLT_imageAnalysis(app)  % Starting analysis
 
-if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-    V = VideoReader(strjoin ({app.directory, app.file},''));
-    app.videoDuration = V.Duration; % Extract the length of the video
-    app.videoFrameRate = V.FrameRate; % Extract the frame rate of the video
+switch app.ProcessingModeDropDown.Value
+    case {'Single Video'}
+        V                   = VideoReader(strjoin ({app.directory, app.file},''));
+        app.videoDuration   = V.Duration; % Extract the length of the video
+        app.videoFrameRate  = V.FrameRate; % Extract the frame rate of the video
 end
 
-TextIn = {'Begining image processing'};
-TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
-TimeIn = strjoin(TimeIn, ' ');
-app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+TextIn              = {'Begining image processing'};
+TimeIn              = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+TimeIn              = strjoin(TimeIn, ' ');
+app.ListBox.Items   = [app.ListBox.Items, TimeIn, TextIn'];
 KLT_printItems(app)
 pause(0.01);
 app.ListBox.scroll('bottom');
 
 % Clear some necessary variables
-app.visHR = [];
-app.uvHR = [];
-app.uvHR = [];
+app.visHR       = [];
+app.uvHR        = [];
+app.uvHR        = [];
 
 % Configure the block size correctly
-tempBlocksize = app.BlocksizepxEditField.Value;
+tempBlocksize       = app.BlocksizepxEditField.Value;
+
 if bitget(tempBlocksize,1) %odd
-    app.Blocksize = [app.BlocksizepxEditField.Value app.BlocksizepxEditField.Value];
+    app.Blocksize   = [app.BlocksizepxEditField.Value app.BlocksizepxEditField.Value];
 else %even
-    app.Blocksize = [tempBlocksize+1 tempBlocksize+1];
+    app.Blocksize   = [tempBlocksize+1 tempBlocksize+1];
 end
 
 % Set the region of interest for analysis as the entire frame
-objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; %[TopLeftX,TopLeftY,LengthX,LengthY]
+% [TopLeftX,TopLeftY,LengthX,LengthY]
+objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; 
 
 % Run the camera parameters function
 KLT_cameraParameters(app)
 
 % Overwrite the default frame rate?
-if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1% Only run for the first video
-    defaultValue = {num2str(app.videoFrameRate)};
-    titleBar = 'Manually overwrite the frame rate present in the meta-data?';
-    userPrompt = {'Defined frame rates: '};
-    caUserInput = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
-    app.videoFrameRate = str2num(caUserInput{1});
+% Only run for the first video
+if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
+    defaultValue        = {num2str(app.videoFrameRate)};
+    titleBar            = 'Manually overwrite the frame rate present in the meta-data?';
+    userPrompt          = {'Defined frame rates: '};
+    caUserInput         = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
+    app.videoFrameRate  = str2num(caUserInput{1});
 end
 
 % Define the total number of frames available
@@ -49,41 +53,43 @@ else
     totNum = length(app.objectFrameStacked);
 end
 
-nFrame = 1;
-app.iter = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
+nFrame      = 1;
+app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
 restartWhen = (1:app.iter:totNum);
-ii = 0;
+ii          = 0;
 
 % Enter the start and stop of the video analysis
-if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1 % Only run for the first video
-    defaultValue = {'0', num2str(round(app.videoDuration))};
-    titleBar = 'Define the start and end of the video in seconds';
-    userPrompt = {'Starting point (s): ', 'Finishing point (s): '};
-    caUserInput = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
-    app.videoStart = str2num(caUserInput{1});
-    app.videoClip = str2num(caUserInput{2});
+% Only run for the first video
+if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1 
+    defaultValue    = {'0', num2str(round(app.videoDuration))};
+    titleBar        = 'Define the start and end of the video in seconds';
+    userPrompt      = {'Starting point (s): ', 'Finishing point (s): '};
+    caUserInput     = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
+    app.videoStart  = str2num(caUserInput{1});
+    app.videoClip   = str2num(caUserInput{2});
 end
 
-% Ensure that the inputs for s2 and nFrame are okay for all
-% orientations
+% Ensure that the inputs for s2 and nFrame are okay for all orientations
 if isempty (app.s2_mod)
-    app.s2 = round(1 + (app.videoStart.*app.videoFrameRate));
-    [~,idx] = min(abs(restartWhen-app.s2));
-    app.s2 = restartWhen(idx(1));
-    nFrame = app.s2;
+    app.s2      = round(1 + (app.videoStart.*app.videoFrameRate));
+    [~,idx]     = min(abs(restartWhen-app.s2));
+    app.s2      = restartWhen(idx(1));
+    nFrame      = app.s2;
 else
-    app.s2 = round(1 + (app.s2_mod.*app.videoFrameRate));
-    nFrame = round(nFrame + (app.s2_mod.*app.videoFrameRate));
+    app.s2      = round(1 + (app.s2_mod.*app.videoFrameRate));
+    nFrame      = round(nFrame + (app.s2_mod.*app.videoFrameRate));
 end
 
-% Run the stabilisation functions if required
-if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-        strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true
-    KLT_stabiliseImageInput(app, V, totNum); % Stabilise all of the frames first
-elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-    KLT_stabiliseImageInputGPS(app, V, totNum) % Stabilise all of the frames first
-elseif strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
-    KLT_stabiliseImageInputPlanet(app, V, totNum) % Stabilise all of the frames first
+% Run the stabilisation functions as required
+switch app.OrientationDropDown.Value
+
+    case {'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation'}
+        KLT_stabiliseImageInput(app, V, totNum);
+    case 'Dynamic: GPS + IMU'
+        KLT_stabiliseImageInputGPS(app, V, totNum);
+    case 'Planet [beta]'
+        KLT_stabiliseImageInputPlanet(app, V, totNum);
+        
 end
 
 % This is the main part of the feature tracking
@@ -93,26 +99,28 @@ while app.s2 < totNum -1
         pause(0.01)
         
         if length(find(~cellfun(@isempty,app.ListBox.Items))) == 1000
-            for x=1:1000 % create an empty listbox again
+            for x = 1:1000 % create an empty listbox again
                 app.ListBox.Items(x) = {['']};
             end
         end
         
     end
-    if ~isempty(find(nFrame == restartWhen) > 0) || ii == 0 % If it is the start of a new loop or frame 1
+    
+    % If it is the start of a new loop or frame 1
+    if ~isempty(find(nFrame == restartWhen) > 0) || ii == 0 
         if ii == 0 % if its the first frame
-            ii = 1;
-            template = '00000';
-            inputNum = num2str(app.s2);
-            p1 = template(1:end-length(num2str(app.s2)));
-            p2 = inputNum;
+            ii          = 1;
+            template    = '00000';
+            inputNum    = num2str(app.s2);
+            p1          = template(1:end-length(num2str(app.s2)));
+            p2          = inputNum;
             fileNameIteration = [p1,p2];
             
-            uvA = [];
-            uvB = [];
-            app.gcpA = app.UITable.Data;
-            available = find(app.gcpA(:,4) > 0);
-            app.gcpA = app.gcpA(available,:);
+            uvA         = [];
+            uvB         = [];
+            app.gcpA    = app.UITable.Data;
+            available   = find(app.gcpA(:,4) > 0);
+            app.gcpA    = app.gcpA(available,:);
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                 if app.s2.*1/app.videoFrameRate < V.Duration
@@ -131,6 +139,7 @@ while app.s2 < totNum -1
                 for a = 1:length(listing)
                     fileNamesIn(a,1) = cellstr(listing(a).name);
                 end
+                
                 fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
                 Index = find(contains(fileNamesIn,fileNameIteration));
                 if Index > 0
@@ -145,11 +154,13 @@ while app.s2 < totNum -1
                 for a = 1:length(listing)
                     fileNamesIn(a,1) = cellstr(listing(a).name);
                 end
-                fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
-                Index = find(contains(fileNamesIn,fileNameIteration));
-                if Index > 0% if s2 matches the first image in the sequence bring it in
+                fileNamesIn         = fileNamesIn(contains(fileNamesIn,'.jpg'));
+                Index               = find(contains(fileNamesIn,fileNameIteration));
+                
+                %if s2 matches the first image in the sequence bring it in
+                if Index > 0% 
                     app.objectFrame = imread([app.directory_stab '\' char(fileNamesIn(Index))]);
-                    restartWhen = (app.s2:app.iter:totNum); % Feed in the correct values
+                    restartWhen     = (app.s2:app.iter:totNum); % Feed in the correct values
                 else
                     % Otherwise do nothing
                 end
@@ -167,29 +178,34 @@ while app.s2 < totNum -1
                 objectRegion = [1 1 flip(size(app.objectFrame))];
             end
             
-            points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
+            % set the nFrame image as the new reference to be used
+            points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); 
             points = points.Location;
+            
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
                 % Create a polygon just inside the area of the image containing data
-                th=10;
-                a=app.objectFrame(:,:,1)>th; % find pixel values greater than 10
-                a=bwareaopen(a,50); % find 50 connected pixels
-                B = bwboundaries(a,'noholes');
-                B1 = B{1,1};
-                k = boundary(B1); %(:,1),B1(:,2),1); % [x,y]: outline
-                filled = polyshape (B1(k,2),B1(k,1)); % polyshape
+                th      = 10;
+                a       = app.objectFrame(:,:,1)>th; % find pixel values greater than 10
+                a       = bwareaopen(a,50); % find 50 connected pixels
+                B       = bwboundaries(a,'noholes');
+                B1      = B{1,1};
+                k       = boundary(B1); %(:,1),B1(:,2),1); % [x,y]: outline
+                filled  = polyshape (B1(k,2),B1(k,1)); % polyshape
                 
                 % Next extract the points towards the edges of the image
-                q_length = sqrt(polyarea(filled.Vertices(:,1),filled.Vertices(:,2)));
-                q_length_t = q_length.*0.10;
-                q = polybuffer(filled,-q_length_t); %shrink the boundary by the square root of the area imaged
+                q_length    = sqrt(polyarea(filled.Vertices(:,1),filled.Vertices(:,2)));
+                q_length_t  = q_length.*0.10;
+                q           = polybuffer(filled,-q_length_t); %shrink the boundary by the square root of the area imaged
                 filteredIdx = inpolygon(points(:,1),points(:,2),q.Vertices(:,1),q.Vertices(:,2)); % filtered best points
-                points = [points(filteredIdx,1),points(filteredIdx,2)];
-                oldPoints = points; % Make a copy of the points to be used
-                numPoints = double(oldPoints);% locate the origins of the GCPs
+                points      = [points(filteredIdx,1),points(filteredIdx,2)];
+                oldPoints   = points; % Make a copy of the points to be used
+                numPoints   = double(oldPoints);% locate the origins of the GCPs
+                
             else
-                oldPoints = points; % Make a copy of the points to be used
-                numPoints = double(oldPoints);% locate the origins of the GCPs
+                
+                oldPoints   = points; % Make a copy of the points to be used
+                numPoints   = double(oldPoints); % locate the origins of the GCPs
+            
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
