@@ -100,7 +100,7 @@ if continuer == 1
         QuadraticVelocity(missingInd) = fitresult.p1.*absDistance(missingInd).^2 + fitresult.p2.*absDistance(missingInd) + fitresult.p3;
         rem1 = find(QuadraticVelocity < 0);
         QuadraticVelocity(rem1) = 0;
-        plotFcn(app, absDistance, QuadraticVelocity, missingInd);
+        KLT_plotFcn(app, absDistance, QuadraticVelocity, missingInd);
         
         % Discharge calculated using the velocity area mid-section method and cubic extrapolation (Herschy, 1993)
         for a = 1:length(absDistance)
@@ -130,7 +130,7 @@ if continuer == 1
             + fitresult.p3.*absDistance(missingInd) + fitresult.p4;
         rem1 = find(CubicVelocity < 0);
         CubicVelocity(rem1) = 0;
-        plotFcn(app, absDistance, CubicVelocity, missingInd);
+        KLT_plotFcn(app, absDistance, CubicVelocity, missingInd);
         
         % Discharge calculated using the velocity area mid-section method and cubic extrapolation (Herschy, 1993)
         for a = 1:length(absDistance)
@@ -162,7 +162,7 @@ if continuer == 1
                 froudeVelocity(missingInd) = NaN;
                 dlm = fitlm(depthIn,froudeVelocity,'Intercept',false);
                 froudeVelocity(missingInd) = depthIn(missingInd).* table2array(dlm.Coefficients(1,1));
-                plotFcn(app, absDistance, froudeVelocity, missingInd);
+                KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
                 distance1(a) = absDistance(a+1,1) - absDistance(a,1);
                 qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a,1))./2) .* depthIn(a);
             elseif a == length(xsVelocity)
