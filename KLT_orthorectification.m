@@ -318,7 +318,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         
     end
     
-    if strcmp (app.OrthophotosSwitch.Value, 'On') == 1 || app.s2 == 1
+    if strcmp (app.OrthophotosSwitch.Value, 'On') == 1 || app.s2 > 0 % always called
         
         if ~isempty(app.directory_save_multiple) % Bring in the proper file
             A = app.objectFrameStacked{app.s2};
@@ -332,10 +332,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         uvHR2 = app.uvHR(:,2);
         clear app.uvHR
         app.rgbHR=nan(size(app.dem,1),size(app.dem,2),1);
-        try
-            app.rgbHR = uint8(app.rgbHR);
-        catch
-        end
+        
         
         template = '00000';
         inputNum = num2str(app.s2);
@@ -344,34 +341,37 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         fileNameIteration = [p1,p2];
         app.cameraModelParameters = [app.camA.fullmodel app.rmse];
         
-        % Define the output dir of the orthophoto
-        if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
-            if app.directory_save == 0
-                filenameJpg = [ app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
-            elseif ~isempty(app.directory_save_multiple)
-                dirIn = [app.directory_save_multiple '\orthorectified\'];
-                mkdir (dirIn);
-                filenameJpg = [dirIn '\' app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
-            else
-                dirIn = [app.directory_save '\orthorectified\'];
-                mkdir (dirIn);
-                filenameJpg = [dirIn '\' app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
+        if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
+            
+            % Define the output dir of the orthophoto
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
+                if app.directory_save == 0
+                    filenameJpg = [ app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
+                elseif ~isempty(app.directory_save_multiple)
+                    dirIn = [app.directory_save_multiple '\orthorectified\'];
+                    mkdir (dirIn);
+                    filenameJpg = [dirIn '\' app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
+                else
+                    dirIn = [app.directory_save '\orthorectified\'];
+                    mkdir (dirIn);
+                    filenameJpg = [dirIn '\' app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
+                end
+                
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
+                
+                if app.directory_save == 0
+                    filenameJpg = [ app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
+                elseif ~isempty(app.directory_save_multiple)
+                    dirIn = [app.directory_save_multiple '\orthorectified\'];
+                    mkdir (dirIn);
+                    filenameJpg = [dirIn '\' app.fileNameAnalysis{app.videoNumber}(1:end-4) '_frame' fileNameIteration '.jpg'];
+                else
+                    dirIn = [app.directory_save '\orthorectified\'];
+                    mkdir (dirIn);
+                    filenameJpg = [dirIn '\' app.fileNameAnalysis{app.videoNumber}(1:end-4) '_frame' fileNameIteration '.jpg'];
+                end
+                
             end
-            
-        elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-            
-            if app.directory_save == 0
-                filenameJpg = [ app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
-            elseif ~isempty(app.directory_save_multiple)
-                dirIn = [app.directory_save_multiple '\orthorectified\'];
-                mkdir (dirIn);
-                filenameJpg = [dirIn '\' app.fileNameAnalysis{app.videoNumber}(1:end-4) '_frame' fileNameIteration '.jpg'];
-            else
-                dirIn = [app.directory_save '\orthorectified\'];
-                mkdir (dirIn);
-                filenameJpg = [dirIn '\' app.fileNameAnalysis{app.videoNumber}(1:end-4) '_frame' fileNameIteration '.jpg'];
-            end
-            
         end
         
         for jj = 1:1 % only one as it is a grayscale image
@@ -379,8 +379,11 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         end
         
         x = app.rgbHR ./ max(app.rgbHR(:));  % Scale to [0,1]
-        imwrite(app.rgbHR,filenameJpg)
         app.firstOrthoImage = app.rgbHR;
+        
+        if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
+            imwrite(app.rgbHR,filenameJpg)
+        end
         
         % Orthophoto saved display
         TextIn = {['Orthophoto for frame number ' num2str(app.s2) ' generated']};
