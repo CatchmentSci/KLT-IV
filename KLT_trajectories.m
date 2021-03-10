@@ -147,11 +147,12 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
             ind1 = ind1(1:length(app.refValue));
         end
         
-        for aa = 1:length(ind1) % this needs to be optimised out of a loop
-            h2 = plot([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
-                [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)]);
-            set(h2,'Color',cd(:,ind1(aa)))
-            hold on;
+        % Optimised: line rather than plot (20210310)
+        h2 = gobjects(1,length(ind1)); % preallocate object
+        for aa = 1:length(ind1) 
+            h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
+                [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
+                'color', cd(:,ind1(aa)));
         end
         
         TextIn = {'Exporting the plot of particle trajectories'};
