@@ -28,8 +28,8 @@ classdef KLT < matlab.apps.AppBase
         DischargeLabel                  matlab.ui.control.Label
         DefinecrosssectionButton        matlab.ui.control.Button
         UITable2                        matlab.ui.control.Table
-        SearchDistanceEditFieldLabel    matlab.ui.control.Label
-        SearchDistanceEditField         matlab.ui.control.NumericEditField
+        CellNumberEditFieldLabel    matlab.ui.control.Label
+        CellNumberEditField         matlab.ui.control.NumericEditField
         CALCULATEButton                 matlab.ui.control.Button
         CrosssectionInputDropDownLabel  matlab.ui.control.Label
         CrosssectionInputDropDown       matlab.ui.control.DropDown
@@ -1978,32 +1978,32 @@ classdef KLT < matlab.apps.AppBase
             app.UITable2.FontName = 'Roboto';
             app.UITable2.Position = [980 282 290 123];
             
-            % Create SearchDistanceEditFieldLabel
-            app.SearchDistanceEditFieldLabel = uilabel(app.KLTIV_UIFigure);
-            app.SearchDistanceEditFieldLabel.HorizontalAlignment = 'left';
-            app.SearchDistanceEditFieldLabel.FontName = 'Ubuntu';
-            app.SearchDistanceEditFieldLabel.FontColor = [0.149 0.149 0.149];
-            app.SearchDistanceEditFieldLabel.Position = [980 254 140 22];
-            app.SearchDistanceEditFieldLabel.Text = '';
-            app.ControlHandles(i,33) = app.SearchDistanceEditFieldLabel;
+            % Create CellNumberEditFieldLabel
+            app.CellNumberEditFieldLabel = uilabel(app.KLTIV_UIFigure);
+            app.CellNumberEditFieldLabel.HorizontalAlignment = 'left';
+            app.CellNumberEditFieldLabel.FontName = 'Ubuntu';
+            app.CellNumberEditFieldLabel.FontColor = [0.149 0.149 0.149];
+            app.CellNumberEditFieldLabel.Position = [980 254 140 22];
+            app.CellNumberEditFieldLabel.Text = '';
+            app.ControlHandles(i,33) = app.CellNumberEditFieldLabel;
             [~,panelID] = mlapptools.getWebElements(app.ControlHandles(i,33));
             setClassString = sprintf(...
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'infoBox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM elements
-            app.SearchDistanceEditFieldLabel = uilabel(app.KLTIV_UIFigure);
-            app.SearchDistanceEditFieldLabel.HorizontalAlignment = 'left';
-            app.SearchDistanceEditFieldLabel.FontName = 'Ubuntu';
-            app.SearchDistanceEditFieldLabel.FontColor = [0.149 0.149 0.149];
-            app.SearchDistanceEditFieldLabel.Position = [980 254 140 22];
-            app.SearchDistanceEditFieldLabel.Text = '    Search Distance (m)';
+            app.CellNumberEditFieldLabel = uilabel(app.KLTIV_UIFigure);
+            app.CellNumberEditFieldLabel.HorizontalAlignment = 'left';
+            app.CellNumberEditFieldLabel.FontName = 'Ubuntu';
+            app.CellNumberEditFieldLabel.FontColor = [0.149 0.149 0.149];
+            app.CellNumberEditFieldLabel.Position = [980 254 140 22];
+            app.CellNumberEditFieldLabel.Text = '    Number of cells';
             
-            % Create SearchDistanceEditField
-            app.SearchDistanceEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
-            app.SearchDistanceEditField.FontName = 'Roboto';
-            app.SearchDistanceEditField.FontColor = [0.149 0.149 0.149];
-            app.SearchDistanceEditField.Position = [1130 254 140 22];
-            app.SearchDistanceEditField.Value = 0.5;
+            % Create CellNumberEditField
+            app.CellNumberEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
+            app.CellNumberEditField.FontName = 'Roboto';
+            app.CellNumberEditField.FontColor = [0.149 0.149 0.149];
+            app.CellNumberEditField.Position = [1130 254 140 22];
+            app.CellNumberEditField.Value = 20;
             
             % Create Interpoation method
             app.InterpolationMethodLabel = uilabel(app.KLTIV_UIFigure);

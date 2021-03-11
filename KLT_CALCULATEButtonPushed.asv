@@ -217,7 +217,7 @@ if cont == 1
         % Discharge calculated using the velocity area mid-section method and constant froude number assumption (Herschy, 1993)
         froudeVelocity = xsVelocity';
         froudeVelocity(missingInd) = NaN;
-        dlm = fitlm(depthUse,froudeVelocity,'Intercept',false);
+        dlm = fitlm(depthIn,froudeVelocity,'Intercept',false);
         froudeVelocity(missingInd) = depthUse(missingInd).* table2array(dlm.Coefficients(1,1));
         KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
         
@@ -228,13 +228,48 @@ if cont == 1
             q(a) = froudeVelocity(a) .* cellArea(a);
             
             if a == length(froudeVelocity)
-                totalQ_froude = sum(q);
+                totalQ_quad = sum(q);
+                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+                    message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
+                    msgbox(message1,'Value');
+                else
+                    app.totalQ(app.videoNumber) = totalQ_quad;
+                end
+            end
+        end
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        for a = 1:length(xsVelocity)
+            if a == 1
+                froudeVelocity = xsVelocity';
+                froudeVelocity(missingInd) = NaN;
+                dlm = fitlm(depthIn,froudeVelocity,'Intercept',false);
+                froudeVelocity(missingInd) = depthIn(missingInd).* table2array(dlm.Coefficients(1,1));
+                KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
+                distance1(a) = absDistance(a+1,1) - absDistance(a,1);
+                qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a,1))./2) .* depthIn(a);
+            elseif a == length(xsVelocity)
+                distance1(a) = absDistance(a,1) - absDistance(a-1,1);
+                qfroude(a) = froudeVelocity(a) .* ((absDistance(a,1) - absDistance(a,1))./2) .* depthIn(a);
+                totalQ_froude = sum(qfroude);
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message1 = ['Q = ' num2str(round(totalQ_froude,2)) ' m' char(179) '/s'];
                     msgbox(message1,'Value');
                 else
                     app.totalQ(app.videoNumber) = totalQ_froude;
                 end
+            else
+                distance1(a) = absDistance(a+1,1) - absDistance(a-1,1);
+                qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a-1,1))./2) .* depthIn(a);
             end
         end % for length velocity measurements
     end % interpolation method
