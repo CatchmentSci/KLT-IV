@@ -617,8 +617,8 @@ classdef KLT < matlab.apps.AppBase
                 app.yInder = [];
                 for a = 1:length(app.UITable2.Data)
                     if (a > 0 && ...                  % if first row or higher
-                            (~isnan(app.UITable2.Data(a,1)) && ...         % second collumn (height) is numeric
-                            ~isnan(app.UITable2.Data(a,2)) ))             % first collumn (chainage) is numeric
+                            (~isnan(app.UITable2.Data(a,1)) && ...         % second column (height) is numeric
+                            ~isnan(app.UITable2.Data(a,2)) ))             % first column (chainage) is numeric
                         
                         if app.UITable2.Data(a,1) > app.transectLength
                             message = sprintf('Warning! \nSpecified distance exceeds the transect length.');
@@ -2065,7 +2065,7 @@ classdef KLT < matlab.apps.AppBase
             app.CALCULATEButton.ButtonPushedFcn = createCallbackFcn(app, @KLT_CALCULATEButtonPushed, true);
             app.CALCULATEButton.FontName = 'Ubuntu';
             app.CALCULATEButton.FontColor = [0.149 0.149 0.149];
-            app.CALCULATEButton.Position = [980 162 290 22];
+            app.CALCULATEButton.Position = [980 162 290 22];    
             app.CALCULATEButton.Text = 'CALCULATE';
             
             % Create ListBox

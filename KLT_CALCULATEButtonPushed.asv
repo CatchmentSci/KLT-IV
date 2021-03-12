@@ -15,7 +15,7 @@ else
     D1      = [];
 end
 
-if app.UITable2.Data(end,1) ~= app.transectLength
+if app.UITable2.Data(end,1) < app.transectLength % changed 20210312
     M3      = app.endXS;
     N3      = [app.transectLength];
     D3      = [0];
@@ -69,30 +69,64 @@ xi          = xsIn(:,1);
 yi          = xsIn(:,2);
 
 
-% add noise if required
+% add noise to x if required
 if length(unique(xi)) < length(xi)
     [M, N] = size(xi);
     xi = xi + 0.000001*rand(M,N);
 end
 
+% add noise to y if required
 if length(unique(yi)) < length(yi)
     [M, N] = size(yi);
     yi = yi + 0.000001*rand(M,N);
 end
 
-F               = scatteredInterpolant(xi,yi,depthIn);
-nu              = abs(xsIn(1,:) - xsIn(end,:));
-nu2             = sqrt(nu(1).^2+ nu(2).^2);
-nu3             = nu2.*100; % num of cms
-XQ              = linspace(min(xi),max(xi),nu3);
-YQ              = linspace(min(yi),max(yi),nu3);
-vq              = F(XQ,YQ);
-xsIn            = [XQ; YQ]'; % overwrite original input
-xi              = xsIn(:,1);
-yi              = xsIn(:,2);
-depthIn         = vq;% overwrite original input
+% add noise to depth if required
+te1             = diff(depthIn);
+te2             = find(te1 == 0)+1;
+[M, N]          = size(te2);
+depthIn(te2)    = depthIn(te2) + 0.000001*rand(M,N);
+
+
+F                       = scatteredInterpolant(xi,yi,depthIn);
+F.Method                = 'nearest';
+F.ExtrapolationMethod   = 'nearest';
+nu                      = abs(xsIn(1,:) - xsIn(end,:));
+nu2                     = sqrt(nu(1).^2+ nu(2).^2);
+nu3                     = nu2.*100; % num of cms
+XQ                      = linspace(xi(1),xi(end),nu3); % modified - check ok
+YQ                      = linspace(yi(1),yi(end),nu3); % modified - check ok
+% [Xg,Yg]               = meshgrid(XQ,YQ);
+% 
+xsIn                    = [XQ; YQ]'; % overwrite original input
+vq                      = F(xsIn(:,1),xsIn(:,2)); % need to optimise
+depthIn                 = vq; % overwrite original input
+
+% ensure the depth data is properly interpolated between points
+TF = find(diff(depthIn) ~= 0);
+TF = [0;TF]; % length(depthIn)];
+Ti = cat(1,A3{:});
+
+for a = 1:length(TF)
+    if a == 1
+        midPoint(a) = 1;
+    elseif a == length(TF)
+        midPoint(a) = length(depthIn);
+    else
+        midPoint(a) = round((TF(a+1) - TF(a)+1)./2) + TF(a);
+    end
+    
+end
+
+vq              = interp1(midPoint,depthIn(midPoint),1:length(depthIn));
+vq              = replace_num(vq,NaN,0);
+depthIn         = vq;
 depthIn(1)      = 0;
 depthIn(end)    = 0;
+% differences between actual and sim:
+% t = 0.01:0.01:length(depthIn)/100;
+% plot(t,depthIn); hold on; % Sim
+% plot(xsPlot,D2) % Actual
 
 
 % Added to enable a flexible cell structure 20210310
@@ -103,7 +137,6 @@ if isempty(wetCellsEnd) wetCellsEnd = length(depthIn); end % test this
 wetCellsNum     = abs(wetCellsEnd - wetCellsStart);
 wetCellsIdx     = wetCellsStart:round(wetCellsNum./app.CellNumberEditField.Value):wetCellsEnd;
 wetCellsIdx     = [wetCellsIdx(1:app.CellNumberEditField.Value), wetCellsEnd];
-
 
 
 if cont == 1
@@ -142,7 +175,7 @@ if cont == 1
     xsVelocity      = xsVelocity.*app.alphaEditField.Value; 
     
     % Ensure x-data is distance along xs
-    out             =cell2mat(cellfun(@(x) app.startXS-x ,{mi},'un',0));
+    out             = cell2mat(cellfun(@(x) app.startXS-x ,{mi},'un',0));
     absDistance     = sqrt(out(:,1).^2+out(:,2).^2);
     missingInd      = find(isnan(xsVelocity));
     
@@ -217,7 +250,7 @@ if cont == 1
         % Discharge calculated using the velocity area mid-section method and constant froude number assumption (Herschy, 1993)
         froudeVelocity = xsVelocity';
         froudeVelocity(missingInd) = NaN;
-        dlm = fitlm(depthIn,froudeVelocity,'Intercept',false);
+        dlm = fitlm(depthUse,froudeVelocity,'Intercept',false);
         froudeVelocity(missingInd) = depthUse(missingInd).* table2array(dlm.Coefficients(1,1));
         KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
         
@@ -228,48 +261,13 @@ if cont == 1
             q(a) = froudeVelocity(a) .* cellArea(a);
             
             if a == length(froudeVelocity)
-                totalQ_quad = sum(q);
-                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                    message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
-                    msgbox(message1,'Value');
-                else
-                    app.totalQ(app.videoNumber) = totalQ_quad;
-                end
-            end
-        end
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        for a = 1:length(xsVelocity)
-            if a == 1
-                froudeVelocity = xsVelocity';
-                froudeVelocity(missingInd) = NaN;
-                dlm = fitlm(depthIn,froudeVelocity,'Intercept',false);
-                froudeVelocity(missingInd) = depthIn(missingInd).* table2array(dlm.Coefficients(1,1));
-                KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
-                distance1(a) = absDistance(a+1,1) - absDistance(a,1);
-                qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a,1))./2) .* depthIn(a);
-            elseif a == length(xsVelocity)
-                distance1(a) = absDistance(a,1) - absDistance(a-1,1);
-                qfroude(a) = froudeVelocity(a) .* ((absDistance(a,1) - absDistance(a,1))./2) .* depthIn(a);
-                totalQ_froude = sum(qfroude);
+                totalQ_froude = sum(q);
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message1 = ['Q = ' num2str(round(totalQ_froude,2)) ' m' char(179) '/s'];
                     msgbox(message1,'Value');
                 else
                     app.totalQ(app.videoNumber) = totalQ_froude;
                 end
-            else
-                distance1(a) = absDistance(a+1,1) - absDistance(a-1,1);
-                qfroude(a) = froudeVelocity(a) .* ((absDistance(a+1,1) - absDistance(a-1,1))./2) .* depthIn(a);
             end
         end % for length velocity measurements
     end % interpolation method

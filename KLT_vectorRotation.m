@@ -48,13 +48,13 @@ switch app.VelocityDropDown.Value
         vmag                = sqrt(app.adjustedVel(:,1).^2 + app.adjustedVel(:,2).^2);
 
         % Apply the neccesary rotations to extract u and v components
-        ideal   = end1_rw - start1_rw;
-        phi     = rad2deg(atan2(ideal(2), ideal(1)));
-        v2      = app.xyzB_final - app.xyzA_final;
-        obs_dir = rad2deg(atan2(v2(:,2), v2(:,1)));
-        psi     = phi - obs_dir;
-        u       = cosd(psi).*vmag;   
-        v       = sind(psi).*vmag;
+        ideal               = end1_rw - start1_rw;
+        phi                 = rad2deg(atan2(ideal(2), ideal(1)));
+        v2                  = app.xyzB_final - app.xyzA_final;
+        obs_dir             = rad2deg(atan2(v2(:,2), v2(:,1)));
+        psi                 = phi - obs_dir;
+        u                   = cosd(psi).*vmag;   
+        v                   = sind(psi).*vmag;
         app.refValue        = u;
         app.normalVelocity  = u;
         app.adjustedVel     = [u, v]; % check that these are the values exported to excel
@@ -67,11 +67,11 @@ switch app.VelocityDropDown.Value
         app.ListBox.scroll('bottom');
         
     case 'Velocity Magnitude'
-    	app.xyzA_final  = app.xyzA_final(1:end,1:2);
-    	app.xyzB_final  = app.xyzB_final(1:end,1:2);
-        app.vel         = app.xyzB_final - app.xyzA_final;% The raw velocity values - not direction specific
-        app.adjustedVel = app.vel./(app.iter*1/app.videoFrameRate); % divided by time period between start and stop i.e. m s
-        app.refValue    = sqrt(app.adjustedVel(:,1).^2 + app.adjustedVel(:,2).^2);
+    	app.xyzA_final      = app.xyzA_final(1:end,1:2);
+    	app.xyzB_final      = app.xyzB_final(1:end,1:2);
+        app.vel             = app.xyzB_final - app.xyzA_final;% The raw velocity values - not direction specific
+        app.adjustedVel     = app.vel./(app.iter*1/app.videoFrameRate); % divided by time period between start and stop i.e. m s
+        app.refValue        = sqrt(app.adjustedVel(:,1).^2 + app.adjustedVel(:,2).^2);
      	app.normalVelocity(1:length(app.xyzA_final),1) = NaN;
 
 end

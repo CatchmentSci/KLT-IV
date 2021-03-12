@@ -74,9 +74,11 @@ if isempty (app.s2_mod)
     app.s2      = round(1 + (app.videoStart.*app.videoFrameRate));
     [~,idx]     = min(abs(restartWhen-app.s2));
     app.s2      = restartWhen(idx(1));
+    totNum      = floor(app.videoClip.*app.videoFrameRate); % added 20210312
     nFrame      = app.s2;
 else
     app.s2      = round(1 + (app.s2_mod.*app.videoFrameRate));
+    totNum      = floor(app.videoClip.*app.videoFrameRate);
     nFrame      = round(nFrame + (app.s2_mod.*app.videoFrameRate));
 end
 
