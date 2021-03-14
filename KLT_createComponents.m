@@ -786,7 +786,7 @@ app.WatersurfaceelevationmEditFieldLabel.Text = '    WSE (m)';
 %  Create AddLevel Button -- this is minimised unless multiple
 %  videos are being analysed
 app.AddLevelButton = uibutton(app.KLTIV_UIFigure, 'push');
-app.AddLevelButton.ButtonPushedFcn = createCallbackFcn(app, @AddLevelButtonPushed, true);
+app.AddLevelButton.ButtonPushedFcn = createCallbackFcn(app, @KLT_AddLevelButtonPushed, true);
 app.AddLevelButton.Position = [485 30 140 22];
 app.AddLevelButton.Text = 'Click here';
 app.AddLevelButton.FontName = 'Ubuntu';
