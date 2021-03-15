@@ -85,12 +85,14 @@ switch app.ProcessingModeDropDown.Value
         titleBar = 'Define the minimum and maximum velocities to be stored';
 end
 
-defaultValue    = {'0.1', num2str(Inf)};  
-userPrompt      = {'Minimum (m/s): ', 'Maximum (m/s): '};
-caUserInput     = inputdlg(userPrompt, titleBar, [1, 120], defaultValue);
-app.minVel      = str2num(caUserInput{1});
-app.maxVel      = str2num(caUserInput{2});
-       
+if app.starterInd == 1 || isempty(app.starterInd)
+    defaultValue    = {'0.1', num2str(Inf)};
+    userPrompt      = {'Minimum (m/s): ', 'Maximum (m/s): '};
+    caUserInput     = inputdlg(userPrompt, titleBar, [1, 120], defaultValue);
+    app.minVel      = str2num(caUserInput{1});
+    app.maxVel      = str2num(caUserInput{2});
+end
+
 if ~isempty(app.minVel)
     remover1    = app.refValue < app.minVel | app.refValue > app.maxVel;
 	app.refValue(remover1) = NaN;
