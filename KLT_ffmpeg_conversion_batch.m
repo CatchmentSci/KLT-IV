@@ -113,6 +113,9 @@ switch app.batchAnswer
                 app.ListBox.scroll('bottom');
                 error('Breaking out of function');
             end
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Videos') == 0
+            fileIn = app.file;
+           
         end
         
     case 'Cancel'
@@ -138,7 +141,10 @@ switch app.batchAnswer
                 pause(0.01);
                 app.ListBox.scroll('bottom');
                 error('Breaking out of function');
+                
             end
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Videos') == 0
+            fileIn = app.file;
         end
 end
 

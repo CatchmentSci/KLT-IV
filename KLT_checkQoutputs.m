@@ -11,7 +11,7 @@ if app.videoNumber == 1 || app.startingVideo == 1
         
         switch answer
             case 'Yes'
-                TextIn = {'Overwriting thee .csv file with new discharge data.'};
+                TextIn = {'Overwriting the .csv file with new discharge data.'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
                 KLT_printItems(app)
                 pause(0.01);

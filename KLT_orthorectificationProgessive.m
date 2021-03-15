@@ -1,4 +1,4 @@
-function [] = orthorectificationProgessive(app)
+function [] = KLT_orthorectificationProgessive(app)
 
 if strcmp(app.CheckGCPsSwitch.Value, 'On') == 1
     app.ExportGCPdataSwitch.Enable = 'on';
