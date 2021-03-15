@@ -180,6 +180,7 @@ if cont == 1
     missingInd      = find(isnan(xsVelocity));
     
     if strcmp(app.InterpolationMethod.Value, 'Quadratic Polynomial') == 1
+        
         QuadraticVelocity   = xsVelocity';
         [xData, yData]      = prepareCurveData( absDistance, QuadraticVelocity );
         ft                  = fittype( 'poly2' );% Set up fittype and options (3rd order polynomial)
@@ -208,6 +209,7 @@ if cont == 1
         end
         
     elseif strcmp(app.InterpolationMethod.Value, 'Cubic Polynomial') == 1
+        
         CubicVelocity   = xsVelocity';
         [xData, yData]  = prepareCurveData( absDistance, CubicVelocity );
         ft = fittype( 'poly3' );% Set up fittype and options (3rd order polynomial)
@@ -270,6 +272,107 @@ if cont == 1
                 end
             end
         end % for length velocity measurements
+    
+    
+    elseif strcmp(app.InterpolationMethod.Value, 'All') == 1
+    
+        base_velocity       = xsVelocity';
+        idx_q               = 1;
+        QuadraticVelocity   = base_velocity';
+        [xData, yData]      = prepareCurveData( absDistance, QuadraticVelocity );
+        ft                  = fittype( 'poly2' );% Set up fittype and options (3rd order polynomial)
+        [fitresult, ~]      = fit( xData, yData, ft );% Fit model to data.
+        
+        QuadraticVelocity(missingInd) = fitresult.p1.*absDistance(missingInd).^2 + fitresult.p2.*absDistance(missingInd) + fitresult.p3;
+        rem1 = find(QuadraticVelocity < 0);
+        QuadraticVelocity(rem1) = 0;
+        
+        % Discharge calculated using the velocity area mid-section method and cubic extrapolation (Herschy, 1993)
+        for a = 1:length(xsVelocity)
+            idx         = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
+            cellArea(a) = nanmean(depthIn(idx)).*length(idx)./100;
+            q(a)        = QuadraticVelocity(a) .* cellArea(a);
+            
+            if a == length(QuadraticVelocity)
+                totalQ_quad = sum(q);
+                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+                    %message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
+                    %msgbox(message1,'Value');
+                else
+                    app.totalQ(idx_q,app.videoNumber) = totalQ_quad;
+                end
+            end
+        end
+        
+        idx_q           = idx_q + 1;
+        CubicVelocity   = base_velocity;
+        [xData, yData]  = prepareCurveData( absDistance, CubicVelocity );
+        ft              = fittype( 'poly3' );% Set up fittype and options (3rd order polynomial)
+        [fitresult, ~]  = fit( xData, yData, ft );% Fit model to data.
+        
+        CubicVelocity(missingInd) = fitresult.p1.*absDistance(missingInd).^3 + fitresult.p2.*absDistance(missingInd).^2 ...
+            + fitresult.p3.*absDistance(missingInd) + fitresult.p4;
+        rem1 = find(CubicVelocity < 0);
+        CubicVelocity(rem1) = 0;
+        %KLT_plotFcn(app, absDistance, CubicVelocity, missingInd);
+        
+        % Discharge calculated using the velocity area mid-section method and cubic extrapolation (Herschy, 1993)
+        for a = 1:length(xsVelocity)
+            
+            idx         = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
+            cellArea(a) = nanmean(depthIn(idx)).*length(idx)./100;
+            q(a)        = CubicVelocity(a) .* cellArea(a);
+            
+            if a == length(CubicVelocity)
+                totalQ_quad = sum(q);
+                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+                    %message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
+                    %msgbox(message1,'Value');
+                else
+                    app.totalQ(idx_q, app.videoNumber) = totalQ_quad;
+                end
+            end
+        end
+        
+        
+        % Fr section
+        idx_q           = idx_q + 1;
+        
+        for a = 1:length(xsVelocity)
+            idx = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
+            depthUse(a) = nanmean(depthIn(idx));
+        end
+            
+        
+        %ft = fittype( 'poly1' );% Set up fittype and options.
+        %[fitresult, ~] = fit( xData, yData, ft );% Fit model to data.
+        
+        % Discharge calculated using the velocity area mid-section method and constant froude number assumption (Herschy, 1993)
+        [xData, yData] = prepareCurveData( depthUse, xsVelocity );
+        froudeVelocity = xsVelocity';
+        froudeVelocity(missingInd) = NaN;
+        dlm = fitlm(depthUse,froudeVelocity,'Intercept',false);
+        froudeVelocity(missingInd) = depthUse(missingInd).* table2array(dlm.Coefficients(1,1));
+        
+        %KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
+        
+        
+        for a = 1:length(xsVelocity)
+            idx = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
+            cellArea(a) = nanmean(depthIn(idx)).*length(idx)./100;
+            q(a) = froudeVelocity(a) .* cellArea(a);
+            
+            if a == length(froudeVelocity)
+                totalQ_froude = sum(q);
+                if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+                    %message1 = ['Q = ' num2str(round(totalQ_froude,2)) ' m' char(179) '/s'];
+                    %msgbox(message1,'Value');
+                else
+                    app.totalQ(idx_q,app.videoNumber) = totalQ_froude;
+                end
+            end
+        end % for length velocity measurements
+        app.totalQ = replace_num(app.totalQ,0,NaN);
     end % interpolation method
 end % cont
 end % function
