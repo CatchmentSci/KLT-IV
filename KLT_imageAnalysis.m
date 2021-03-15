@@ -19,6 +19,7 @@ app.ListBox.scroll('bottom');
 app.visHR       = [];
 app.uvHR        = [];
 app.uvHR        = [];
+xyzA_conv       = [];
 
 % Configure the block size correctly
 tempBlocksize       = app.BlocksizepxEditField.Value;
@@ -67,6 +68,11 @@ if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
     caUserInput     = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
     app.videoStart  = str2num(caUserInput{1});
     app.videoClip   = str2num(caUserInput{2});
+    if abs(app.videoClip -  round(app.videoDuration)) > 0 % if video is clipped
+        app.clipped = true;
+    else
+        app.clipped = false;
+    end
 end
 
 % Ensure that the inputs for s2 and nFrame are okay for all orientations
@@ -74,12 +80,16 @@ if isempty (app.s2_mod)
     app.s2      = round(1 + (app.videoStart.*app.videoFrameRate));
     [~,idx]     = min(abs(restartWhen-app.s2));
     app.s2      = restartWhen(idx(1));
-    totNum      = floor(app.videoClip.*app.videoFrameRate); % added 20210312
-    nFrame      = app.s2;
+    if app.clipped == true
+        totNum      = floor(app.videoClip.*app.videoFrameRate); % added 20210312
+        nFrame      = app.s2;
+    end
 else
     app.s2      = round(1 + (app.s2_mod.*app.videoFrameRate));
-    totNum      = floor(app.videoClip.*app.videoFrameRate);
-    nFrame      = round(nFrame + (app.s2_mod.*app.videoFrameRate));
+    if app.clipped == true
+        totNum      = floor(app.videoClip.*app.videoFrameRate);
+        nFrame      = round(nFrame + (app.s2_mod.*app.videoFrameRate));
+    end
 end
 
 % Run the stabilisation functions as required
@@ -362,7 +372,22 @@ while app.s2 < totNum -1
                 uvA_initial(:,1) = vertcat(horizontalValue(foi)); %Place the starting x values into the first column
                 uvA_initial(:,2) = vertcat (verticalValue(foi)); %Place the starting y cells in the second column
                 uvB_initial(:,1) = vertcat(horizontalValue2(foi));%Place the finish x values into the first column
-                uvB_initial(:,2) = vertcat(verticalValue2(foi));%Place the finish y values into the first column            %uvA = double(uvA_initial);
+                uvB_initial(:,2) = vertcat(verticalValue2(foi));%Place the finish y values into the first column      
+                
+                if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true
+                    xyz = [uvA_initial; uvB_initial];
+                    [initialSize, ~] = size(uvA_initial);
+                    if isempty(xyzA_conv)
+                        xyzA_conv = xyz(1:initialSize,1:2); % Starting positions that have been rectified
+                        xyzB_conv = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
+                    else
+                        [aferSize, ~] = size(xyzA_conv);
+                        [aferSize2, ~] = size(uvA_initial);
+                        xyzA_conv(aferSize+1:aferSize+aferSize2,1:2) = xyz(1:initialSize,1:2); % Starting positions that have been rectified
+                        xyzB_conv(aferSize+1:aferSize+aferSize2,1:2) = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
+                    end
+                end
+                    
                 
                 if strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
                         strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
@@ -376,8 +401,9 @@ while app.s2 < totNum -1
                 
                 if strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
                         strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
-                        strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false
-                    if length(app.TransX) > 1
+                        strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false 
+                    
+                    if length(app.TransX) > 1 && strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == false
                         temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
                         temper2 = app.camA.invproject(uvB_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
                         if ~isempty(temper1)
@@ -405,7 +431,9 @@ while app.s2 < totNum -1
                     xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
                 end
                 
-                if length (uvA) > 1 && exist('xyzA','var') == 1
+                
+                if length (uvA) > 1 && exist('xyzA','var') == 1 && ...
+                        strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == false
                     [initialSize, ~] = size(uvA);
                     [afterSize, ~] = size(uvA_initial);
                     uvA(1:initialSize+afterSize,1) = vertcat(uvA(:,1),uvA_initial(:,1));
@@ -554,6 +582,17 @@ while app.s2 < totNum -1
     app.ListBox.scroll('bottom');
 end
 clear uvAorig uvBorig uvIndex markers markerColors out
+
+
+% At the end of the stable routine convert the tracked GCPs
+if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true
+    if length(app.TransX) > 1
+        xyzA = camA_previous.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        xyzB = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        clear xyzA_conv xyzB_conv
+    end
+end
+
 
 try
     if length(app.boundaryLimitsM)>1
