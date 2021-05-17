@@ -167,6 +167,8 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         else
             zRange(1:11) = z;
         end 
+        
+        accptable_rmse = 15;
                 
         while ii < 2
             for cycle4 = 1:length(zRange)
@@ -192,20 +194,20 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
                             if tempRMSE(looper,:) == 0
                                 tempRMSE(looper,:) = NaN;
                             end
-                            if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < 6
+                            if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
                                 break
                             end
                             looper = looper + 1;
                         end
-                        if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < 6
+                        if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
                             break
                         end
                     end
-                    if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < 6
+                    if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
                         break
                     end
                 end
-                if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < 6
+                if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
                     break
                 end
             end
@@ -333,12 +335,12 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         clear app.uvHR
         app.rgbHR=nan(size(app.dem,1),size(app.dem,2),1);
         
-        
         template = '00000';
         inputNum = num2str(app.s2);
-        p1 = template(1:end-length(1));
+        p1 = template(1:end-length(num2str(app.s2)));
         p2 = inputNum;
         fileNameIteration = [p1,p2];
+        
         app.cameraModelParameters = [app.camA.fullmodel app.rmse];
         
         if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
@@ -378,11 +380,11 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
             app.rgbHR(:,:,jj) = reshape(interp2(double(A(:,:,jj)),uvHR1,uvHR2),size(app.rgbHR));
         end
         
-        x = app.rgbHR ./ max(app.rgbHR(:));  % Scale to [0,1]
-        app.firstOrthoImage = app.rgbHR;
+        x = app.rgbHR ./ 255;  % provide in decimal
+        app.firstOrthoImage = x;
         
         if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
-            imwrite(app.rgbHR,filenameJpg)
+            imwrite(app.firstOrthoImage,filenameJpg)
         end
         
         % Orthophoto saved display

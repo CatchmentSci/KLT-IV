@@ -49,6 +49,7 @@ switch app.batchAnswer
                     delete([app.directory '\' fileIn(1:st1-1) '_KLT.mkv"' ]) % Delete the .mkv
                     
                     % Method of loading the video
+                    app.fileNameAnalysis{app.videoNumber} = fileIn; % overwrite if neccessary
                     V = VideoReader(textOutput);
                     I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
                     app.firstFrame = I;
@@ -114,7 +115,7 @@ switch app.batchAnswer
                 error('Breaking out of function');
             end
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Videos') == 0
-            fileIn = app.file;
+            % do nothing
            
         end
         
@@ -144,10 +145,7 @@ switch app.batchAnswer
                 
             end
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Videos') == 0
-            fileIn = app.file;
         end
 end
-
-app.fileNameAnalysis{app.videoNumber} = fileIn; % overwrite if neccessary
 
 end

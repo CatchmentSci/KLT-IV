@@ -222,7 +222,7 @@ elseif strcmp (app.OrientationValue, 'Stationary: GCPs') == 1
     app.IgnoreEdgesDropDown.Value = 'No';
     app.IgnoreEdgesDropDown.Enable = 'on';
     if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
-        app.roiButton.Enable = 'off';
+        app.roiButton.Enable = 'on'; % mod 20210315
     else
         app.roiButton.Enable = 'on';
     end

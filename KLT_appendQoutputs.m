@@ -17,8 +17,16 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
             t1                  = max(find(~isnan(tempOut(1,:))));
             tempOut             = tempOut(1,1:t1);
             [~, sizer2]         = size(tempOut);
-            labels              = {'DateTime', 'Stage [m]', 'Discharge [m3/s]'};
-            outVars(1:sizer2,3) = num2cell(tempOut);
+            labels              = {'DateTime', 'Stage [m]', 'Mean velocity [m/s]', 'Discharge [m3/s]'};
+            
+            if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
+                app.compiled_refVal = num2cell(nanmean(app.refValue));
+            else
+                app.compiled_refVal = [app.compiled_refVal; num2cell(nanmean(app.refValue))];
+            end
+            
+            outVars(1:sizer2,3) = num2cell(app.compiled_refVal);
+            outVars(1:sizer2,4) = num2cell(tempOut);
             dataOut             = [labels;outVars];
             writetable (cell2table(dataOut), app.QfileOut, ...
                 'writevariablenames', false, 'quotestrings', true);
@@ -28,9 +36,18 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
             t1              = max(find(~isnan(tempOut(1,:))));
             tempOut         = tempOut(1:3,1:t1);
             [~, sizer2]     = size(tempOut);
-            labels          = {'DateTime', 'Stage [m]', 'Discharge [m3/s; quadratic]',...
-                'Discharge [m3/s; cubic]','Discharge [m3/s; froude]'};
-            outVars(1:sizer2,3:3+sizer1-1) = num2cell(tempOut)';
+            labels          = {'DateTime', 'Stage [m]', 'Mean velocity [m/s]', ...
+                'Discharge [m3/s; quadratic]', 'Discharge [m3/s; cubic]', ...
+                'Discharge [m3/s; froude]'};
+            
+            if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
+                app.compiled_refVal = num2cell(nanmean(app.refValue));
+            else
+                app.compiled_refVal = [app.compiled_refVal; num2cell(nanmean(app.refValue))];
+            end
+            
+            outVars(1:sizer2,3) = app.compiled_refVal;
+            outVars(1:sizer2,4:4+sizer1-1) = num2cell(tempOut)';
             dataOut         = [labels;outVars];
             writetable(cell2table(dataOut), app.QfileOut, ...
                 'writevariablenames', false, 'quotestrings', true);

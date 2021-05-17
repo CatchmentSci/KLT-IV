@@ -82,7 +82,7 @@ switch app.ProcessingModeDropDown.Value
     case 'Multiple Videos'
         titleBar = 'Define the min and max velocities to be stored across all videos';
     case 'Single Video'
-        titleBar = 'Define the minimum and maximum velocities to be stored';
+        titleBar = 'Define the minimum and maximum velocities to be used in analysis';
 end
 
 if app.starterInd == 1 || isempty(app.starterInd)

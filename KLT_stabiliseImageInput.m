@@ -100,7 +100,19 @@ while pass < 3
         % Initialize the tracker for the first frame
         tracker2 = vision.PointTracker('MaxBidirectionalError', 1,...
             'BlockSize', [blockSize blockSize],'NumPyramidLevels',pyramids); % Create a new tracker; error allowed of up-to one cell
-        initialize(tracker2, bestPoints.Location, app.firstFrame); 
+        
+        if isempty(bestPoints.Location) % if no features available
+            if  s3 == 1
+                % Display the updated status
+                TextIn = {['No features suitable for stabilisation were detected, original images will be the output']};
+                app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                KLT_printItems(app)
+                pause(0.01);
+                app.ListBox.scroll('bottom');
+            end
+        else
+        
+        initialize(tracker2, bestPoints.Location, app.firstFrame);
         clear oldInliersExtract temp2 app.k1
         
         % Next step to the current frame and find all matches
@@ -129,6 +141,8 @@ while pass < 3
             %h1 = imshow(app.currentFrame); hold on;
             %h2 = scatter(xFig, yFig,'r','+');
             %title (['Results of image transformation and tie-points used for frame ' num2str(s3)])
+        end
+        
         end
         
         % Save the orthophotos
@@ -207,6 +221,22 @@ while pass < 3
         pass = pass + 1;
     end
     clear answer2
+end
+
+
+% assign proper first frame if not the first frame of the video
+if abs(app.s2 - round(1 + (app.videoStart.*app.videoFrameRate))) < 1
+    
+    template = '00000';
+    inputNum = num2str(app.s2);
+    p1 = template(1:end-length(num2str(app.s2)));
+    p2 = inputNum;
+    fileNameIteration = [p1,p2];
+    
+    filenameJpg = [dirIn app.file(1:end-4) '_frame' fileNameIteration '.jpg' ];
+    x_init = imread(filenameJpg);
+    app.firstFrame = x_init;
+    
 end
 
 set(app.RUNButton,'Text','Image sequence stabilisation complete');

@@ -49,7 +49,7 @@ try
     for b = 1:length(riverLevelTimesNum)
         
         [~,D]     = knnsearch(riverLevelTimesNum(b),app.videoDatesFormattedNum);
-        [M, I]      = min(D);
+        [M, I]    = min(D);
         
         if M < app.thresh % difference of less than 10 minutes
             

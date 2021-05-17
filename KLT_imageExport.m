@@ -1,6 +1,11 @@
 function  [] = KLT_imageExport(app)
 if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
     A = double(app.objectFrame);
+    
+    if nanmax(A(:) > 1.01)
+        A = A./255;
+    end
+        
     try
         A = rgb2gray(A);
     catch
@@ -57,6 +62,8 @@ if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
         % export the data
         x = app.currentFrame; % input from previous script
     elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == 1
+        x = im2uint8(app.objectFrame);
+    elseif app.prepro == 1
         x = im2uint8(app.objectFrame);
     else
         x = app.rgbHR ./ max(app.rgbHR(:));  % Scale to [0,1]

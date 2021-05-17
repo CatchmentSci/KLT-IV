@@ -49,7 +49,8 @@ elseif strcmp (app.GCPData, 'Select from image') == 1
     app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
     app.UITable.RowName = {};
     app.UITable.ColumnEditable = [true true true false false];
-    app.UITable.CellSelectionCallback = createCallbackFcn(app, @KLT_UITableCellSelection, true);
+    KLT_UITableCellSelection(app)
+    %app.UITable.CellSelectionCallback = createCallbackFcn(app,@KLT_UITableCellSelection,true); - % can't be run outside of app
     app.UITable.ForegroundColor = [0.149 0.149 0.149];
     app.UITable.FontName = 'Ubuntu';
     app.UITable.Position = [335 153 290 219];

@@ -1,5 +1,8 @@
 function [] = KLT_imageAnalysis(app)  % Starting analysis
 
+app.prepro = 0;
+app.backgroundImage = [];
+
 switch app.ProcessingModeDropDown.Value
     case {'Single Video'}
         V                   = VideoReader(strjoin ({app.directory, app.file},''));
@@ -49,7 +52,13 @@ end
 
 % Define the total number of frames available
 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-    totNum = V.NumFrames;
+    
+    try
+        totNum = V.NumFrames; % sometimes doesn't exist
+    catch
+        totNum = floor(V.Duration.*V.FrameRate); % estimate frame number
+    end
+    
 else
     totNum = length(app.objectFrameStacked);
 end
@@ -58,6 +67,10 @@ nFrame      = 1;
 app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
 restartWhen = (1:app.iter:totNum);
 ii          = 0;
+
+if app.videoDuration == 0
+    app.videoDuration = (totNum./app.videoFrameRate); %20210430
+end
 
 % Enter the start and stop of the video analysis
 % Only run for the first video
@@ -90,6 +103,12 @@ else
         totNum      = floor(app.videoClip.*app.videoFrameRate);
         nFrame      = round(nFrame + (app.s2_mod.*app.videoFrameRate));
     end
+end
+
+% Check if manual time is greater than video time
+if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true && ...
+        totNum > numel(app.objectFrameStacked)
+    totNum = numel(app.objectFrameStacked);
 end
 
 % Run the stabilisation functions as required
@@ -135,6 +154,7 @@ while app.s2 < totNum -1
             app.gcpA    = app.gcpA(available,:);
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+                
                 if app.s2.*1/app.videoFrameRate < V.Duration
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
                 else
@@ -177,7 +197,6 @@ while app.s2 < totNum -1
                     % Otherwise do nothing
                 end
                 
-                
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
                 % Load the correct frame in the video sequence
                 app.objectFrame = app.objectFrameStacked{nFrame};
@@ -191,8 +210,10 @@ while app.s2 < totNum -1
             end
             
             % set the nFrame image as the new reference to be used
-            points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); 
-            points = points.Location;
+            if app.prepro == 0
+                points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion);
+                points = points.Location;
+            end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
                 % Create a polygon just inside the area of the image containing data
@@ -214,14 +235,33 @@ while app.s2 < totNum -1
                 numPoints   = double(oldPoints);% locate the origins of the GCPs
                 
             else
-                
-                oldPoints   = points; % Make a copy of the points to be used
-                numPoints   = double(oldPoints); % locate the origins of the GCPs
-            
+                if app.prepro == 0
+                    oldPoints   = points; % Make a copy of the points to be used
+                    numPoints   = double(oldPoints); % locate the origins of the GCPs
+                end
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
+                
+                if app.prepro == 1
+                    app.firstFrame = app.objectFrame;
+                end
+                
                 KLT_orthorectification(app) % Run the starting orthoscript
+                KLT_orthorectificationProgessive(app)
+                if app.prepro == 1
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
+                    % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background
+                    app.rgbHR = app.objectFrame;
+                    KLT_imageExport(app)
+
+                    points = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion);
+                    points = points.Location;
+                    oldPoints   = points; % Make a copy of the points to be used
+                    numPoints   = double(oldPoints); % locate the origins of the GCP
+                    
+                end
+                
                 camA_previous = app.camA;
                 app.camA_first = app.camA;
                 
@@ -296,7 +336,15 @@ while app.s2 < totNum -1
                 end
                 fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
                 Index = find(contains(fileNamesIn,fileNameIteration));
-                if Index > 0
+
+                if Index > 0 && app.prepro == 1
+                    app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
+                    KLT_orthorectificationProgessive(app)
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
+                    % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background                    app.rgbHR = app.objectFrame;
+                    KLT_imageExport(app)
+                    
+                elseif Index > 0
                     app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                 else
                     break
@@ -325,6 +373,7 @@ while app.s2 < totNum -1
                 app.objectFrame = images.internal.rgb2graymex(readFrame(V));
             end
             
+
             % After bringing in the new object, detect the
             % succesfully tracked features
             [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the final frame of the sequence
@@ -396,7 +445,9 @@ while app.s2 < totNum -1
                 end
                 
                 if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                    KLT_orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
+                    if app.prepro == 0
+                        KLT_orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
+                    end
                 end
                 
                 if strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
@@ -404,16 +455,39 @@ while app.s2 < totNum -1
                         strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false 
                     
                     if length(app.TransX) > 1 && strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == false
-                        temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-                        temper2 = app.camA.invproject(uvB_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-                        if ~isempty(temper1)
+                        
+                        if app.prepro == 0
+                            temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            temper2 = app.camA.invproject(uvB_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            if ~isempty(temper1)
+                                xyz = [temper1(:,1:2); temper2(:,1:2)];
+                                [initialSize, ~] = size(uvA_initial);
+                                xyzA_initial = xyz(1:initialSize,1:2); % Starting positions that have been rectified
+                                xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
+                            else
+                                temper1 = [];
+                                tempter2 = [];
+                            end
+                            
+                        else
+                            temper1 = uvA_initial;
+                            temper2 = uvB_initial;
+                            
                             xyz = [temper1(:,1:2); temper2(:,1:2)];
+                            min_x = nanmin(app.TransX(:)) - (nanmean(diff(app.TransX(1,:)))/2);
+                            min_y = nanmin(app.TransY(:)) - (nanmean(diff(app.TransY(:,1)))/2);
+                            image_origin_m = [min_x, min_y];
+                            xyz = xyz .* app.ResolutionmpxEditField.Value;
+                            xyz(:,1) = image_origin_m(:,1) + xyz(:,1);
+                            xyz(:,2) = image_origin_m(:,2) + xyz(:,2);
+                            
+                            %h1 = image(app.X(1,:),app.Y(:,1),app.objectFrame,'CDataMapping','scaled'); hold on;
+                            %colormap(gray);
+                            %scatter(xyz(:,1),xyz(:,2),'r+')
+
                             [initialSize, ~] = size(uvA_initial);
                             xyzA_initial = xyz(1:initialSize,1:2); % Starting positions that have been rectified
                             xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
-                        else
-                            temper1 = [];
-                            tempter2 = [];
                         end
                     else
                         temper1 = [];
@@ -465,8 +539,15 @@ while app.s2 < totNum -1
                 objectRegion = [1 1 flip(size(app.objectFrame))];
             end
             
-            points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
-            points = points.Location;
+            if app.prepro == 1
+                %KLT_orthorectificationProgessive(app)
+                points = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
+                points = points.Location;
+            else
+                
+                points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
+                points = points.Location;
+            end
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
                 % Create a polygon just inside the area of the image containing data
                 th=10;
@@ -538,8 +619,16 @@ while app.s2 < totNum -1
             end
             fileNamesIn = fileNamesIn(contains(fileNamesIn,'.jpg'));
             Index = find(contains(fileNamesIn,fileNameIteration));
-            if Index > 0
+            if Index > 0 && app.prepro == 1
                 app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
+                KLT_orthorectificationProgessive(app)
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
+                % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background
+                app.rgbHR = app.objectFrame;
+                KLT_imageExport(app)
+   
+            elseif Index > 0% && app.prepro == 1
+                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
             else
                 break
             end
@@ -585,9 +674,10 @@ clear uvAorig uvBorig uvIndex markers markerColors out
 
 
 % At the end of the stable routine convert the tracked GCPs
-if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true
+if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
+        app.prepro == 0
     if length(app.TransX) > 1
-        xyzA = camA_previous.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        xyzA = app.camA.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
         xyzB = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
         clear xyzA_conv xyzB_conv
     end

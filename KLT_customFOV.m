@@ -71,6 +71,7 @@ elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == false 
     TransyIn = nanmin(app.gcpA(:,2))-GCPbuffer:0.1:nanmax(app.gcpA(:,2))+GCPbuffer;
     [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
     [params] = size(app.TransX);
+    app.Transdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value; %20210427
     
     if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1% if the first video
         
@@ -147,7 +148,14 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     KLT_ffmpeg_conversion_batch(app)
     
     V = VideoReader(strjoin ({app.directory, '\', app.fileNameAnalysis{app.videoNumber}},''));
-    totNum = V.NumFrames;
+    
+    try
+        totNum = V.NumFrames; % sometimes doesn't exist
+    catch
+        totNum = floor(V.Duration.*V.FrameRate); % estimate frame number
+    end
+    
+    
     if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
         app.videoDuration = V.Duration; % Extract the length of the video
         app.videoFrameRate = V.FrameRate; % Extract the frame rate of the video
@@ -161,7 +169,13 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     end
     
     for a = 1:totNum
-        app.objectFrameStacked{a} = images.internal.rgb2graymex(readFrame(V));
+        try
+            app.objectFrameStacked{a} = images.internal.rgb2graymex(readFrame(V));
+        catch
+            app.objectFrameStacked = app.objectFrameStacked(1:a-1); %20210430
+            totNum = a - 1;
+            break
+        end
     end
     
     % Define the save workspace

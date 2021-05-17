@@ -28,8 +28,8 @@ classdef KLT < matlab.apps.AppBase
         DischargeLabel                  matlab.ui.control.Label
         DefinecrosssectionButton        matlab.ui.control.Button
         UITable2                        matlab.ui.control.Table
-        CellNumberEditFieldLabel    matlab.ui.control.Label
-        CellNumberEditField         matlab.ui.control.NumericEditField
+        CellNumberEditFieldLabel        matlab.ui.control.Label
+        CellNumberEditField             matlab.ui.control.NumericEditField
         CALCULATEButton                 matlab.ui.control.Button
         CrosssectionInputDropDownLabel  matlab.ui.control.Label
         CrosssectionInputDropDown       matlab.ui.control.DropDown
@@ -97,6 +97,7 @@ classdef KLT < matlab.apps.AppBase
     
     properties (Access = public)
         adjustedVel
+        backgroundImage
         batchAnswer
         Blocksize
         boundaryLimitsM
@@ -109,6 +110,7 @@ classdef KLT < matlab.apps.AppBase
         Cameraxyz_modifyYbox
         Cameraxyz_modifyZbox
         clipped
+        compiled_refVal
         CONTROLDIMS
         ControlHandles
         ControlsPanel
@@ -165,6 +167,7 @@ classdef KLT < matlab.apps.AppBase
         OrientationValue
         p
         Platformvalue
+        prepro
         previousFrame
         previousLoad
         pts
@@ -333,6 +336,13 @@ classdef KLT < matlab.apps.AppBase
                         end
                         
                     catch
+                        
+                        if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
+                            app.compiled_refVal = num2cell(NaN);
+                        else
+                            app.compiled_refVal = [app.compiled_refVal; num2cell(NaN)];
+                        end
+
                         TextIn = {['Unable to process video ', char(app.fileNameAnalysis(app.videoNumber)) ' . Skipping this file.']};
                         app.ListBox.Items = [app.ListBox.Items, TextIn'];
                         KLT_printItems(app)
@@ -701,7 +711,7 @@ classdef KLT < matlab.apps.AppBase
             end
         end
         
-        function ProcessingModeDropDownValueChanged(app, event)
+        function ProcessingModeDropDownValueChanged(app, ~)
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
                 app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}; %, 'Planet [beta]'}
                 app.OrientationDropDown.Value = 'Make a selection:';
@@ -752,7 +762,7 @@ classdef KLT < matlab.apps.AppBase
                 app.AddLevelButton.Visible = 'On';
                 app.WatersurfaceelevationmEditField.Enable = 'off';
                 app.WatersurfaceelevationmEditField.Visible = 'Off';
-                app.roiButton.Enable = 'off';
+                app.roiButton.Enable = 'on';
                 app.ExportDefaultValuesButton.Enable = 'off';
                 app.LoadDefaultValuesButton.Enable = 'off';
                 
@@ -786,7 +796,7 @@ classdef KLT < matlab.apps.AppBase
             app.KLTIV_UIFigure = uifigure;
             app.KLTIV_UIFigure.Color = [ 1 1 1];
             app.KLTIV_UIFigure.Position = [100 100 1287 538]; %width < 1366; hgt < 786
-            app.KLTIV_UIFigure.Name = 'KLT-IV (v1.1)';
+            app.KLTIV_UIFigure.Name = 'KLT-IV (v1.01)';
             app.KLTIV_UIFigure.Resize = 'off';
             
             warning off Matlab:HandleGraphics:ObsoletedProperty:JavaFrame

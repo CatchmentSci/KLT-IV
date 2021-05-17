@@ -14,8 +14,10 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         normalised = app.refValue./nanmax(app.refValue);
         f1 = figure ('units','pixels'); %,'outerposition',[0 0 1 1]);
         init = get(0, 'MonitorPositions');
-        if size(init, 1) <= 1% v1.1 addition to account for dual monitors
-            set(f1,'Position',[0.05*init(4), 0.05*init(4), 0.90.*init(4), 0.90.*init(4)]) % square filling half the screen height
+        if size(init, 1) <= 1% v1.01 addition to account for dual monitors
+            set(f1,'Position',[2, 42, init(1,3)/2-2, init(1,4)-126]) % square filling half the screen height
+        else
+            set(f1,'Position',[2, 42, init(1,3)/2-2, init(1,4)-126]) % square filling half the screen height
         end
         a1 = axes;
         hold on;
@@ -50,6 +52,9 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
             app.masterImageY = (1:axis1).*app.ResolutionmpxEditField.Value;
             h1 = image(app.masterImageX,app.masterImageY,...
                 app.masterImage,'CDataMapping','scaled');
+            
+        elseif app.prepro == 1
+            h1 = image(app.X(1,:),app.Y(:,1),app.objectFrame.*255);        
         else
             h1 = image(app.X(1,:),app.Y(:,1),app.rgbHR,'CDataMapping','scaled');
         end
@@ -140,16 +145,15 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         dataPoints = app.subSample;
         ind1 = randperm(length(app.refValue));
-        ind1 = ind1(1:dataPoints);
-        
-        % Catch to ensure too many are not attempted
-        if length(ind1) > length(app.refValue)
+     
+        % Catch to ensure too many are not attempted (20210325)
+        if dataPoints > length(app.refValue)
             ind1 = ind1(1:length(app.refValue));
         end
-        
+
         % Optimised: line rather than plot (20210310)
-        h2 = gobjects(1,length(ind1)); % preallocate object
-        for aa = 1:length(ind1) 
+        h2 = gobjects(1,dataPoints); % preallocate object
+        for aa = 1:dataPoints 
             h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
                 [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
                 'color', cd(:,ind1(aa)));
