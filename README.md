@@ -19,7 +19,6 @@ Additional ffmpeg files are also required:
 
 Compiled standalone binaries and installation instructions can be found here: https://sourceforge.net/projects/klt-iv/
 
-Disclaimer
-This software is provided “as is”, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software. 
+Disclaimer:This software is provided “as is”, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software. 
 
 License: Licensing information can be found in the LICENSE.txt file
