@@ -55,12 +55,16 @@ switch app.VelocityDropDown.Value
         psi                 = phi - obs_dir;
         
         % Filter based on a deviation from the ideal.
-        % A soft filter of 45 degrees ensures the downstream component is
-        % at least twice the secondary vector
-        idx1                    = obs_dir < 0; 
-        adjus                   = obs_dir;
-        adjus(idx1)             = adjus(idx1) +  360;
-        rem1                    = find(abs(adjus - phi) >= 45 & abs(adjus - phi) <= 315);
+        % A soft filter of 90 degrees ensures the downstream component is the
+        % primary vector
+        
+        idx1                = obs_dir < 0; 
+        adjus               = obs_dir;
+        adjus(idx1)         = adjus(idx1) +  360;
+        
+        rem1                = find(abs(adjus - phi) >= 90 & abs(adjus - phi) <= 270);
+        
+        rem1                    = abs(adjus - phi) >= 90.0000 || < 270;   
         app.vel(rem1)           = NaN;
         app.adjustedVel(rem1)   = NaN;
         
