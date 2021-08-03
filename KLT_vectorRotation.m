@@ -110,7 +110,8 @@ end
 
 if ~isempty(app.minVel)
     remover1    = app.refValue < app.minVel | app.refValue > app.maxVel;
-	app.refValue(remover1) = NaN;
+	app.refValue(remover1)      = NaN;
+    app.adjustedVel(remover1)   = NaN
 end
      
 
