@@ -131,9 +131,20 @@ depthIn(end)    = 0;
 % Needs testing and fixing (probably)
 t1              = find(depthIn < 0.01);
 [~,temp1]       = nanmax(diff(t1));
-wetCellsStart   = t1(temp1);
-wetCellsEnd     = t1(temp1+1);
+wetCellsStart   = find(diff(t1)>1)+1;
+find(t1 == wetCellsStart
 
+
+
+t2              = find(diff(t1)>1);
+t1(t2)+1
+
+t2 = flipud(t1);
+find(diff(t2)>1)+1;
+
+find(diff(t1)>1)+1;
+wetCellsEnd     = t1(end - find(diff(flipud(t1))<-1)+1)-1;
+t1(end - find(diff(flipud(t1))<-1)+1)-1;
 if isempty(wetCellsEnd) wetCellsEnd = length(depthIn); end % test this
 wetCellsNum     = abs(wetCellsEnd - wetCellsStart);
 wetCellsIdx     = wetCellsStart:round(wetCellsNum./app.CellNumberEditField.Value):wetCellsEnd;
