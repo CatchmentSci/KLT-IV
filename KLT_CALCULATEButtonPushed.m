@@ -128,7 +128,7 @@ depthIn(end)    = 0;
 
 
 % Added to enable a flexible cell structure 20210310
-% Needs testing and fixing (probably)
+% Corrections made on 20210803 - needs testing
 t1              = find(depthIn < 0.01);
 [~,temp1]       = nanmax(diff(t1));
 wetCellsStart   = t1(temp1);
@@ -170,33 +170,33 @@ if cont == 1
         clear withinCell
     end
     
-    %all new
-    run('C:\Users\Matt\OneDrive - Newcastle University\Archive_Dart\Scripts\finalised\Figure1_schematic_b.m');
-    constantZ = [4998.681];
-    compCell = find(compCell > 0);
-    cd = colormap (parula); % take your pick (doc colormap)
-    cd = interp1(linspace(nanmin(app.refValue(compCell)),prctile(app.refValue(compCell),100),...
-        length(cd)),cd,app.refValue(compCell)); % map color to velocity values
-    cd = replace_num(cd,NaN,0);
-    
-    % new loop
-    for aa = 1:length(compCell)
-        h2(aa) = plot3([app.xyzA_final(compCell(aa),1), app.xyzB_final(compCell(aa),1)],...
-            [app.xyzA_final(compCell(aa),2), app.xyzB_final(compCell(aa),2)], ...
-            [constantZ , constantZ],...
-            'color', cd(aa,:)); hold on;
+    graphics = 0;
+    if graphics == 1 %all new
+        run('C:\Users\Matt\OneDrive - Newcastle University\Archive_Dart\Scripts\finalised\Figure1_schematic_b.m');
+        constantZ = [4998.681];
+        compCell = find(compCell > 0);
+        cd = colormap (parula); % take your pick (doc colormap)
+        cd = interp1(linspace(nanmin(app.refValue(compCell)),prctile(app.refValue(compCell),100),...
+            length(cd)),cd,app.refValue(compCell)); % map color to velocity values
+        cd = replace_num(cd,NaN,0);
+        
+        % new loop
+        for aa = 1:length(compCell)
+            h2(aa) = plot3([app.xyzA_final(compCell(aa),1), app.xyzB_final(compCell(aa),1)],...
+                [app.xyzA_final(compCell(aa),2), app.xyzB_final(compCell(aa),2)], ...
+                [constantZ , constantZ],...
+                'color', cd(aa,:)); hold on;
+        end
+        
+        for bb = 1:length(section_saved)
+            plot3([section_saved{bb}(1,:)],[4980,5007],[constantZ, constantZ],'k--');
+            hold on;
+        end
     end
-    
-    for bb = 1:length(section_saved)
-        plot3([section_saved{bb}(1,:)],[4980,5007],[constantZ, constantZ],'k--'); 
-        hold on;
-    end
-    
 
     % if no data in first or last cells assign as zero
     % This is not required now due to the cells always incorporating some
     % active channel
-    
     %if isnan(xsVelocity(1,1)) xsVelocity(1,1) = 0; end
     %if isnan(xsVelocity(1,end)) xsVelocity(1,end) = 0; end
     
