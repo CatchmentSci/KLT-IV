@@ -190,10 +190,14 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     [params2] = size(app.Transdem);
     app.Transdem(1:params2(1),1:params2(2)) = app.WatersurfaceelevationmEditField.Value;
 else
-    demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-    [params2] = [size(TransyIn,2), size(TransxIn,2)];
-    app.Transdem = zeros(params2);
-    app.Transdem = replace_num(app.Transdem,0,app.WatersurfaceelevationmEditField.Value); % app.Transdem = demIn;
+    
+    if strcmp(app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false
+        demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
+        [params2] = [size(TransyIn,2), size(TransxIn,2)];
+        app.Transdem = zeros(params2);
+        app.Transdem = replace_num(app.Transdem,0,app.WatersurfaceelevationmEditField.Value); % app.Transdem = demIn;
+    end
+    
 end
 
 
