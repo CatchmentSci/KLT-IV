@@ -118,7 +118,17 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         cd = colormap(a2, parula); % take your pick (doc colormap)
         
         if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-            cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.99),length(cd)),cd,app.refValue); % map color to velocity values
+            try
+                cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.99),length(cd)),cd,app.refValue); % map color to velocity values
+            catch
+                TextIn = {'No valid trajectories available to plot. Exiting'};
+                TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+                TimeIn = strjoin(TimeIn, ' ');
+                app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+                KLT_printItems(app)
+                pause(0.01);
+                app.ListBox.scroll('bottom');
+            end
         else
             cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99),length(cd)),cd,app.refValue); % map color to velocity values
         end
