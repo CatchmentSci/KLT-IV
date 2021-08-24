@@ -64,33 +64,26 @@ while pass < 3
         
         T1 = find (points.Location(:,1) < (size(app.firstFrame,2)./2) & points.Location(:,2) < (size(app.firstFrame,1)./2)); % top left
         limits = length(T1);
-        if limits > 0
-            pointsIn = points(T1);
-            bestPoints = pointsIn.selectStrongest(round(limits.*fractionUse));
-        else
-            bestPoints = [];
-        end
+        pointsIn = points(T1);
+        bestPoints = pointsIn.selectStrongest(round(limits.*fractionUse));
         
         T2 = find (points.Location(:,1) > (size(app.firstFrame,2)./2) & points.Location(:,2) < (size(app.firstFrame,1)./2));  % top right
         if length(T2) < limits; limits = length(T2); end
-        if ~isempty(T2)
-            pointsIn = points(T2);
-            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
-        end
+        pointsIn = points(T2);
+        bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
         
         T3 = find (points.Location(:,1) < (size(app.firstFrame,2)./2) & points.Location(:,2) > (size(app.firstFrame,1)./2));  % bottom left
         if length(T3) < limits; limits = length(T3); end
-        if ~isempty(T3)
-            pointsIn = points(T3);
-            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
-        end
-        
         T4 = find (points.Location(:,1) > (size(app.firstFrame,2)./2) & points.Location(:,2) > (size(app.firstFrame,1)./2));  % bottom right
         if length(T4) < limits; limits = length(T4); end
-        if ~isempty(T4)
-            pointsIn = points(T4);
-            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
-        end    
+        
+        
+        
+        pointsIn = points(T3);
+        bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
+        pointsIn = points(T4);
+        bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
+        
         
         if isempty(importedBoundBox) == true % error catch for no ROI
             message = sprintf('Error! \nNo ROI defined.');
