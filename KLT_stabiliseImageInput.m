@@ -1,6 +1,6 @@
 % Lessons learnt: Matching with the first frame is the way forward
 % Block size of 11 + seems to work well, but not lower (i.e. 5)
-% Projective transform doesn't work
+% Projective transform doesn't always work particularly well
 % 5 pyramid levels work better than 3 for Bassento but this needs testing
 % for the other examples.
 % Having a higher fraction could cause a greater skewness in the number of
@@ -62,37 +62,39 @@ while pass < 3
         app.currentFrame = im2uint8(app.currentFrame);
         points = detectMinEigenFeatures(app.firstFrame); % set the nFrame image as the new reference to be used
         
+		% This section looks within each of the four quadrants of the image and stores the best 10% of features present within each quadrant
         T1 = find (points.Location(:,1) < (size(app.firstFrame,2)./2) & points.Location(:,2) < (size(app.firstFrame,1)./2)); % top left
-        limits = length(T1);
-        if limits > 0
+        limit1 = length(T1);
+        if limit1 > 0
             pointsIn = points(T1);
-            bestPoints = pointsIn.selectStrongest(round(limits.*fractionUse));
+            bestPoints = pointsIn.selectStrongest(round(limit1.*fractionUse));
         else
             bestPoints = [];
         end
         
         T2 = find (points.Location(:,1) > (size(app.firstFrame,2)./2) & points.Location(:,2) < (size(app.firstFrame,1)./2));  % top right
-        if length(T2) < limits; limits = length(T2); end
-        if ~isempty(T2)
+        limit2 = length(T2);
+        if limit2 > 0
             pointsIn = points(T2);
-            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
+            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limit2.*fractionUse))];
         end
         
         T3 = find (points.Location(:,1) < (size(app.firstFrame,2)./2) & points.Location(:,2) > (size(app.firstFrame,1)./2));  % bottom left
-        if length(T3) < limits; limits = length(T3); end
-        if ~isempty(T3)
+        limit3 = length(T3);
+        if limit3 > 0
             pointsIn = points(T3);
-            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
+            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limit3.*fractionUse))];
         end
         
         T4 = find (points.Location(:,1) > (size(app.firstFrame,2)./2) & points.Location(:,2) > (size(app.firstFrame,1)./2));  % bottom right
-        if length(T4) < limits; limits = length(T4); end
-        if ~isempty(T4)
+        limit4 = length(T4);
+        if limit4 > 0
             pointsIn = points(T4);
-            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limits.*fractionUse))];
-        end    
+            bestPoints = [bestPoints; pointsIn.selectStrongest(round(limit4.*fractionUse))];
+        end
         
-        if isempty(importedBoundBox) == true % error catch for no ROI
+	    % error catch for no ROI
+        if isempty(importedBoundBox) == true 
             message = sprintf('Error! \nNo ROI defined.');
             msgbox(message, 'Error','error');
             TextIn = ' No ROI defined, please define and try again';
