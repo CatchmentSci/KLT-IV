@@ -170,30 +170,6 @@ if cont == 1
         clear withinCell
     end
     
-    graphics = 0;
-    if graphics == 1 %all new
-        run('C:\Users\Matt\OneDrive - Newcastle University\Archive_Dart\Scripts\finalised\Figure1_schematic_b.m');
-        constantZ = [4998.681];
-        compCell = find(compCell > 0);
-        cd = colormap (parula); % take your pick (doc colormap)
-        cd = interp1(linspace(nanmin(app.refValue(compCell)),prctile(app.refValue(compCell),100),...
-            length(cd)),cd,app.refValue(compCell)); % map color to velocity values
-        cd = replace_num(cd,NaN,0);
-        
-        % new loop
-        for aa = 1:length(compCell)
-            h2(aa) = plot3([app.xyzA_final(compCell(aa),1), app.xyzB_final(compCell(aa),1)],...
-                [app.xyzA_final(compCell(aa),2), app.xyzB_final(compCell(aa),2)], ...
-                [constantZ , constantZ],...
-                'color', cd(aa,:)); hold on;
-        end
-        
-        for bb = 1:length(section_saved)
-            plot3([section_saved{bb}(1,:)],[4980,5007],[constantZ, constantZ],'k--');
-            hold on;
-        end
-    end
-
     % if no data in first or last cells assign as zero
     % This is not required now due to the cells always incorporating some
     % active channel
@@ -293,8 +269,216 @@ if cont == 1
         froudeVelocity(missingInd) = NaN;
         dlm = fitlm(depthUse,froudeVelocity,'Intercept',false);
         froudeVelocity(missingInd) = depthUse(missingInd).* table2array(dlm.Coefficients(1,1));
-        KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
         
+        graphics = 0;
+        zzz = 2;
+
+        if graphics == 1 %all new
+
+            [M, N, ~] = size(app.firstOrthoImage);
+            waterHgt = app.WatersurfaceelevationmEditField.Value;
+            Z = repmat(waterHgt,M,N);
+            
+            bathy = xlsread('C:\Users\Matt\OneDrive - Newcastle University\Archive_Dart\Survey\transect_2.474max.csv');
+            searchArray = bathy(:,1);
+            hgtArray = bathy(:,3);
+            
+            for a = 1:length(app.X(1,:))
+                [~,idx]         = min(abs(searchArray - app.X(1,a)));
+                if Z(1,a) - hgtArray(idx) < 0
+                    Z(:,a) = hgtArray(idx);
+                end
+            end
+            
+            a1 = axes; hold on;
+            set(gcf, 'WindowState', 'maximized')
+            
+            limit_ = 3450;
+            anchor1 = repmat(4980,length(bathy),1);
+            anchor2 = repmat(5007,length(bathy),1);
+            
+            plot3(bathy(1:limit_,1),anchor1(1:limit_),bathy(1:limit_,3),'k')
+            plot3(bathy(1:limit_,1),anchor2(1:limit_),bathy(1:limit_,3),'k')
+            plot3([bathy(limit_,1), bathy(limit_,1)], [ anchor1(limit_), anchor2(limit_)],[bathy(limit_,3), bathy(limit_,3)],'k')
+            plot3([bathy(limit_,1), bathy(limit_,1)], [ anchor1(limit_), anchor2(limit_)],[4997.280,4997.280],'k')
+            
+            plot3(bathy(1:limit_,1),anchor1(1:limit_),bathy(1:limit_,3),'k')
+            plot3(bathy(1:limit_,1),anchor2(1:limit_),bathy(1:limit_,3),'k')
+            
+            % downstream lines
+            plot3([5001.73,5001.73],[5007, 5007], [4997.280, 4999.403],'k')
+            plot3([5001.73,4967.220],[5007, 5007], [4997.280, 4997.280],'k')
+            plot3([4967.220,4967.220],[5007, 5007], [4997.280, [5000.39]],'k')
+            
+            % upstream lines
+            plot3([5001.73,5001.73],[4980, 4980], [4997.280, 4999.403],'k')
+            plot3([5001.73,4967.220],[4980, 4980], [4997.280, 4997.280],'k')
+            plot3([4967.220,4967.220],[4980, 4980], [4997.280, 5000.39],'k')
+               
+            
+            surf(app.X, app.Y, Z, app.firstOrthoImage, 'edgecolor', 'none'); hold on;
+            axis equal
+            cd1 = colormap(a1, gray); % take your pick (doc colormap)
+            
+            xLims = get(a1,'xlim');
+            yLims = get(a1,'ylim');
+            zLims = [nanmin(bathy(:,3)),app.cameraModelParameters(3)+1];
+            set(a1,'zlim',zLims);
+            set(a1,'xtick',[],'ytick',[]); %remove its ticks
+            
+            a2 = axes;
+            hold on;
+            axis equal;
+            axis tight
+            set(a2,'xlim',xLims)
+            set(a2,'ylim',yLims)
+            set(a2,'zlim',zLims)
+            set(a2,'color','none')
+            
+            Link = linkprop([a1, a2],{'CameraUpVector', 'CameraPosition', 'CameraTarget', 'XLim', 'YLim', 'ZLim'});
+            setappdata(gcf, 'StoreTheLink', Link);
+            
+            scatter3(app.cameraModelParameters(1),app.cameraModelParameters(2),...
+                app.cameraModelParameters(3),...
+                'p',	...
+                'MarkerEdgeColor', [0.8,0.0,0.0],...
+                'MarkerFaceColor', [0.8,0.0,0.0],...
+                'SizeData', 400);
+            
+            scatter3(app.gcpA(:,1),app.gcpA(:,2),...
+                [4999.02010200000;4998.68100000000;4998.68100000000;4999.50019400000;4999.88590700000;5000.39000000000;4998.85435600000;4999.66740700000;4999.63281100000],...
+                'o',	...
+                'MarkerEdgeColor', [0.8,0.0,0.0],...
+                'MarkerFaceColor', [0.8,0.0,0.0],...
+                'SizeData', 40);
+            
+            % camera lines
+            plot3([app.cameraModelParameters(1),4995],[app.cameraModelParameters(2),4998],[app.cameraModelParameters(3),4999],'k--');
+            plot3([app.cameraModelParameters(1),4967],[app.cameraModelParameters(2),4980],[app.cameraModelParameters(3),5000.39],'k--')
+            plot3([app.cameraModelParameters(1),4967],[app.cameraModelParameters(2),5007],[app.cameraModelParameters(3),5000.39],'k--')
+            plot3([app.cameraModelParameters(1),4992],[app.cameraModelParameters(2),5005],[app.cameraModelParameters(3),4999],'k--');
+            
+            grid off;
+            box off;
+            set(a1,'XTickLabel',[]); set(a2,'XTickLabel',[]);
+            set(a1,'XTick',[]); set(a2,'XTick',[]);
+            set(a1,'YTickLabel',[]); set(a2,'YTickLabel',[]);
+            set(a1,'YTick',[]); set(a2,'YTick',[]);
+            set(a1,'ZTickLabel',[]); set(a2,'ZTickLabel',[]);
+            set(a1,'ZTick',[]); set(a2,'ZTick',[]);
+            set(a1,'XColor','w');  set(a2,'XColor','w');
+            set(a1,'YColor','w'); set(a2,'YColor','w');
+            set(a1,'ZColor','w'); set(a2,'ZColor','w');
+            
+            view(146,14)
+            set(gcf, 'Color', 'w');
+            
+            compCell = find(compCell > 0);
+            cd2 = colormap(a2, parula); % take your pick (doc colormap)
+            cd2 = interp1(linspace(nanmin(app.refValue(compCell)),prctile(app.refValue(compCell),99.9),...
+                length(cd2)),cd2,froudeVelocity); % map color to velocity values
+            cd2 = replace_num(cd2,NaN,0);
+            
+            for bb = 1:length(section_saved)
+                if bb == length(section_saved)
+                    diff1 = section_saved{bb}(1,1) - section_saved{bb-1}(1,1);
+                    xPlot = [section_saved{bb}(1,1):0.01:section_saved{bb}(1,1)+diff1,...
+                        section_saved{bb}(1,1)+diff1, section_saved{bb}(1,1)]';
+                    [~,idx1]         = min(abs(bathy(:,1) - section_saved{bb}(1,1)));
+                    [~,idx2]         = min(abs(bathy(:,1) - section_saved{bb}(1,1)+diff1));
+                    
+                else
+                    xPlot = [section_saved{bb}(1,1):0.01:section_saved{bb+1}(1,1),...
+                        section_saved{bb+1}(1,1), section_saved{bb}(1,1)]';
+                    [~,idx1]         = min(abs(bathy(:,1) - section_saved{bb}(1,1)));
+                    [~,idx2]         = min(abs(bathy(:,1) - section_saved{bb+1}(1,1)));
+                end
+                
+                if zzz == 1
+                    fill3(a2,xPlot,...
+                        [repmat(5007,length(xPlot),1)],...
+                        [hgtArray(idx1:idx1+length(xPlot)-3);waterHgt;waterHgt],...
+                        cd2(bb,:),...
+                        'CDataMapping','scaled')
+                end
+                
+                clear idx1 idx2 xPlot
+                hold on;
+            end
+            
+            set(a1,'xlim',[4967 5005]);
+            set(a1,'ylim',[4980 5010]);
+            
+            % new loop
+            if zzz == 1
+                constantZ = app.WatersurfaceelevationmEditField.Value;
+                cd3 = colormap(a2, parula); % take your pick (doc colormap)
+                cd3 = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.9),...
+                    length(cd3)),cd3,app.refValue(compCell)); % map color to velocity values
+                cd3 = replace_num(cd3,NaN,0);
+                caxis(a2, [0.0 nanmax(app.refValue)]);
+                
+                cb = colorbar(a2,'north');
+                set(cb,'Position',[0.178274596182088 0.614157527417745 0.322276064610865 0.0210451977401113]);
+                ylabel(cb, 'Normal Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
+                cb.FontSize = 14;
+                set(cb,'TickLabelInterpreter','latex')
+                
+                for aa = 1:length(compCell)
+                    h2(aa) = plot3([app.xyzA_final(compCell(aa),1), app.xyzB_final(compCell(aa),1)],...
+                        [app.xyzA_final(compCell(aa),2), app.xyzB_final(compCell(aa),2)], ...
+                        [constantZ , constantZ],...
+                        'color', cd3(aa,:)); hold on;
+                end
+                
+                plot3([section_saved{3}(1,:)],[[4996.79],5007],[constantZ, constantZ],...
+                    '--',...
+                    'color', 'b')
+                plot3([section_saved{end-3}(1,:)],[[4996.79],5007],[constantZ, constantZ],...
+                    '--',...
+                    'color', 'b')
+                hold on;
+                
+            elseif zzz == 2
+                
+                constantZ = app.WatersurfaceelevationmEditField.Value;
+                cd3 = colormap(a2, parula); % take your pick (doc colormap)
+                cd3 = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.9),...
+                    length(cd3)),cd3,app.refValue); % map color to velocity values
+                cd3 = replace_num(cd3,NaN,0);
+                caxis(a2, [0.0 nanmax(app.refValue)]);
+                                
+                for aa = 1:length(app.xyzA_final(:,1))
+                    h2(aa) = plot3([app.xyzA_final(aa,1), app.xyzB_final(aa,1)],...
+                        [app.xyzA_final(aa,2), app.xyzB_final(aa,2)], ...
+                        [constantZ , constantZ],...
+                        'color', cd3(aa,:)); hold on;
+                end
+            end
+
+            if zzz == 1
+                inputText = '[A]';
+            elseif zzz == 2
+                inputText = '[B]';
+            end
+            
+            annotation(gcf,'textbox',...
+                [0.842400881057317 0.659820538955335 0.0274923082765038 0.0323030901573235],...
+                'String',{inputText},...
+                'FitBoxToText','on',...
+                'Interpreter','LaTex',...
+                'FontSize', 14,...
+                'EdgeColor','none')
+
+            addpath(genpath('C:\Users\Matt\OneDrive - Newcastle University\MATLAB'));
+            pathIn    = 'C:\Users\Matt\OneDrive - Newcastle University\\';
+            outDir    = [pathIn 'Archive_Dart\Scripts\schematic.png'];
+            export_fig (outDir, '-painters')
+
+        end
+        
+      
+        KLT_plotFcn(app, absDistance, froudeVelocity, missingInd);
         
         for a = 1:length(xsVelocity)
             idx = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
