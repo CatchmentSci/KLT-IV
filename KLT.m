@@ -575,7 +575,15 @@ classdef KLT < matlab.apps.AppBase
                 
                 [app.file,tempDir] = uigetfile({'*' 'All Files'},'Select the video to be used to generate/visualize GCP solutions',app.directory, 'MultiSelect', 'off');
                 V=VideoReader([tempDir '\' app.file]);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                
+                % rollback for newer versions of Matlab 20220122
+                try
+                    I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    I   = rgb2gray(readFrame(V));
+                end
+                    
+                app.objectFrame = rgb2gray(readFrame(V));
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 

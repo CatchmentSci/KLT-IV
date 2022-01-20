@@ -202,7 +202,7 @@ while app.s2 < totNum -1
                 app.objectFrame = app.objectFrameStacked{nFrame};
                 
             else
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                app.objectFrame = rgb2gray(readFrame(V));
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
@@ -370,7 +370,7 @@ while app.s2 < totNum -1
                 app.objectFrame = app.objectFrameStacked{nFrame};
                 
             else
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                app.objectFrame = rgb2gray(readFrame(V));
             end
             
 
@@ -628,7 +628,7 @@ while app.s2 < totNum -1
                 KLT_imageExport(app)
    
             elseif Index > 0% && app.prepro == 1
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                app.objectFrame = rgb2gray(readFrame(V));
             else
                 break
             end
@@ -643,7 +643,7 @@ while app.s2 < totNum -1
             
         else
             try
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V)); % if no more frames
+                app.objectFrame = rgb2gray(readFrame(V)); % if no more frames
             catch
                 app.s2 = totNum-2; % cause it to exit on the next cycle
             end

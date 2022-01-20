@@ -25,7 +25,14 @@ if length(app.firstFrame) > 1
             uvA = [];
             uvB = [];
             V.CurrentTime = nFrame.*1/app.videoFrameRate;
-            app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+            
+            % rollback for newer versions of Matlab - 20220120
+            try
+                app.objectFrame   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+            catch
+                app.objectFrame   = rgb2gray(readFrame(V));
+            end
+            
             KLT_orthorectification(app) % Run the starting orthoscript
             camA_previous = app.camA;
             app.camA_first = app.camA;
@@ -49,13 +56,27 @@ if length(app.firstFrame) > 1
                     uvA = [];
                     uvB = [];
                     V.CurrentTime = nFrame.*1/app.videoFrameRate;
-                    app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                    
+                    % rollback for newer versions of Matlab - 20220120
+                    try
+                        app.objectFrame   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                    catch
+                        app.objectFrame   = rgb2gray(readFrame(V));
+                    end
+                    
                     orthorectification(app) % Run the starting orthoscript
                     camA_previous = app.camA;
                     app.camA_first = app.camA;
                 else %find(nFrame == restartWhen) > 0% if its not the start of a new cycle
                     V.CurrentTime = nFrame.*1/app.videoFrameRate; % access the first frame
-                    app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                    
+                    % rollback for newer versions of Matlab - 20220120
+                    try
+                        app.objectFrame   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                    catch
+                        app.objectFrame   = rgb2gray(readFrame(V));
+                    end
+                    
                     KLT_orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
                 end
                 %end

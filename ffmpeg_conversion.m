@@ -34,7 +34,7 @@ while t < 3
             
             % Method of loading the video
             V = VideoReader(textOutput);
-            I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+            I = rgb2gray(readFrame(V)); % new method for large files
             app.firstFrame = I;
             app.imgsz = [V.Height V.Width];
             
@@ -56,7 +56,7 @@ while t < 3
             end
             textOutput = strjoin({app.directory, app.file}, '');
             V=VideoReader(textOutput);
-            I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+            I = rgb2gray(readFrame(V)); % new method for large files
             app.firstFrame = I;
             app.imgsz = [V.Height V.Width];
             t = 3;
@@ -65,7 +65,7 @@ while t < 3
         % Incase of error load in the original file
         textOutput = strjoin({app.directory, app.file}, '');
         V=VideoReader(textOutput);
-        I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+        I = rgb2gray(readFrame(V)); % new method for large files
         app.firstFrame = I;
         app.imgsz = [V.Height V.Width];
         t = 3;

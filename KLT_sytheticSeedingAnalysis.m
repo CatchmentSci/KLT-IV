@@ -83,7 +83,14 @@ while app.s2 < totNum
             app.gcpA = app.gcpA(available,:);
             V.CurrentTime = 0; % access the first frame
             if strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation + GCPs') == 0
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+
+                % rollback for newer versions of Matlab - 20220120
+                try
+                    app.objectFrame   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    app.objectFrame   = rgb2gray(readFrame(V));
+                end
+
             else
                 % Load the stabilised exported files
                 listing = dir(app.subDir);
@@ -147,7 +154,14 @@ while app.s2 < totNum
             V.CurrentTime = app.s2.*1/app.videoFrameRate; % access the first frame
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation + GCPs') == 0
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+
+                % rollback for newer versions of Matlab - 20220120
+                try
+                    app.objectFrame   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    app.objectFrame   = rgb2gray(readFrame(V));
+                end
+
             else
                 % Load the stabilised exported files
                 listing = dir(app.subDir);
@@ -218,7 +232,14 @@ while app.s2 < totNum
         V.CurrentTime = app.s2.*1/app.videoFrameRate; % access the first frame
         
         if strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation + GCPs') == 0
-            app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+
+            % rollback for newer versions of Matlab - 20220120
+            try
+                app.objectFrame   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+            catch
+                app.objectFrame   = rgb2gray(readFrame(V));
+            end
+            
         else
             % Load the stabilised exported files
             listing = dir(app.subDir);

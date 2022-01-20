@@ -51,7 +51,14 @@ switch app.batchAnswer
                     % Method of loading the video
                     app.fileNameAnalysis{app.videoNumber} = fileIn; % overwrite if neccessary
                     V = VideoReader(textOutput);
-                    I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                    
+                    % rollback for newer versions of Matlab - 20220120
+                    try
+                        I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                    catch
+                        I   = rgb2gray(readFrame(V));
+                    end
+                    
                     app.firstFrame = I;
                     app.imgsz = [V.Height V.Width];
                     
@@ -71,20 +78,35 @@ switch app.batchAnswer
                         catch
                         end
                     end
-                    textOutput = strjoin({app.directory, fileIn}, '');
-                    V=VideoReader(textOutput);
-                    I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
-                    app.firstFrame = I;
-                    app.imgsz = [V.Height V.Width];
-                    t = 3;
+                    
+                    textOutput      = strjoin({app.directory, fileIn}, '');
+                    V               = VideoReader(textOutput);
+                    
+                    % rollback for newer versions of Matlab
+                    try
+                        I   = images.internal.rgb2graymex(readFrame(V)); 
+                    catch
+                        I   = rgb2gray(readFrame(V));
+                    end
+
+                    app.firstFrame  = I;
+                    app.imgsz       = [V.Height V.Width];
+                    t               = 3;
                 end
             else
                 % Incase of error load in the original file
-                textOutput = strjoin({app.directory, fileIn}, '');
-                V=VideoReader(textOutput);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
-                app.firstFrame = I;
-                app.imgsz = [V.Height V.Width];
+                textOutput      = strjoin({app.directory, fileIn}, '');
+                V               = VideoReader(textOutput);
+                 
+                % rollback for newer versions of Matlab - 20220120
+                try
+                    I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    I   = rgb2gray(readFrame(V));
+                end
+
+                app.firstFrame  = I;
+                app.imgsz       = [V.Height V.Width];
                 t = 3;
             end
         end
@@ -94,9 +116,16 @@ switch app.batchAnswer
         % Load in the original file
         if strcmp (app.ProcessingModeDropDown.Value, 'Single Videos') == 1
             try
-                textOutput = strjoin({app.directory, app.file}, '');
-                V=VideoReader(textOutput);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                textOutput  = strjoin({app.directory, app.file}, '');
+                V           = qVideoReader(textOutput);
+                
+                % rollback for newer versions of Matlab - 20220120
+                try
+                    I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    I   = rgb2gray(readFrame(V));
+                end
+                
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};
@@ -123,9 +152,16 @@ switch app.batchAnswer
         if strcmp (app.ProcessingModeDropDown.Value, 'Single Videos') == 1
             try
                 % Load in the original file
-                textOutput = strjoin({app.directory, app.file}, '');
-                V=VideoReader(textOutput);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                textOutput  = strjoin({app.directory, app.file}, '');
+                V           = VideoReader(textOutput);
+                
+                % rollback for newer versions of Matlab - 20220120
+                try
+                    I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    I   = rgb2gray(readFrame(V));
+                end
+                
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};

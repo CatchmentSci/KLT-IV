@@ -6,12 +6,12 @@ if abs(app.CustomFOVEditField_2.Value) + abs(app.CustomFOVEditField_4.Value) > 0
         && strcmp(app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false
     
     % Lower resolution DEM
-    TransxIn = app.CustomFOVEditField_2.Value:0.1:app.CustomFOVEditField_4.Value;
-    TransyIn = app.CustomFOVEditField_3.Value:0.1:app.CustomFOVEditField_5.Value;
-    [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
-    [params] = size(app.TransX);
-    demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-    app.Transdem = demIn; 
+    TransxIn                        = app.CustomFOVEditField_2.Value:0.1:app.CustomFOVEditField_4.Value;
+    TransyIn                        = app.CustomFOVEditField_3.Value:0.1:app.CustomFOVEditField_5.Value;
+    [app.TransX,app.TransY]         = meshgrid(TransxIn,TransyIn);
+    [params]                        = size(app.TransX);
+    demIn(1:params(1),1:params(2))  = app.WatersurfaceelevationmEditField.Value;
+    app.Transdem                    = demIn; 
     
     % Large DEM
     looper = 1;
@@ -170,7 +170,8 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     
     for a = 1:totNum
         try
-            app.objectFrameStacked{a} = images.internal.rgb2graymex(readFrame(V));
+            %images.internal.rgb2graymex(readFrame(V)); %20220120   
+            app.objectFrameStacked{a} = rgb2gray(readFrame(V));
         catch
             app.objectFrameStacked = app.objectFrameStacked(1:a-1); %20210430
             totNum = a - 1;

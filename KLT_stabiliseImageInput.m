@@ -38,15 +38,27 @@ while pass < 3
         fileNameIteration = [p1,p2];
         if s3 == 1
             V.CurrentTime = V.CurrentTime; % access the first frame
-            app.objectFrame = im2uint8(images.internal.rgb2graymex(readFrame(V)));
-            %app.objectFrame = rgb2gray(readFrame(V));
+            
+            % rollback for newer versions of Matlab - 20220120
+            try
+                app.objectFrame   = im2uint8(images.internal.rgb2graymex(readFrame(V))); % new method for large files
+            catch
+                app.objectFrame   = rgb2gray(readFrame(V));
+            end
+            
             %collatedFrames{s3} = app.objectFrame;
             app.firstFrame = app.objectFrame;
             importedBoundBox = app.boundaryLimitsPx;
         elseif s3 > 1
             V.CurrentTime = s3.*1/app.videoFrameRate; % access the s3 frame
-            app.objectFrame = im2uint8(images.internal.rgb2graymex(readFrame(V)));
-            %app.objectFrame = rgb2gray(readFrame(V));
+            
+            % rollback for newer versions of Matlab - 20220120
+            try
+                app.objectFrame   = im2uint8(images.internal.rgb2graymex(readFrame(V))); % new method for large files
+            catch
+                app.objectFrame   = rgb2gray(readFrame(V));
+            end
+            
             %collatedFrames{s3} = app.objectFrame;
         end
         
