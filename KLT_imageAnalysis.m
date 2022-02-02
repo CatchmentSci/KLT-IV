@@ -1,7 +1,15 @@
 function [] = KLT_imageAnalysis(app)  % Starting analysis
 
-app.prepro = 0;
+% Clear and create some necessary variables
+app.prepro          = 0;
 app.backgroundImage = [];
+app.init_track      = {};
+app.fin_track       = {};
+app.success_track   = {};
+app.visHR           = [];
+app.uvHR            = [];
+app.uvHR            = [];
+xyzA_conv           = [];
 
 switch app.ProcessingModeDropDown.Value
     case {'Single Video'}
@@ -17,12 +25,6 @@ app.ListBox.Items   = [app.ListBox.Items, TimeIn, TextIn'];
 KLT_printItems(app)
 pause(0.01);
 app.ListBox.scroll('bottom');
-
-% Clear some necessary variables
-app.visHR       = [];
-app.uvHR        = [];
-app.uvHR        = [];
-xyzA_conv       = [];
 
 % Configure the block size correctly
 tempBlocksize       = app.BlocksizepxEditField.Value;
@@ -211,8 +213,8 @@ while app.s2 < totNum -1
             
             % set the nFrame image as the new reference to be used
             if app.prepro == 0
-                points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion);
-                points = points.Location;
+                points      = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion);
+                points      = points.Location;
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
@@ -379,7 +381,13 @@ while app.s2 < totNum -1
             [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the final frame of the sequence
             visiblePoints = app.newPoints(isFound, :);
             oldInliers = oldPoints(isFound, :);
-            
+
+            % extract the starting and finishing features of the tracking sequence
+            idx_track                       = length(app.init_track)+1;
+            app.init_track{idx_track}       = double(oldPoints);
+            app.fin_track{idx_track}        = double(app.newPoints);
+            app.success_track{idx_track}    = double(isFound);
+
             % Update the location of the GCPs
             if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs') == true
                 [sizer1, ~] = size(app.gcpA); % accounts for small numbers of GCPs
@@ -459,6 +467,11 @@ while app.s2 < totNum -1
                         if app.prepro == 0
                             temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
                             temper2 = app.camA.invproject(uvB_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            
+                            % these lines are for te sdi index and needs to be developed further for unstable image sequences
+                            %temper3 = camA_previous.invproject(cell2mat(app.init_track'),app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            %temper4 = app.camA.invproject(cell2mat(app.fin_track'),app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            
                             if ~isempty(temper1)
                                 xyz = [temper1(:,1:2); temper2(:,1:2)];
                                 [initialSize, ~] = size(uvA_initial);
@@ -677,22 +690,53 @@ clear uvAorig uvBorig uvIndex markers markerColors out
 if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
         app.prepro == 0
     if length(app.TransX) > 1
-        xyzA = app.camA.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-        xyzB = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        xyzA        = app.camA.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        xyzB        = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
         clear xyzA_conv xyzB_conv
+        
+        
+        % convert all of the positions inc. unsuccesful points
+        out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
+        out2        = cell2mat(app.init_track');
+        out3        = cell2mat(app.fin_track');
+        temper3     = app.camA.invproject(out2,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        temper4     = app.camA.invproject(out3,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        
     end
 end
 
 
 try
     if length(app.boundaryLimitsM)>1
-        [in,on] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
+        [in,~] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
         app.xyzA_final = xyzA(in,1:2);
         app.xyzB_final = xyzB(in,1:2);
+        
+        % this is for the sdi work
+        for a = 1:length(app.init_track)
+            idx = find(out1 == a);
+            [in,~] = inpolygon(temper3(idx,1), temper3(idx,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
+            app.success_track{a}(~in) = 2; % two means out of bounds
+        end
+
     else
         app.xyzA_final = xyzA(:,1:2);
         app.xyzB_final = xyzB(:,1:2);
     end
+    
+    app.init_track = {};
+    app.fin_track = {};
+    for a = 1:length(app.success_track)
+        t1 = find(out1 == a);
+        app.init_track{a}(1:length(t1),1:2) = temper3(t1,1:2);
+        app.fin_track{a}(1:length(t1),1:2) = temper4(t1,1:2);        
+    end
+        
+    % for sdi the outputs are:
+    % app.init_track 
+    % app.fin_track 
+    % app.success_track
+    
     TextIn = {'Image processing completed'};
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');

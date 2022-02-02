@@ -243,7 +243,10 @@ classdef KLT < matlab.apps.AppBase
         yComponent
         yInder
         Yout
-       directory
+        directory
+        init_track
+        fin_track
+        success_track
 
     end
     
