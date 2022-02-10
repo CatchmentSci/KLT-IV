@@ -487,8 +487,8 @@ while app.s2 < totNum -1
                             temper2 = uvB_initial;
                             
                             xyz = [temper1(:,1:2); temper2(:,1:2)];
-                            min_x = nanmin(app.TransX(:)) - (nanmean(diff(app.TransX(1,:)))/2);
-                            min_y = nanmin(app.TransY(:)) - (nanmean(diff(app.TransY(:,1)))/2);
+                            min_x = min(app.TransX(:),'omitnan') - (nanmean(diff(app.TransX(1,:)))/2);
+                            min_y = min(app.TransY(:),'omitnan') - (nanmean(diff(app.TransY(:,1)))/2);
                             image_origin_m = [min_x, min_y];
                             xyz = xyz .* app.ResolutionmpxEditField.Value;
                             xyz(:,1) = image_origin_m(:,1) + xyz(:,1);

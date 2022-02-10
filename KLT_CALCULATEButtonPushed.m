@@ -130,7 +130,7 @@ depthIn(end)    = 0;
 % Added to enable a flexible cell structure 20210310
 % Corrections made on 20210803 - needs testing
 t1              = find(depthIn < 0.01);
-[~,temp1]       = nanmax(diff(t1));
+[~,temp1]       = max(diff(t1),'omitnan');
 wetCellsStart   = t1(temp1);
 wetCellsEnd     = t1(temp1+1);
 
@@ -322,7 +322,7 @@ if cont == 1
             
             xLims = get(a1,'xlim');
             yLims = get(a1,'ylim');
-            zLims = [nanmin(bathy(:,3)),app.cameraModelParameters(3)+1];
+            zLims = [min(bathy(:,3),'omitnan'),app.cameraModelParameters(3)+1];
             set(a1,'zlim',zLims);
             set(a1,'xtick',[],'ytick',[]); %remove its ticks
             
@@ -375,7 +375,7 @@ if cont == 1
             
             compCell = find(compCell > 0);
             cd2 = colormap(a2, parula); % take your pick (doc colormap)
-            cd2 = interp1(linspace(nanmin(app.refValue(compCell)),prctile(app.refValue(compCell),99.9),...
+            cd2 = interp1(linspace(min(app.refValue(compCell),'omitnan'),prctile(app.refValue(compCell),99.9),...
                 length(cd2)),cd2,froudeVelocity); % map color to velocity values
             cd2 = replace_num(cd2,NaN,0);
             
@@ -413,10 +413,10 @@ if cont == 1
             if zzz == 1
                 constantZ = app.WatersurfaceelevationmEditField.Value;
                 cd3 = colormap(a2, parula); % take your pick (doc colormap)
-                cd3 = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.9),...
+                cd3 = interp1(linspace(min(app.refValue,'omitnan'),prctile(app.refValue,99.9),...
                     length(cd3)),cd3,app.refValue(compCell)); % map color to velocity values
                 cd3 = replace_num(cd3,NaN,0);
-                caxis(a2, [0.0 nanmax(app.refValue)]);
+                caxis(a2, [0.0 max(app.refValue,'omitnan')]);
                 
                 cb = colorbar(a2,'north');
                 set(cb,'Position',[0.178274596182088 0.614157527417745 0.322276064610865 0.0210451977401113]);
@@ -443,10 +443,10 @@ if cont == 1
                 
                 constantZ = app.WatersurfaceelevationmEditField.Value;
                 cd3 = colormap(a2, parula); % take your pick (doc colormap)
-                cd3 = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.9),...
+                cd3 = interp1(linspace(min(app.refValue,'omitnan'),prctile(app.refValue,99.9),...
                     length(cd3)),cd3,app.refValue); % map color to velocity values
                 cd3 = replace_num(cd3,NaN,0);
-                caxis(a2, [0.0 nanmax(app.refValue)]);
+                caxis(a2, [0.0 max(app.refValue,'omitnan')]);
                                 
                 for aa = 1:length(app.xyzA_final(:,1))
                     h2(aa) = plot3([app.xyzA_final(aa,1), app.xyzB_final(aa,1)],...

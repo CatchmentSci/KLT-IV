@@ -7,7 +7,7 @@ if size(in,3)>1
 	in=rgb2gray(in); % rgb2gray keeps image class
 end
 
-if nanmax(in) > 1
+if max(in,'omitnan') > 1
     in = in./255;
 end
 
