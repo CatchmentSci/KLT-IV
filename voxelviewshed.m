@@ -75,7 +75,7 @@ y=Z./d;
 loopix=find(diff(x(ix))<0);
 vis=true(size(X,1),1);
 
-maxd=max(d,'omitnan');%TODO: optimize
+maxd=max(d,[],'omitnan');%TODO: optimize
 N=ceil(2*pi/(dx/maxd)); %number of points in voxel horizon
 
 voxx=(0:N)'/N;

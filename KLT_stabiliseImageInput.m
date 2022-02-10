@@ -55,8 +55,13 @@ while pass < 3
             % rollback for newer versions of Matlab - 20220120
             try
                 app.objectFrame   = im2uint8(images.internal.rgb2graymex(readFrame(V))); % new method for large files
-            catch
-                app.objectFrame   = rgb2gray(readFrame(V));
+            catch % if command doesn't exist
+                try
+                    app.objectFrame   = rgb2gray(readFrame(V));
+                catch
+                    % if there is a small rounding error somehwere and no more frames then pad the video
+                    app.objectFrame   = app.objectFrame;
+                end
             end
             
             %collatedFrames{s3} = app.objectFrame;

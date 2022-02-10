@@ -49,7 +49,7 @@ if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
     titleBar            = 'Manually overwrite the frame rate present in the meta-data?';
     userPrompt          = {'Defined frame rates: '};
     caUserInput         = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
-    app.videoFrameRate  = str2num(caUserInput{1});
+    app.videoFrameRate  = str2double(caUserInput{1});
 end
 
 % Define the total number of frames available
@@ -487,8 +487,8 @@ while app.s2 < totNum -1
                             temper2 = uvB_initial;
                             
                             xyz = [temper1(:,1:2); temper2(:,1:2)];
-                            min_x = min(app.TransX(:),'omitnan') - (nanmean(diff(app.TransX(1,:)))/2);
-                            min_y = min(app.TransY(:),'omitnan') - (nanmean(diff(app.TransY(:,1)))/2);
+                            min_x = min(app.TransX(:),[],'omitnan') - (nanmean(diff(app.TransX(1,:)))/2);
+                            min_y = min(app.TransY(:),[],'omitnan') - (nanmean(diff(app.TransY(:,1)))/2);
                             image_origin_m = [min_x, min_y];
                             xyz = xyz .* app.ResolutionmpxEditField.Value;
                             xyz(:,1) = image_origin_m(:,1) + xyz(:,1);
