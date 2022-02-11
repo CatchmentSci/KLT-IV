@@ -689,11 +689,11 @@ clear uvAorig uvBorig uvIndex markers markerColors out
 % At the end of the stable routine convert the tracked GCPs
 if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
         app.prepro == 0
-    if length(app.TransX) > 1
+        
+    if length(app.TransX) > 1 
         xyzA        = app.camA.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
         xyzB        = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
         clear xyzA_conv xyzB_conv
-        
         
         % convert all of the positions inc. unsuccesful points
         out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
@@ -705,6 +705,16 @@ if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
     end
 end
 
+if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs + Stabilisation') == true && ...
+        app.prepro == 0
+
+        % convert all of the positions inc. unsuccesful points
+        out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
+        out2        = cell2mat(app.init_track');
+        out3        = cell2mat(app.fin_track');
+        temper3     = app.camA.invproject(out2,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        temper4     = app.camA.invproject(out3,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+end
 
 try
     if length(app.boundaryLimitsM)>1
@@ -713,10 +723,12 @@ try
         app.xyzB_final = xyzB(in,1:2);
         
         % this is for the sdi work
-        for a = 1:length(app.init_track)
-            idx = find(out1 == a);
-            [in,~] = inpolygon(temper3(idx,1), temper3(idx,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
-            app.success_track{a}(~in) = 2; % two means out of bounds
+        if exist('out1','var') % only on the tested versions
+            for a = 1:length(app.init_track)
+                idx = find(out1 == a);
+                [in,~] = inpolygon(temper3(idx,1), temper3(idx,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
+                app.success_track{a}(~in) = 2; % two means out of bounds
+            end
         end
 
     else
@@ -724,14 +736,15 @@ try
         app.xyzB_final = xyzB(:,1:2);
     end
     
-    app.init_track = {};
-    app.fin_track = {};
-    for a = 1:length(app.success_track)
-        t1 = find(out1 == a);
-        app.init_track{a}(1:length(t1),1:2) = temper3(t1,1:2);
-        app.fin_track{a}(1:length(t1),1:2) = temper4(t1,1:2);        
+    if exist('out1','var') % only on the tested versions
+        app.init_track = {};
+        app.fin_track = {};
+        for a = 1:length(app.success_track)
+            t1 = find(out1 == a);
+            app.init_track{a}(1:length(t1),1:2) = temper3(t1,1:2);
+            app.fin_track{a}(1:length(t1),1:2) = temper4(t1,1:2);
+        end
     end
-        
     % for sdi the outputs are:
     % app.init_track 
     % app.fin_track 
