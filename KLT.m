@@ -247,6 +247,8 @@ classdef KLT < matlab.apps.AppBase
         init_track
         fin_track
         success_track
+        init_track_px
+        fin_track_px
 
     end
     

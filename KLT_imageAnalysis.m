@@ -737,6 +737,10 @@ try
     end
     
     if exist('out1','var') % only on the tested versions
+
+        app.init_track_px = app.init_track; % save the pixel values
+        app.fin_track_px = app.fin_track;
+
         app.init_track = {};
         app.fin_track = {};
         for a = 1:length(app.success_track)
