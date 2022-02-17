@@ -479,7 +479,7 @@ while app.s2 < totNum -1
                                 xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
                             else
                                 temper1 = [];
-                                tempter2 = [];
+                                temper2 = [];
                             end
                             
                         else
@@ -504,7 +504,7 @@ while app.s2 < totNum -1
                         end
                     else
                         temper1 = [];
-                        tempter2 = [];
+                        temper2 = [];
                     end
                 else
                     if strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
