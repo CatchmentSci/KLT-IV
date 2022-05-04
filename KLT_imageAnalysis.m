@@ -11,7 +11,7 @@ app.uvHR            = [];
 xyzA_conv           = [];
 
 % Define the pre-processing settings
-app.prepro          = 1; %zero = disabled; one = enabled
+app.prepro          = 0; %zero = disabled; one = enabled
 pre_pro_params      = zeros(1,11); %empty array
 pre_pro_params(1)   = []; %roirect
 pre_pro_params(2)   = []; %clahe
