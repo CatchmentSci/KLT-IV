@@ -49,7 +49,7 @@ elseif strcmp (app.GCPData, 'Select from image') == 1
     app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
     app.UITable.RowName = {};
     app.UITable.ColumnEditable = [true true true false false];
-    KLT_UITableCellSelection(app)
+    %KLT_UITableCellSelection(app) % disabled on 20220401 - error when used not clear why enabled
     %app.UITable.CellSelectionCallback = createCallbackFcn(app,@KLT_UITableCellSelection,true); - % can't be run outside of app
     app.UITable.ForegroundColor = [0.149 0.149 0.149];
     app.UITable.FontName = 'Ubuntu';
