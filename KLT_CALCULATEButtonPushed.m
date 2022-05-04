@@ -4,6 +4,14 @@ clear app.UITable2.Data M2 xsVelocity xsStd
 
 KLT_editCel2(app)
 
+TextIn = {'Calculating flow discharge, please wait.'};
+TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+TimeIn = strjoin(TimeIn, ' ');
+app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+KLT_printItems(app)
+pause(0.01);
+app.ListBox.scroll('bottom');
+
 % Create the finalised cross-section
 if app.UITable2.Data(1,1) ~= 0
     M1      = app.startXS;
