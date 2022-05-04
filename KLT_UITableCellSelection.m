@@ -23,24 +23,25 @@ if strcmp ( app.OrientationDropDown.Value, 'Stationary: GCPs') == 1
     app.ExportGCPdataSwitch.Enable = 'on';
     app.FlightPathPlotSwitch.Enable = 'off';
     app.ResolutionmpxEditField.Enable ='on';
-    
+    %% removed 2022041
     % Create a new figure of first image
-    myfig = figure('units','normalized','outerposition',[0 0 1 1]);
-    hold on;
-    myax = axes;
-    A = imshow(app.firstFrame);
-    objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; %[TopLeftX,TopLeftY,LengthX,LengthY]
+    %myfig = figure('units','normalized','outerposition',[0 0 1 1]);
+    %hold on;
+    %myax = axes;
+    %A = imshow(app.firstFrame);
+    %objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; %[TopLeftX,TopLeftY,LengthX,LengthY]
     
     % Initialize data cursor object & import data to table
-    cursorobj = datacursormode(h.myfig);
-    waitfor(gcf,'CurrentCharacter',char(32));
-    mypoints = getCursorInfo(cursorobj);
+    %cursorobj = datacursormode(h.myfig);
+    %waitfor(gcf,'CurrentCharacter',char(32));
+    %mypoints = getCursorInfo(cursorobj);
     
     %compute Euclidean distances:
     %distances = sqrt(sum(bsxfun(@minus, PotentialGCPs, double(mypoints.Position)).^2,2));
     %find the smallest distance and use that as an index into B:
     %closest = PotentialGCPs(find(distances==min(distances)),:);
-        
+    
+%%    
     % Commented out the above so that the absolute px values
     % are used rather than the nearest to a feature. This is
     % only needed when tracking, and nota stable frame
