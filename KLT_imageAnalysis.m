@@ -1,7 +1,6 @@
 function [] = KLT_imageAnalysis(app)  % Starting analysis
 
-% Clear and create some necessary variables
-app.prepro          = 0;
+%Clear and create some necessary variables
 app.backgroundImage = [];
 app.init_track      = {};
 app.fin_track       = {};
@@ -11,6 +10,21 @@ app.uvHR            = [];
 app.uvHR            = [];
 xyzA_conv           = [];
 
+% Define the pre-processing settings
+app.prepro          = 1; %zero = disabled; one = enabled
+pre_pro_params      = zeros(1,11); %empty array
+pre_pro_params(1)   = []; %roirect
+pre_pro_params(2)   = []; %clahe
+pre_pro_params(3)   = []; %clahesize
+pre_pro_params(4)   = 1; %highp
+pre_pro_params(5)   = 30; %highpsize
+pre_pro_params(6)   = []; %intenscap
+pre_pro_params(7)   = 0; %wienerwurst
+pre_pro_params(8)   = 8; %wienerwurstsize
+pre_pro_params(9)   = 0; %minintens
+pre_pro_params(10)  = 1; %maxintens
+pre_pro_params(11)  = 0; %background subtraction
+                   
 switch app.ProcessingModeDropDown.Value
     case {'Single Video'}
         V                   = VideoReader(strjoin ({app.directory, app.file},''));
@@ -252,8 +266,7 @@ while app.s2 < totNum -1
                 KLT_orthorectification(app) % Run the starting orthoscript
                 KLT_orthorectificationProgessive(app)
                 if app.prepro == 1
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
-                    % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
                     app.rgbHR = app.objectFrame;
                     KLT_imageExport(app)
 
@@ -342,8 +355,7 @@ while app.s2 < totNum -1
                 if Index > 0 && app.prepro == 1
                     app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                     KLT_orthorectificationProgessive(app)
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
-                    % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background                    app.rgbHR = app.objectFrame;
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
                     KLT_imageExport(app)
                     
                 elseif Index > 0
@@ -415,12 +427,16 @@ while app.s2 < totNum -1
             end
             
             if strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == true && ...
-                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false % remove edges if required
+                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
+                    app.prepro == 0 % remove edges if required
                 foi = horizontalValue(:,1) > app.imgsz(2)-0.9*app.imgsz(2) & horizontalValue(:,1) < 0.9*app.imgsz(2) & verticalValue(:,1) > app.imgsz(1)-0.9*app.imgsz(1) & verticalValue(:,1) < 0.9*app.imgsz(1);
             elseif strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == false && ...
-                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false
+                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
+                    app.prepro == 0
                 foi = horizontalValue(:,1) > [0] & horizontalValue(:,1) < [app.imgsz(2)] & verticalValue(:,1) > [0] & verticalValue(:,1) < [app.imgsz(1)];
             elseif strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
+                foi = (1:length(horizontalValue)); % use all of the data
+            elseif app.prepro == 1
                 foi = (1:length(horizontalValue)); % use all of the data
             end
             
@@ -635,8 +651,7 @@ while app.s2 < totNum -1
             if Index > 0 && app.prepro == 1
                 app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                 KLT_orthorectificationProgessive(app)
-                app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
-                % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
                 app.rgbHR = app.objectFrame;
                 KLT_imageExport(app)
    
