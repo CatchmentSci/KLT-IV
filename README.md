@@ -52,20 +52,18 @@
 
 [![Made with MATLAB](https://img.shields.io/badge/Made%20with-MATLAB-orange?style=for-the-badge&logo=MATLAB)](https://www.mathworks.com/products/matlab.html) <br>
 
-?style=plastic&logo=appveyor
+This project requires MATLAB 2019a, or later in addition to the following packages:
+* Mapping Toolbox
+* Image Processing Toolbox
+* 
 
 <!--This project is written in Python programming language. <br>-->
 The following open source packages are used in this project:
-* Numpy
-* Pandas
-* Matplotlib
-* Scikit-Learn
-* Scikit-tda
-* Giotto-tda
-* TensorFlow
-* Keras
+* [ffmpeg](https://ffmpeg.org/)
+* [imGRAFT](https://github.com/grinsted/ImGRAFT)
+* [mlapptools](https://github.com/StackOverflowMATLABchat/mlapptools)
 
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
 <!-- :paw_prints:-->
 <!-- FOLDER STRUCTURE -->
