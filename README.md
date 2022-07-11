@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src="images/ KLT_icon.png" alt="KLT-IV Logo" width="100px" height="100px">
+  <img src="images/KLT_icon.png" alt="KLT-IV Logo" width="100px" height="100px">
 </p>
 <h1 align="center"> KLT-IV </h1>
 <h3 align="center"> Image velocimetry software for use with fixed and mobile platforms </h3>  
@@ -36,29 +36,23 @@
   </ol>
 </details>
 
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
 <!-- ABOUT THE PROJECT -->
 <h2 id="about-the-project"> :pencil: About The Project</h2>
 
 <p align="justify"> 
-  This project aims to classify human activities using data obtained from accelerometer and gyroscope sensors from phone and watch. The raw data will be preprocessed using two
-  different approaches such as topological data analysis and statistical features extraction from segmented time series. The goal is to compare and evaluate the performance of
-  different classifiers (Decision Tree, k Nearest Neighbors, Random Forest, SVM and CNN) which are trained on the two sets of preprocessed data.
+  This project seeks to provide aoftware capable of accurately estimating 2D river flow velocities and flow disharge using optical imagery acquired by a range of remote sensing platforms. A complete workflow is provided which enables a range of video formats (mp4, avi, etc) to be used as the basis for analysis. Image stabilisation routines are available when using mobile platforms (e.g. UAVs), and orthorectification of vectors, or imagery is dealt with through application of a distorted camera model. Image analysis utilises the Kanade-Lucas-Tomasi feature detection and tracking procedures providing 2D velocity vectors. Post-processing of vectors is achieved through simple threshold filters and angle-based trajectory filtering. Discharge analysis is completed through application of surface &alpha; and inclusion of a cross-section data.
 </p>
 
-<p align="center">
-  <img src="images/WISDM Activities.png" alt="Table1: 18 Activities" width="70%" height="70%">        
-  <!--figcaption>Caption goes here</figcaption-->
-</p>
-
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
 <!-- PREREQUISITES -->
 <h2 id="prerequisites"> :fork_and_knife: Prerequisites</h2>
 
-[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) <br>
-[![Made withJupyter](https://img.shields.io/badge/Made%20with-Jupyter-orange?style=for-the-badge&logo=Jupyter)](https://jupyter.org/try) <br>
+[![Made with MATLAB](https://img.shields.io/badge/Made%20with-MATLAB-orange?style=for-the-badge&logo=MATLAB)](https://www.mathworks.com/products/matlab.html) <br>
+
+?style=plastic&logo=appveyor
 
 <!--This project is written in Python programming language. <br>-->
 The following open source packages are used in this project:
