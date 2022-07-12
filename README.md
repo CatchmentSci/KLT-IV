@@ -90,9 +90,10 @@ Below is the an outline of the folder structure within the `main` branch with de
 * A full outline of the workflow and description of the functionality can be found [here](https://gmd.copernicus.org/articles/13/6111/2020/gmd-13-6111-2020.html)
 </p>
 
+
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
-<!-- Getting Started -->
+<!-- Legal -->
 <h2 id="Legal"> :cop: Legal</h2>
 
 <p align="justify"> 
@@ -101,6 +102,31 @@ Below is the an outline of the folder structure within the `main` branch with de
 
 **License:** Licensing information can be found in the LICENSE.txt file
 </p>
+
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
+<!-- Published work using KLT-IV -->
+<h2 id="Published work using KLT-IV"> :bookmark_tabs: Published works using KLT-IV</h2>
+
+<ul>
+  <li>
+    <p>Robert Ljubičić, et al. A comparison of tools and techniques for stabilising unmanned aerial system (UAS) imagery for surface flow observations. Hydrology and Earth System Sciences 25.9 (2021): 5105-5132. https://hess.copernicus.org/articles/25/5105/2021/
+    </p>
+  </li>
+  <li>
+    <p>Matthew T Perks. "KLT-IV v1. 0: Image velocimetry software for use with fixed and mobile platforms." Geoscientific Model Development 13.12 (2020): 6111-6130. https://gmd.copernicus.org/articles/13/6111/2020/
+    </p>
+  </li>  
+  <li>
+    <p>Sophie Pearce, et al. "An evaluation of image velocimetry techniques under low flow conditions and high seeding densities using unmanned aerial systems." Remote Sensing 12.2 (2020): 232. https://www.mdpi.com/2072-4292/12/2/232
+    </p>
+  </li>      
+  <li>
+    <p>Matthew T. Perks, Andrew J. Russell, and Andrew RG Large. "Advances in flash flood monitoring using unmanned aerial vehicles (UAVs)." Hydrology and Earth System Sciences 20.10 (2016): 4005-4015. https://hess.copernicus.org/articles/20/4005/2016/
+    </p>
+  </li>          
+</ul>      
+
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
