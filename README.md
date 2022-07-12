@@ -30,7 +30,7 @@
 <h2 id="about-the-project"> :pencil: About The Project</h2>
 
 <p align="justify"> 
-  This project seeks to provide software capable of accurately estimating 2D river flow velocities and flow disharge using optical imagery acquired by a range of remote sensing platforms. A complete workflow is provided which enables a range of video formats (mp4, avi, etc) to be used as the basis for analysis. Image stabilisation routines are available when using mobile platforms (e.g. UAVs), and orthorectification of vectors, or imagery is dealt with through application of a distorted camera model. Image analysis utilises the Kanade-Lucas-Tomasi feature detection and tracking procedures providing 2D velocity vectors. Post-processing of vectors is achieved through simple threshold filters and angle-based trajectory filtering. Discharge analysis is completed through application of surface &alpha; and inclusion of a cross-section data.
+This project seeks to provide software capable of accurately estimating 2D river flow velocities and flow disharge using optical imagery acquired from a range of remote sensing platforms. A complete workflow is provided which enables a range of video formats (mp4, avi, etc) to be used as the basis for analysis. Image stabilisation routines are available when using mobile platforms (e.g. UAVs), and orthorectification of vectors, or imagery is dealt with through application of a distorted camera model. Image analysis utilises the Kanade-Lucas-Tomasi feature detection and tracking procedures providing 2D velocity vectors. Post-processing of vectors is achieved through application of threshold filters and angle-based trajectory filtering. Discharge analysis is completed through application of surface &alpha; and inclusion of cross-section data.
 </p>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
@@ -62,7 +62,7 @@ The following open source packages are used in this project:
 * [v1.02](https://github.com/CatchmentSci/KLT-IV/tree/v1.02) is the most recent, tested version.
 * [main](https://github.com/CatchmentSci/KLT-IV/tree/main) is undergoing active development and has not been fully tested.
 
-Below is the an outline of the repository folder structure with descriptions:
+Below is the an outline of the folder structure within the `main` branch with descriptions provided:
 </p>
 
     .
