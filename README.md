@@ -87,3 +87,11 @@ The following open source packages are used in this project:
 
 **License:** Licensing information can be found in the LICENSE.txt file
 </p>
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
+
+<p align="center"> 
+  <img src="images/KLT_splash_screen.jpg" alt="KLT-IV Splash Screen" width="400px">
+</p>
+
+
