@@ -10,8 +10,8 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         xyzA_final2 = app.xyzA_final(:,1:2);
         xyzB_final2 = app.xyzB_final(:,1:2);
         
-        limits = [nanmin(app.refValue); nanmax(app.refValue)];
-        normalised = app.refValue./nanmax(app.refValue);
+        limits = [min(app.refValue,[],'omitnan'); max(app.refValue,[],'omitnan')];
+        normalised = app.refValue./max(app.refValue,[],'omitnan');
         f1 = figure ('units','pixels'); %,'outerposition',[0 0 1 1]);
         init = get(0, 'MonitorPositions');
         if size(init, 1) <= 1% v1.01 addition to account for dual monitors
@@ -62,18 +62,18 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         colormap(gray);
         
         % Define axes based on minimum of inputs (image or trajectories)
-        limOptTrajX = [nanmin([xyzA_final2(:,1); xyzB_final2(:,1)]), nanmax([xyzA_final2(:,1); xyzB_final2(:,1)])];
-        limOptTrajY = [nanmin([xyzA_final2(:,2); xyzB_final2(:,2)]), nanmax([xyzA_final2(:,2); xyzB_final2(:,2)])];
+        limOptTrajX = [min([xyzA_final2(:,1),; xyzB_final2(:,1)],[],'omitnan'), max([xyzA_final2(:,1); xyzB_final2(:,1)],[],'omitnan')];
+        limOptTrajY = [min([xyzA_final2(:,2); xyzB_final2(:,2)],[],'omitnan'), max([xyzA_final2(:,2); xyzB_final2(:,2)],[],'omitnan')];
         if ~isempty(app.X)
-            limOptImageX = [nanmin(app.X(1,:)),nanmax(app.X(1,:))];
-            limOptImageY = [nanmin(app.Y(:,1)),nanmax(app.Y(:,1))];
+            limOptImageX = [min(app.X(1,:),[],'omitnan'),max(app.X(1,:),[],'omitnan')];
+            limOptImageY = [min(app.Y(:,1),[],'omitnan'),max(app.Y(:,1),[],'omitnan')];
             set(a1,'xlim', [max(limOptTrajX(1),limOptImageX(1)),...
                 min(limOptTrajX(2),limOptImageX(2))]);
             set(a1,'ylim', [max(limOptTrajY(1),limOptImageY(1)),...
                 min(limOptTrajY(2),limOptImageY(2))]);
         else
-            set(a1,'xlim', [nanmin([xyzA_final2(:,1); xyzB_final2(:,1)]), nanmax([xyzA_final2(:,1); xyzB_final2(:,1)])])
-            set(a1,'ylim', [nanmin([xyzA_final2(:,2); xyzB_final2(:,2)]), nanmax([xyzA_final2(:,2); xyzB_final2(:,2)])])
+            set(a1,'xlim', [min([xyzA_final2(:,1); xyzB_final2(:,1)],[],'omitnan'), max([xyzA_final2(:,1); xyzB_final2(:,1)],[],'omitnan')])
+            set(a1,'ylim', [min([xyzA_final2(:,2); xyzB_final2(:,2)],[],'omitnan'), max([xyzA_final2(:,2); xyzB_final2(:,2)],[],'omitnan')])
         end
         
         xLims = get(a1,'xlim');
@@ -95,9 +95,9 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         %Create the colobar and set appropriate position
         if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
-            caxis([nanmin(app.refValue),prctile(app.refValue,99.99)])
+            caxis([min(app.refValue,[],'omitnan'),prctile(app.refValue,99.99)])
         else
-            caxis([nanmin(app.refValue),prctile(app.refValue,99)])
+            caxis([min(app.refValue,[],'omitnan'),prctile(app.refValue,99)])
         end
         
         restoredSize1 = get(a1, 'Position');
@@ -119,7 +119,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         if strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
             try
-                cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99.99),length(cd)),cd,app.refValue); % map color to velocity values
+                cd = interp1(linspace(min(app.refValue,[],'omitnan'),prctile(app.refValue,99.99),length(cd)),cd,app.refValue); % map color to velocity values
             catch
                 TextIn = {'No valid trajectories available to plot. Exiting'};
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -130,7 +130,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
                 app.ListBox.scroll('bottom');
             end
         else
-            cd = interp1(linspace(nanmin(app.refValue),prctile(app.refValue,99),length(cd)),cd,app.refValue); % map color to velocity values
+            cd = interp1(linspace(min(app.refValue,[],'omitnan'),prctile(app.refValue,99),length(cd)),cd,app.refValue); % map color to velocity values
         end
         cd = uint8(cd'*255); % need a 4xN uint8 array
         xlabel('X-axis coordinates (m)', 'Interpreter','LaTex')

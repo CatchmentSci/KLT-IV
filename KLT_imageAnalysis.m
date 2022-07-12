@@ -1,8 +1,30 @@
 function [] = KLT_imageAnalysis(app)  % Starting analysis
 
-app.prepro = 0;
+%Clear and create some necessary variables
 app.backgroundImage = [];
+app.init_track      = {};
+app.fin_track       = {};
+app.success_track   = {};
+app.visHR           = [];
+app.uvHR            = [];
+app.uvHR            = [];
+xyzA_conv           = [];
 
+% Define the pre-processing settings
+app.prepro          = 0; %zero = disabled; one = enabled
+pre_pro_params      = zeros(1,11); %empty array
+pre_pro_params(1)   = []; %roirect
+pre_pro_params(2)   = []; %clahe
+pre_pro_params(3)   = []; %clahesize
+pre_pro_params(4)   = 1; %highp
+pre_pro_params(5)   = 30; %highpsize
+pre_pro_params(6)   = []; %intenscap
+pre_pro_params(7)   = 0; %wienerwurst
+pre_pro_params(8)   = 8; %wienerwurstsize
+pre_pro_params(9)   = 0; %minintens
+pre_pro_params(10)  = 1; %maxintens
+pre_pro_params(11)  = 0; %background subtraction
+                   
 switch app.ProcessingModeDropDown.Value
     case {'Single Video'}
         V                   = VideoReader(strjoin ({app.directory, app.file},''));
@@ -17,12 +39,6 @@ app.ListBox.Items   = [app.ListBox.Items, TimeIn, TextIn'];
 KLT_printItems(app)
 pause(0.01);
 app.ListBox.scroll('bottom');
-
-% Clear some necessary variables
-app.visHR       = [];
-app.uvHR        = [];
-app.uvHR        = [];
-xyzA_conv       = [];
 
 % Configure the block size correctly
 tempBlocksize       = app.BlocksizepxEditField.Value;
@@ -47,7 +63,7 @@ if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
     titleBar            = 'Manually overwrite the frame rate present in the meta-data?';
     userPrompt          = {'Defined frame rates: '};
     caUserInput         = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
-    app.videoFrameRate  = str2num(caUserInput{1});
+    app.videoFrameRate  = str2double(caUserInput{1});
 end
 
 % Define the total number of frames available
@@ -202,7 +218,7 @@ while app.s2 < totNum -1
                 app.objectFrame = app.objectFrameStacked{nFrame};
                 
             else
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                app.objectFrame = rgb2gray(readFrame(V));
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
@@ -211,8 +227,8 @@ while app.s2 < totNum -1
             
             % set the nFrame image as the new reference to be used
             if app.prepro == 0
-                points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion);
-                points = points.Location;
+                points      = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion);
+                points      = points.Location;
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
@@ -250,8 +266,7 @@ while app.s2 < totNum -1
                 KLT_orthorectification(app) % Run the starting orthoscript
                 KLT_orthorectificationProgessive(app)
                 if app.prepro == 1
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
-                    % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
                     app.rgbHR = app.objectFrame;
                     KLT_imageExport(app)
 
@@ -340,8 +355,7 @@ while app.s2 < totNum -1
                 if Index > 0 && app.prepro == 1
                     app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                     KLT_orthorectificationProgessive(app)
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
-                    % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background                    app.rgbHR = app.objectFrame;
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
                     KLT_imageExport(app)
                     
                 elseif Index > 0
@@ -370,7 +384,7 @@ while app.s2 < totNum -1
                 app.objectFrame = app.objectFrameStacked{nFrame};
                 
             else
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                app.objectFrame = rgb2gray(readFrame(V));
             end
             
 
@@ -379,7 +393,13 @@ while app.s2 < totNum -1
             [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the final frame of the sequence
             visiblePoints = app.newPoints(isFound, :);
             oldInliers = oldPoints(isFound, :);
-            
+
+            % extract the starting and finishing features of the tracking sequence
+            idx_track                       = length(app.init_track)+1;
+            app.init_track{idx_track}       = double(oldPoints);
+            app.fin_track{idx_track}        = double(app.newPoints);
+            app.success_track{idx_track}    = double(isFound);
+
             % Update the location of the GCPs
             if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs') == true
                 [sizer1, ~] = size(app.gcpA); % accounts for small numbers of GCPs
@@ -407,12 +427,16 @@ while app.s2 < totNum -1
             end
             
             if strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == true && ...
-                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false % remove edges if required
+                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
+                    app.prepro == 0 % remove edges if required
                 foi = horizontalValue(:,1) > app.imgsz(2)-0.9*app.imgsz(2) & horizontalValue(:,1) < 0.9*app.imgsz(2) & verticalValue(:,1) > app.imgsz(1)-0.9*app.imgsz(1) & verticalValue(:,1) < 0.9*app.imgsz(1);
             elseif strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == false && ...
-                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false
+                    strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
+                    app.prepro == 0
                 foi = horizontalValue(:,1) > [0] & horizontalValue(:,1) < [app.imgsz(2)] & verticalValue(:,1) > [0] & verticalValue(:,1) < [app.imgsz(1)];
             elseif strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
+                foi = (1:length(horizontalValue)); % use all of the data
+            elseif app.prepro == 1
                 foi = (1:length(horizontalValue)); % use all of the data
             end
             
@@ -459,6 +483,11 @@ while app.s2 < totNum -1
                         if app.prepro == 0
                             temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
                             temper2 = app.camA.invproject(uvB_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            
+                            % these lines are for te sdi index and needs to be developed further for unstable image sequences
+                            %temper3 = camA_previous.invproject(cell2mat(app.init_track'),app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            %temper4 = app.camA.invproject(cell2mat(app.fin_track'),app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+                            
                             if ~isempty(temper1)
                                 xyz = [temper1(:,1:2); temper2(:,1:2)];
                                 [initialSize, ~] = size(uvA_initial);
@@ -466,7 +495,7 @@ while app.s2 < totNum -1
                                 xyzB_initial = xyz(initialSize+1:end,1:2); % Finish positions that have been rectified
                             else
                                 temper1 = [];
-                                tempter2 = [];
+                                temper2 = [];
                             end
                             
                         else
@@ -474,8 +503,8 @@ while app.s2 < totNum -1
                             temper2 = uvB_initial;
                             
                             xyz = [temper1(:,1:2); temper2(:,1:2)];
-                            min_x = nanmin(app.TransX(:)) - (nanmean(diff(app.TransX(1,:)))/2);
-                            min_y = nanmin(app.TransY(:)) - (nanmean(diff(app.TransY(:,1)))/2);
+                            min_x = min(app.TransX(:),[],'omitnan') - (nanmean(diff(app.TransX(1,:)))/2);
+                            min_y = min(app.TransY(:),[],'omitnan') - (nanmean(diff(app.TransY(:,1)))/2);
                             image_origin_m = [min_x, min_y];
                             xyz = xyz .* app.ResolutionmpxEditField.Value;
                             xyz(:,1) = image_origin_m(:,1) + xyz(:,1);
@@ -491,7 +520,7 @@ while app.s2 < totNum -1
                         end
                     else
                         temper1 = [];
-                        tempter2 = [];
+                        temper2 = [];
                     end
                 else
                     if strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
@@ -622,13 +651,12 @@ while app.s2 < totNum -1
             if Index > 0 && app.prepro == 1
                 app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                 KLT_orthorectificationProgessive(app)
-                app.objectFrame = PIVlab_preproc (app,app.rgbHR,[],[],[],1,30,[],1,8,0,1,1 );
-                % in,roirect,clahe,clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,background
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
                 app.rgbHR = app.objectFrame;
                 KLT_imageExport(app)
    
             elseif Index > 0% && app.prepro == 1
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V));
+                app.objectFrame = rgb2gray(readFrame(V));
             else
                 break
             end
@@ -643,7 +671,7 @@ while app.s2 < totNum -1
             
         else
             try
-                app.objectFrame = images.internal.rgb2graymex(readFrame(V)); % if no more frames
+                app.objectFrame = rgb2gray(readFrame(V)); % if no more frames
             catch
                 app.s2 = totNum-2; % cause it to exit on the next cycle
             end
@@ -676,23 +704,71 @@ clear uvAorig uvBorig uvIndex markers markerColors out
 % At the end of the stable routine convert the tracked GCPs
 if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
         app.prepro == 0
-    if length(app.TransX) > 1
-        xyzA = app.camA.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
-        xyzB = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        
+    if length(app.TransX) > 1 
+        xyzA        = app.camA.invproject(xyzA_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        xyzB        = app.camA.invproject(xyzB_conv,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
         clear xyzA_conv xyzB_conv
+        
+        % convert all of the positions inc. unsuccesful points
+        out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
+        out2        = cell2mat(app.init_track');
+        out3        = cell2mat(app.fin_track');
+        temper3     = app.camA.invproject(out2,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        temper4     = app.camA.invproject(out3,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        
     end
 end
 
+if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs + Stabilisation') == true && ...
+        app.prepro == 0
+
+        % convert all of the positions inc. unsuccesful points
+        out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
+        out2        = cell2mat(app.init_track');
+        out3        = cell2mat(app.fin_track');
+        temper3     = app.camA.invproject(out2,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        temper4     = app.camA.invproject(out3,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+end
 
 try
     if length(app.boundaryLimitsM)>1
-        [in,on] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
+        [in,~] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
         app.xyzA_final = xyzA(in,1:2);
         app.xyzB_final = xyzB(in,1:2);
+        
+        % this is for the sdi work
+        if exist('out1','var') % only on the tested versions
+            for a = 1:length(app.init_track)
+                idx = find(out1 == a);
+                [in,~] = inpolygon(temper3(idx,1), temper3(idx,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
+                app.success_track{a}(~in) = 2; % two means out of bounds
+            end
+        end
+
     else
         app.xyzA_final = xyzA(:,1:2);
         app.xyzB_final = xyzB(:,1:2);
     end
+    
+    if exist('out1','var') % only on the tested versions
+
+        app.init_track_px = app.init_track; % save the pixel values
+        app.fin_track_px = app.fin_track;
+
+        app.init_track = {};
+        app.fin_track = {};
+        for a = 1:length(app.success_track)
+            t1 = find(out1 == a);
+            app.init_track{a}(1:length(t1),1:2) = temper3(t1,1:2);
+            app.fin_track{a}(1:length(t1),1:2) = temper4(t1,1:2);
+        end
+    end
+    % for sdi the outputs are:
+    % app.init_track 
+    % app.fin_track 
+    % app.success_track
+    
     TextIn = {'Image processing completed'};
     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
     TimeIn = strjoin(TimeIn, ' ');

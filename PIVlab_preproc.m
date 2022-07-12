@@ -1,13 +1,26 @@
-function out = PIVlab_preproc (app,in,roirect,clahe, clahesize,highp,highpsize,intenscap,wienerwurst,wienerwurstsize,minintens,maxintens,backremoval)
+function out = PIVlab_preproc (app,in,pre_pro_params)
 %preprocessing does not change the image class anymore
 %works with uint8, uint16, singe and double RGB and gray images.
 %this function preprocesses the images
+
+% strip the pre-processing parameters from the input var
+roirect         = pre_pro_params(1);
+clahe           = pre_pro_params(2);
+clahesize       = pre_pro_params(3);
+highp           = pre_pro_params(4);
+highpsize       = pre_pro_params(5);
+intenscap       = pre_pro_params(6);
+wienerwurst     = pre_pro_params(7);
+wienerwurstsize = pre_pro_params(8);
+minintens       = pre_pro_params(9);
+maxintens       = pre_pro_params(10);
+backremoval     = pre_pro_params(11);
 
 if size(in,3)>1
 	in=rgb2gray(in); % rgb2gray keeps image class
 end
 
-if nanmax(in) > 1
+if max(in,[],'omitnan') > 1
     in = in./255;
 end
 

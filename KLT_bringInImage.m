@@ -14,7 +14,7 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
             try
                 textOutput = strjoin({app.directory, app.file}, '');
                 V=VideoReader(textOutput);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                I = rgb2gray(readFrame(V)); % new method for large files
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};
@@ -38,7 +38,7 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
                 % Load in the original file
                 textOutput = strjoin({app.directory, app.file}, '');
                 V=VideoReader(textOutput);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                I = rgb2gray(readFrame(V)); % new method for large files
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};

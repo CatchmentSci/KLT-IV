@@ -194,26 +194,26 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
                             if tempRMSE(looper,:) == 0
                                 tempRMSE(looper,:) = NaN;
                             end
-                            if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
+                            if ~isnan(min(tempRMSE)) && min(tempRMSE) < accptable_rmse
                                 break
                             end
                             looper = looper + 1;
                         end
-                        if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
+                        if ~isnan(min(tempRMSE)) && min(tempRMSE) < accptable_rmse
                             break
                         end
                     end
-                    if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
+                    if ~isnan(min(tempRMSE)) && min(tempRMSE) < accptable_rmse
                         break
                     end
                 end
-                if ~isnan(nanmin(tempRMSE)) && nanmin(tempRMSE) < accptable_rmse
+                if ~isnan(min(tempRMSE)) && min(tempRMSE) < accptable_rmse
                     break
                 end
             end
             % Select the best performing camera model from the range
             % with variable yaw inputs from 0:4
-            bestMatch = find(tempRMSE == nanmin(tempRMSE));
+            bestMatch = find(tempRMSE == min(tempRMSE,[],'omitnan'));
             if ~isempty(bestMatch)
                 bestMatch = bestMatch(1); % select the first incase the of identical RMSE values
                 app.camA = tempCam(bestMatch,:);
@@ -443,16 +443,16 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + compass') == 1
     allY = app.frame_uas_y(app.s2-offset1:totNum-offset1);
     
     % Lower resolution DEM
-    TransxIn = [nanmin(allX)-app.frame_uas_z]:0.1:[nanmax(allX)+app.frame_uas_z];
-    TransyIn = [nanmin(allY)-app.frame_uas_z]:0.1:[nanmax(allY)+app.frame_uas_z];
+    TransxIn = [min(allX,[],'omitnan')-app.frame_uas_z]:0.1:[max(allX,[],'omitnan')+app.frame_uas_z];
+    TransyIn = [min(allY,[],'omitnan')-app.frame_uas_z]:0.1:[max(allY,[],'omitnan')+app.frame_uas_z];
     [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
     [params] = size(app.TransX); clear demIn;
     demIn(1:params(1),1:params(2)) = 0; % zero because z is relative to water level
     app.Transdem = demIn;
     
     % Higher res DEM
-    xIn = [nanmin(allX)-app.frame_uas_z]:app.ResolutionmpxEditField.Value:[nanmax(allX)+app.frame_uas_z];
-    yIn = [nanmin(allY)-app.frame_uas_z]:app.ResolutionmpxEditField.Value:[nanmax(allY)+app.frame_uas_z];
+    xIn = [min(allX,[],'omitnan')-app.frame_uas_z]:app.ResolutionmpxEditField.Value:[max(allX,[],'omitnan')+app.frame_uas_z];
+    yIn = [min(allY,[],'omitnan')-app.frame_uas_z]:app.ResolutionmpxEditField.Value:[max(allY,[],'omitnan')+app.frame_uas_z];
     app.imageResolution = app.ResolutionmpxEditField.Value;
     [app.X,app.Y]=meshgrid(xIn,yIn);
     [params] = size(app.X); clear demIn;

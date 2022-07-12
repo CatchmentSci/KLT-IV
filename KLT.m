@@ -243,7 +243,12 @@ classdef KLT < matlab.apps.AppBase
         yComponent
         yInder
         Yout
-       directory
+        directory
+        init_track
+        fin_track
+        success_track
+        init_track_px
+        fin_track_px
 
     end
     
@@ -575,7 +580,15 @@ classdef KLT < matlab.apps.AppBase
                 
                 [app.file,tempDir] = uigetfile({'*' 'All Files'},'Select the video to be used to generate/visualize GCP solutions',app.directory, 'MultiSelect', 'off');
                 V=VideoReader([tempDir '\' app.file]);
-                I = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                
+                % rollback for newer versions of Matlab 20220122
+                try
+                    I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
+                catch
+                    I   = rgb2gray(readFrame(V));
+                end
+                    
+                app.objectFrame = rgb2gray(readFrame(V));
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 
@@ -796,7 +809,7 @@ classdef KLT < matlab.apps.AppBase
             app.KLTIV_UIFigure = uifigure;
             app.KLTIV_UIFigure.Color = [ 1 1 1];
             app.KLTIV_UIFigure.Position = [100 100 1287 538]; %width < 1366; hgt < 786
-            app.KLTIV_UIFigure.Name = 'KLT-IV (v1.01)';
+            app.KLTIV_UIFigure.Name = 'KLT-IV (v1.02)';
             app.KLTIV_UIFigure.Resize = 'off';
             
             warning off Matlab:HandleGraphics:ObsoletedProperty:JavaFrame
@@ -847,9 +860,9 @@ classdef KLT < matlab.apps.AppBase
                 '''<style>\n', ...
                 '  {@import url("https://fonts.googleapis.com/css?family=Ubuntu&display=swap") \n}'...
                 '  .scrollpane {\n', ...
-                '    background:  #F0F2F0 !important;\n'...
-                '    background: -webkit-linear-gradient(to bottom, #000C40, #F0F2F0) !important;\n'...
-                '    background: linear-gradient(to bottom, #000C40, #F0F2F0) !important;\n'...
+                '    background:  #3F7CAC !important;\n'...
+                '    background: -webkit-linear-gradient(to right, #3F7CAC, #95AFBA) !important;\n'...
+                '    background: linear-gradient(to right, #3F7CAC, #95AFBA) !important;\n'...
                 '  }\n', ...
                 '  .controlbox {\n', ...
                 '    background-color:#D8E2DC !important;\n'...
