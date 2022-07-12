@@ -62,8 +62,22 @@ The following open source packages are used in this project:
 * [v1.02](https://github.com/CatchmentSci/KLT-IV/tree/v1.02) is the most recent, tested version.
 * [main](https://github.com/CatchmentSci/KLT-IV/tree/main) is undergoing active development and has not been fully tested.
 
+Below is the an outline of the repository folder structure with descriptions:
 </p>
 
+    .
+    ├── code                    # folder containing scripts to run KLT-IV
+    │   ├── depreciated         # a number of files no longer used by KLT-IV
+    │   ├── external            # third party software required
+    │   ├── ffmpeg              # video editing/encoding software
+    │   ├── gui                 # files required to build the GUI
+    │   ├── klt                 # core files for running KLT-IV functions
+    ├── compiled                # folder containing installation files for compiled version
+    │   ├── for_redistribution  # folder containing installation files for KLT
+    ├── compiled resources      # additional resources for compilation
+    ├── images                  # folder containing graphics for KLT-IV
+ 
+  
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
 <!-- Getting Started -->
@@ -71,8 +85,8 @@ The following open source packages are used in this project:
 <p align="justify"> 
   
 * Either download, or clone this repository to the hard drive on your PC.
-* Load MATLAB, ensure that the folder and all sub-folders from this repository are present on the search path e.g. `addpath(genpath('D:\KLT-IV\'))`.
-* Either open the KLT.m file and click Run (in Editor tab), or type `KLT` in to the commnand window. This will load the GUI.<br/>
+* Open MATLAB, ensure that the folder and all sub-folders from this repository are present on the search path e.g. `addpath(genpath('D:\KLT-IV\'))`.
+* Either open the KLT.m file from within the `klt` subfolder and click Run (in Editor tab), or type `KLT` in to the command window. This will load the GUI.<br/>
 * A full outline of the workflow and description of the functionality can be found [here](https://gmd.copernicus.org/articles/13/6111/2020/gmd-13-6111-2020.html)
 </p>
 
