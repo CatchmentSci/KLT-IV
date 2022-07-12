@@ -1,14 +1,10 @@
 <p align="center"> 
-  <img src="images/KLT_icon.png" alt="KLT-IV Logo" width="100px" height="100px">
+  <img src="images/KLT_icon.png" alt="KLT-IV Logo" width="150px" height="150px">
 </p>
 <h1 align="center"> KLT-IV </h1>
 <h3 align="center"> Image velocimetry software for use with fixed and mobile platforms </h3>  
 
 </br>
-
-<p align="center"> 
-  <img src="images/Signal.gif" alt="Sample signal" width="70%" height="70%">
-</p>
 
 <!-- TABLE OF CONTENTS -->
 <h2 id="table-of-contents"> :book: Table of Contents</h2>
