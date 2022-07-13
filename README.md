@@ -85,6 +85,7 @@ Below is the an outline of the folder structure within the `main` branch with de
 * Open MATLAB, ensure that the folder and all sub-folders from this repository are present on the search path e.g. `addpath(genpath('D:\KLT-IV\'))`.
 * Either open the KLT.m file from within the `klt` subfolder and click Run (in Editor tab), or type `KLT` in to the command window. This will load the GUI.<br/>
 * A full outline of the workflow and description of the functionality can be found [here](https://gmd.copernicus.org/articles/13/6111/2020/gmd-13-6111-2020.html)
+* If you use this software, please cite using the information provided in the `cite this repository tab` which can be found at the top right of this page
 </p>
 
 
