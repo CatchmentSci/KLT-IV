@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  KLT-IV: Image velocimetry software for use with fixed and mobile platforms
+type: software
+authors:
+  - given-names: Matthew Thomas
+    family-names: Perks
+    email: mattthew.perks@ncl.ac.uk
+    affiliation: Newcastle University
+    orcid: ' https://orcid.org/0000-0002-6960-5484 '
+url: "https://github.com/CatchmentSci/KLT-IV"
+
