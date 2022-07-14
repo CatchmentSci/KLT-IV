@@ -131,5 +131,7 @@ Below is the an outline of the folder structure within the `main` branch with de
 <p align="center"> 
   <img src="images/KLT_splash_screen.jpg" alt="KLT-IV Splash Screen" width="400px">
 </p>
-
+<p align="center"> 
+  Logo and splash screen artwork created by Kelly Stanford https://kellystanford.co.uk/
+</p>
 
