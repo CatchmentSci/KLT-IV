@@ -11,19 +11,19 @@ app.uvHR            = [];
 xyzA_conv           = [];
 
 % Define the pre-processing settings
-app.prepro          = 0; %zero = disabled; one = enabled
-pre_pro_params      = zeros(1,11); %empty array
-pre_pro_params(1)   = []; %roirect
-pre_pro_params(2)   = []; %clahe
-pre_pro_params(3)   = []; %clahesize
-pre_pro_params(4)   = 1; %highp
-pre_pro_params(5)   = 30; %highpsize
-pre_pro_params(6)   = []; %intenscap
-pre_pro_params(7)   = 0; %wienerwurst
-pre_pro_params(8)   = 8; %wienerwurstsize
-pre_pro_params(9)   = 0; %minintens
-pre_pro_params(10)  = 1; %maxintens
-pre_pro_params(11)  = 0; %background subtraction
+app.prepro              = 0; %zero = disabled; one = enabled
+app.pre_pro_params      = zeros(1,11); %empty array
+app.pre_pro_params(1)   = []; %roirect
+app.pre_pro_params(2)   = []; %clahe
+app.pre_pro_params(3)   = []; %clahesize
+app.pre_pro_params(4)   = 1; %highp
+app.pre_pro_params(5)   = 30; %highpsize
+app.pre_pro_params(6)   = []; %intenscap
+app.pre_pro_params(7)   = 0; %wienerwurst
+app.pre_pro_params(8)   = 8; %wienerwurstsize
+app.pre_pro_params(9)   = 0; %minintens
+app.pre_pro_params(10)  = 1; %maxintens
+app.pre_pro_params(11)  = 0; %background subtraction
                    
 switch app.ProcessingModeDropDown.Value
     case {'Single Video'}
@@ -266,7 +266,7 @@ while app.s2 < totNum -1
                 KLT_orthorectification(app) % Run the starting orthoscript
                 KLT_orthorectificationProgessive(app)
                 if app.prepro == 1
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR);
                     app.rgbHR = app.objectFrame;
                     KLT_imageExport(app)
 
@@ -355,7 +355,7 @@ while app.s2 < totNum -1
                 if Index > 0 && app.prepro == 1
                     app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                     KLT_orthorectificationProgessive(app)
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
+                    app.objectFrame = PIVlab_preproc (app,app.rgbHR);
                     KLT_imageExport(app)
                     
                 elseif Index > 0
@@ -651,7 +651,7 @@ while app.s2 < totNum -1
             if Index > 0 && app.prepro == 1
                 app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                 KLT_orthorectificationProgessive(app)
-                app.objectFrame = PIVlab_preproc (app,app.rgbHR,pre_pro_params);
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
                 app.rgbHR = app.objectFrame;
                 KLT_imageExport(app)
    
