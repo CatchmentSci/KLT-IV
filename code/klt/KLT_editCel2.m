@@ -1,5 +1,5 @@
  % Cell edit callback: UITable2
-        function editCel2(app,event)
+        function KLT_editCel2(app,~)
             
             if strcmp (app.CrossSectionDropDown.Value, 'Relative distances [m]') == 1
                 
