@@ -1,0 +1,531 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html style="WIDTH: 100%%; HEIGHT: 100%%;align: center">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Discharge Measurement Summary</title>
+<style>
+body {
+    background-color: White;
+    margin: 0px;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-style: normal;
+    font-size: 9pt;
+    text-align: center;
+}
+a {
+    color: Navy;
+    font-weight: bolder;
+}
+*[hidden] {
+    display: none;
+}
+*[changed] {
+    color: Green;
+}
+.bolder {
+    font-weight: bolder;
+}
+.PageTitle {
+    font-size: 32pt;
+}
+.Header {
+    border-top: navy 1px solid;
+    border-bottom: navy 1px solid;
+    background-color: rgb(70,100,149) rgb(162,177,202) rgb(162,177,202) rgb(70,100,149);
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight: bold;
+    color: White;
+    height: 14pt;
+    padding: 1pt 0pt 1pt 6pt;
+}
+.SolidBackground {
+    background-color: rgb(70,100,149);
+}
+.ResultsTable {
+    font-size: 8pt;
+}
+.MBResultsTable {
+    font-size: 8pt;
+    font-family: 'Trebuchet MS', sans-serif;
+}
+.StatisticsRow {
+    background-color: rgb(224,230,240);
+}
+.Indent {
+    margin: 1pt 2pt 1pt 6pt;
+}
+.Padding {
+    padding: 1pt 0pt 1pt 6pt;
+}
+.DataTable {
+    border: solid 1px rgb(70,100,149);
+    background-color: White;
+}
+.Scrolling {
+    overflow-Y: scroll;
+}
+.ColumnTitles {
+    vertical-align: middle;
+height 11pt;
+    color: White;
+    background-color: rgb(162,177,202);
+    font-weight: bold;
+    margin: 0px;
+    font-size: 8pt;
+    font-family: 'Trebuchet MS', sans-serif;
+}
+.SmallText {
+    font-size: 6pt;
+    color: black;
+    font-family: 'Trebuchet MS', sans-serif;
+}
+.Footer {
+    font-size: 6pt;
+    color: black;
+    font-family: 'Trebuchet MS', sans-serif;
+}
+</style>
+</head>
+
+<body style="background-color: rgb(255,255,255);text-align:center;align:center;" text-align="center">
+<center>
+  <div id="divBody" style="border: solid thin gray; WIDTH: 7.2in; text-align:center;background-color: White;" align="center"> 
+    
+    <!--
+This line goes in the style section
+@import url( ..\base.css );
+--> 
+    
+    <!--    <div><a href="Default_Save">Save</a></div>-->
+    
+    <table cellspacing="2pt" cellpadding="0" width="100%">
+      <tr valign="top" style="display: none">
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+      </tr>
+      <tr>
+        <td colspan="12" width="100%"><table width="100%" id="Table2">
+            <tr valign="bottom">
+              <td valign="bottom" align="center" class="PageTitle" id="tdPageTitle">Discharge Measurement Summary</td>
+              <td align="right"><img src="https://www.dropbox.com/s/crhcdwbua9eoozp/KLT_icon.png?raw=1" alt="KLT-IV Logo" width="100px" height="100px"></td>
+            </tr>
+          </table></td>
+      </tr>
+      <tr valign="top">
+        <td colspan="6" width="10%"><div class="DataTable">
+            <div class="Header SolidBackground" id="divSiteInformation">Site Information</div>
+            <table width="100%" id="tblSiteInformation">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Site Name </div></th>
+                  <th> <div class="SmallText" > VarSiteName </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Camera Type </div></th>
+                  <th> <div class="SmallText" > VarCameraType </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Optimised Camera Location [m] </div></th>
+                  <th> <div class="SmallText" > [VarXYZ] </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Optimised Camera Direction [rad] </div></th>
+                  <th> <div class="SmallText" > [VarYawPitchRoll] </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+        <td colspan="6" width="10%"><div class="DataTable">
+            <div class="Header SolidBackground" id="divMeasurementInformation">Measurement Information</div>
+            <table width="100%" id="tblMeasurementInformation">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > File Name </div></th>
+                  <th> <div class="SmallText" > VarFileName </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Video Duration [s] </div></th>
+                  <th> <div class="SmallText" > VarVideoDuration </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Video Frame Rate [Hz] </div></th>
+                  <th> <div class="SmallText" > VarFrameRate </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Resolution [px] </div></th>
+                  <th> <div class="SmallText" > VarResolution </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+      </tr>
+      <tr valign="top">
+        <td colspan="4"><div class="DataTable">
+            <div class="Header SolidBackground" id="divSystemInformation">System Information</div>
+            <table width="100%" id="tblSystemInformation">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > OS Name </div></th>
+                  <th> <div class="SmallText" > VarOSName </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > System Name </div></th>
+                  <th> <div class="SmallText" > VarSystemName </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > System Type </div></th>
+                  <th> <div class="SmallText" > VarSystemType </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+        <td colspan="4"><div class="DataTable">
+            <div class="Header SolidBackground" id="divSystemSetup">System Setup</div>
+            <table width="100%" id="tblSystemSetup">
+              <thead>
+			    <tr>
+                  <th> <div class="SmallText" > Orientation </div></th>
+                  <th> <div class="SmallText" > VarOrientationMethod </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Extract Rate (s) </div></th>
+                  <th> <div class="SmallText" > VarExtractRate </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Block Size (px) </div></th>
+                  <th> <div class="SmallText" > VarBlockSize </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Velocity Component </div></th>
+                  <th> <div class="SmallText" > VarVelComponent </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Ignore Edges? </div></th>
+                  <th> <div class="SmallText" > VarIgnoreEdges </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+        <td colspan="2"><div class="DataTable">
+            <div class="Header SolidBackground" id="divUnits">Units</div>
+            <table width="100%" id="tblUnits">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Distance </div></th>
+                  <th> <div class="SmallText" > m </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Velocity </div></th>
+                  <th> <div class="SmallText" > m s<sup>-1</sup> </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Area </div></th>
+                  <th> <div class="SmallText" > m<sup>2</sup> </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Discharge </div></th>
+                  <th> <div class="SmallText" > m<sup>3</sup> s<sup>-1</sup> </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > </div></th>
+                  <th> <div class="SmallText" > </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+      </tr>
+      <tr valign="top" style="display:">
+        <td colspan="8"><div class="DataTable">
+            <div class="Header SolidBackground" id="divGCPDataInput">GCP Data Input</div>
+            <table width="100%" id="tblGCPDataInput">
+              <thead>
+                <tr class="ColumnTitles" align="center">
+                  <td class="ColumnTitles" id="x_real">X [m]</td>
+                  <td class="ColumnTitles" id="y_real">Y [m]</td>
+                  <td class="ColumnTitles" id="z_real">Z [m]</td>
+                  <td class="ColumnTitles" id="x_px">X [px]</td>
+                  <td class="ColumnTitles" id="y_px">Y [px]</td>
+                  <td class="ColumnTitles" id="x_error_px">Error X [px]</td>
+                  <td class="ColumnTitles" id="y_error_px">Error Y [px]</td>
+                  <td class="ColumnTitles" id="sum_error_px"><span>&Sigma;</span> Error [px]</td>
+                </tr>
+                <!--    GCP text placeholder    -->
+              </thead>
+            </table>
+          </div></td>
+        <td colspan="4"><div class="DataTable">
+            <div class="Header SolidBackground" id="PreProSettings">Pre-processing Settings</div>
+            <table width="100%" id="tblPreProSettings">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Image pre-processing </div></th>
+                  <th> <div class="SmallText" > VarPrePro </div></th>
+				  <!--    PP text placeholder    -->
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+      </tr>
+      <td colspan="4"><div class="DataTable">
+            <div class="Header SolidBackground" id="divGCPsettings">GCP Settings</div>
+            <table width="100%" id="tblGCPsettings">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Check GCPs </div></th>
+                  <th> <div class="SmallText" > VarCheckGCPs </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Export GCPs </div></th>
+                  <th> <div class="SmallText" > VarExportGCPs </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > GCP Buffer [m] </div></th>
+                  <th> <div class="SmallText" > VarBufferNumber </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Custom FOV X [min max] </div></th>
+                  <th> <div class="SmallText" > VarFOV_X </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Custom FOV Y [min max] </div></th>
+                  <th> <div class="SmallText" > VarFOV_Y </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+        <td colspan="4"><div class="DataTable">
+            <div class="Header SolidBackground" id="divAnalysissettings">Analysis Settings</div>
+            <table width="100%" id="tblAnalysissettings">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Water Surface Elevation (m) </div></th>
+                  <th> <div class="SmallText" > VarWSE </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Subsampled duration [s] </div></th>
+                  <th> <div class="SmallText" > VarSubsampleLength </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Frame sequence analysed </div></th>
+                  <th> <div class="SmallText" > VarFrames </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Trajectory filter angle </div></th>
+                  <th> <div class="SmallText" > VarAngleFilter </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Trajectory threshold </div></th>
+                  <th> <div class="SmallText" > VarThresholdFilter </div></th>
+                </tr>
+
+              </thead>
+            </table>
+          </div></td>
+        <td colspan="4" valign="top" style="display:"><div class="DataTable">
+            <div class="Header SolidBackground" id="Qsettings">Discharge Settings</div>
+            <table width="100%" id="tblQsettings">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Cross section input </div></th>
+                  <th> <div class="SmallText" > VarXSMethod </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Reference Height </div></th>
+                  <th> <div class="SmallText" > VarRefHgt </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Number of Cells </div></th>
+                  <th> <div class="SmallText" > VarCellNum </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Interpolation method </div></th>
+                  <th> <div class="SmallText" > VarInterpolationMethod </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Alpha  &alpha; </div></th>
+                  <th> <div class="SmallText" > VarAlpha </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+      <tr style="display:">
+        <td colspan="12" width="100%" valign="top" style="display:"><div class="DataTable">
+            <div class="Header SolidBackground" id="divMeasurementResults">Measurement Results</div>
+            <table width="100%" cols="14" id="tblMeasurementResults" class="ResultsTable">
+              <!--- border="1px" bordercolor="rgb(70,100,149)" cellpadding="1pt" cellspacing="0" --->
+              
+              <tr class="ColumnTitles" align="center">
+                <td colspan="1" class="ColumnTitles" id="tdTr">Tr</td>
+                <td colspan="1" class="ColumnTitles" id="tdDistance">Location</td>
+                <td colspan="1" class="ColumnTitles" id="tdDepth">Depth</td>
+                <td colspan="1" class="ColumnTitles" id="tdArea">Area</td>
+                <td colspan="3" class="ColumnTitles" id="tdMeanVel">Mean Velocity</td>
+                <td colspan="1" class="ColumnTitles" id="tdMode">Mode</td>
+                <td colspan="3" class="ColumnTitles" id="tdUnit Q">Unit Q</td>
+                <td colspan="3" class="ColumnTitles" id="tdPercent">% of Total Q</td>
+              </tr>
+              <tr class="ColumnTitles" align="center">
+                <td class="RightBottomBorderCel">#</td>
+                <td class="RightBottomBorderCel">[m]</td>
+                <td class="RightBottomBorderCel">[m]</td>
+                <td class="RightBottomBorderCel">[m]</td>
+                <td class="RightBottomBorderCel">[cubic]</td>
+                <td class="RightBottomBorderCel">[quadratic]</td>
+                <td class="RightBottomBorderCel">[froude]</td>
+                <td class="RightBottomBorderCel">&nbsp;</td>
+                <td class="RightBottomBorderCel">[cubic]</td>
+                <td class="RightBottomBorderCel">[quadratic]</td>
+                <td class="RightBottomBorderCel">[froude]</td>
+                <td class="RightBottomBorderCel">[cubic]</td>
+                <td class="RightBottomBorderCel">[quadratic]</td>
+                <td class="RightBottomBorderCel">[froude]</td>
+              </tr>
+              <!--    Q text placeholder    -->
+            </table>
+          </div></td>
+      </tr>
+	  
+      <script
+src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+</script> 
+      <tr id="Figure" style="display:">
+        <td colspan="12" valign="top" style="display:"><div class="DataTable">
+            <div class="Header SolidBackground" id="Cross-sectionAnalysis">Cross-section Analysis</div>
+            <table width="100%" id="tblCross-sectionAnalysis">
+              <canvas id="xsAnalysis"></canvas>
+              <script>
+						const ctx = document.getElementById('xsAnalysis').getContext('2d');
+						const myChart = new Chart(ctx, {
+							type: 'line',
+							data: {
+								labels: VarPlotDistance, <!--    Distance text placeholder    -->
+								datasets: [{
+									label: 'Depth [m]',
+									yAxisID: 'Depth',
+									data: VarPlotDepth,
+									borderColor: '#d7191c',
+									fill: false,
+									lineTension: 0
+
+								},{
+									label: 'Froude',
+									yAxisID: 'Velocity',
+									data: VarPlotFroudeVelocity,
+									borderColor: '#2b83ba',
+								    fill: false,
+									lineTension: 0
+								},{
+									label: 'Quadratic',
+									yAxisID: 'Velocity',
+									borderColor: '#fdae61',
+									data: VarPlotQuadraticVelocity,
+								    fill: false,
+									lineTension: 0
+								},{
+									label: 'Cubic',
+									yAxisID: 'Velocity',
+									borderColor: '#abdda4',
+									data: VarPlotCubicVelocity,
+								    fill: false,
+									lineTension: 0
+								}								
+								]
+							},
+    options: {
+    scales: {
+      yAxes: [{
+        id: 'Depth',
+        type: 'linear',
+        position: 'left',
+		scaleLabel: {
+        display: true,
+        labelString: 'Depth '
+		  }
+      }, {
+        id: 'Velocity',
+        type: 'linear',
+        position: 'right',
+		scaleLabel: {
+        display: true,
+        labelString: 'Velocity'
+		  }
+      }],
+		
+		xAxes: [{
+        position: 'center',
+		scaleLabel: {
+        display: true,
+        labelString: 'Distance'
+		  }
+		}],
+		
+    }
+  }
+});
+						
+</script>
+            </table >
+          </div></td>
+      <tr id="Qresults" style="display:">
+        <td colspan="6" valign="top" style="display:"><div class="DataTable">
+            <div class="Header SolidBackground" id="Rresults">Discharge Results</div>
+            <table width="100%" id="tblQresults">
+              <thead>
+                <tr>
+                  <th> <div class="SmallText" > Water Level</div></th>
+                  <th> <div class="SmallText" > VarWaterLevel </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Total Area </div></th>
+                  <th> <div class="SmallText" > VarArea </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Mean Velocity </div></th>
+                  <th> <div class="SmallText" > VarMeanVelocity </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Total Width </div></th>
+                  <th> <div class="SmallText" > VarWidth </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Total Q </div></th>
+                  <th> <div class="SmallText" > VarQ </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Maximum Depth </div></th>
+                  <th> <div class="SmallText" > VarMaxD </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Maximum Velocity </div></th>
+                  <th> <div class="SmallText" > VarMaxV </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Mean Flow Angle</div></th>
+                  <th> <div class="SmallText" > VarFlowAngle </div></th>
+                </tr>
+              </thead>
+            </table>
+          </div></td>
+      </tr>
+      <td colspan="12" width="100%"><table width="100%" id="Table3">
+            <tr>
+              <td align="left"><div class="Footer" id="divParametersMarked">Parameters and settings marked with a "*" are not constant for all files.</div></td>
+              <td align="right"><div class="Footer"><span id="spanReportGenerated">Report generated using KLT-IV</span><span id="spanSoftwareNameVersion"></span></div></td>
+            </tr>
+          </table></td>
+      </tr>
+    </table>
+  </div>
+</center>
+</body>
+</html>

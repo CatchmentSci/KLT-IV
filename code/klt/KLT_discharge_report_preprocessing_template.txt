@@ -1,0 +1,32 @@
+<tr>
+                  <th> <div class="SmallText" > CLAHE </div></th>
+                  <th> <div class="SmallText" > VarCLAHE </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > CLAHE size [px] </div></th>
+                  <th> <div class="SmallText" > VarCLAHESize </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > High pass filter </div></th>
+                  <th> <div class="SmallText" > VarHighPass </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > High pass size [px] </div></th>
+                  <th> <div class="SmallText" > VarHighPassSize </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > WIENER lowpass filter </div></th>
+                  <th> <div class="SmallText" > VarWIENERfilter </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > WIENER size [px] </div></th>
+                  <th> <div class="SmallText" > VarWIENERsize </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Intensity cap </div></th>
+                  <th> <div class="SmallText" > VarIntensityCap </div></th>
+                </tr>
+                <tr>
+                  <th> <div class="SmallText" > Background removal </div></th>
+                  <th> <div class="SmallText" > VarBackgroundRemoval </div></th>
+                </tr>

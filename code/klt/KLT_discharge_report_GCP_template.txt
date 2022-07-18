@@ -1,0 +1,10 @@
+<tr>
+                  <th> <div class="SmallText" > GCP x1 </div></th>
+                  <th> <div class="SmallText" > GCP y1 </div></th>
+                  <th> <div class="SmallText" > GCP z1 </div></th>
+                  <th> <div class="SmallText" > GCP x2 </div></th>
+                  <th> <div class="SmallText" > GCP y2 </div></th>
+                  <th> <div class="SmallText" > x error </div></th>
+                  <th> <div class="SmallText" > y error </div></th>
+                  <th> <div class="SmallText" > total error </div></th>
+                </tr>
