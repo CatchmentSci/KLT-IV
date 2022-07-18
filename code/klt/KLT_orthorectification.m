@@ -513,4 +513,15 @@ elseif strcmp(app.OrientationDropDown.Value,'Dynamic: GPS + compass') == 1
         %end
     end
 end
+
+% calculate the projection error for each GCP if possible
+try
+    if size(app.gcpA,1)>1
+        [GCPpixelTrans,~,~]=app.camA.project([app.gcpA(:,1),app.gcpA(:,2), app.gcpA(:,3)]); % High res DEM
+        app.GCPdiff = app.gcpA(:,4:5) - GCPpixelTrans;
+    end
+    catch
+end
+
+
 end
