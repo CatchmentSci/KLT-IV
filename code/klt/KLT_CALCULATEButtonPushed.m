@@ -2,6 +2,17 @@
 function KLT_CALCULATEButtonPushed(app, ~)
 clear app.UITable2.Data M2 xsVelocity xsStd
 
+absDistance = [];
+depthUse = [];
+QuadraticVelocity = [];
+CubicVelocity = []; 
+froudeVelocity = [];
+missingInd = [];
+cellArea = [];
+totalQ_froude = [];
+totalQ_quad = [];
+totalQ_cubic = [];
+
 KLT_editCel2(app)
 
 TextIn = {'Calculating flow discharge, please wait.'};
@@ -193,6 +204,11 @@ if cont == 1
     missingInd      = find(isnan(xsVelocity));
     
     if strcmp(app.InterpolationMethod.Value, 'Quadratic Polynomial') == 1
+
+        for a = 1:length(xsVelocity)
+            idx = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
+            depthUse(a) = nanmean(depthIn(idx));
+        end
         
         QuadraticVelocity   = xsVelocity';
         paddingIn           = [absDistance(1) - nanmean(diff(absDistance))./2,...
@@ -227,6 +243,11 @@ if cont == 1
         end
         
     elseif strcmp(app.InterpolationMethod.Value, 'Cubic Polynomial') == 1
+
+        for a = 1:length(xsVelocity)
+            idx = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
+            depthUse(a) = nanmean(depthIn(idx));
+        end
         
         CubicVelocity       = xsVelocity';
         paddingIn           = [absDistance(1) - nanmean(diff(absDistance))./2,...
@@ -251,12 +272,12 @@ if cont == 1
             q(a) = CubicVelocity(a) .* cellArea(a);
             
             if a == length(CubicVelocity)
-                totalQ_quad = sum(q);
+                totalQ_cubic = sum(q);
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-                    message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
+                    message1 = ['Q = ' num2str(round(totalQ_cubic,2)) ' m' char(179) '/s'];
                     msgbox(message1,'Value');
                 else
-                    app.totalQ(app.videoNumber) = totalQ_quad;
+                    app.totalQ(app.videoNumber) = totalQ_cubic;
                 end
             end
         end
@@ -609,4 +630,8 @@ if cont == 1
         app.totalQ = replace_num(app.totalQ,0,NaN);
     end % interpolation method
 end % cont
+
+% Generate the discharge report
+KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic );
+
 end % function
