@@ -249,7 +249,9 @@ classdef KLT < matlab.apps.AppBase
         success_track
         init_track_px
         fin_track_px
-
+        GCPdiff
+        pre_pro_params
+        filterAngle
     end
     
     
