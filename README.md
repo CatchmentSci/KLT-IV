@@ -108,6 +108,10 @@ Below is the an outline of the folder structure within the `main` branch with de
 
 <ul>
   <li>
+    <p>Dariia Strelnikova, et al., (2022) Rapid detection of the change in surface flow patterns near fish passages at hydropower dams with the use of UAS based videos under controlled discharge conditions. Frontiers: Remote Sensing 3(798973). https://www.frontiersin.org/articles/10.3389/frsen.2022.798973/
+    </p>
+  </li> 
+  <li>
     <p>Robert Ljubičić, et al. (2021) A comparison of tools and techniques for stabilising unmanned aerial system (UAS) imagery for surface flow observations. Hydrology and Earth System Sciences 25(9): 5105-5132. https://hess.copernicus.org/articles/25/5105/2021/
     </p>
   </li>
@@ -122,9 +126,9 @@ Below is the an outline of the folder structure within the `main` branch with de
   <li>
     <p>Matthew T. Perks, Andrew J. Russell, and Andrew RG Large (2016) Advances in flash flood monitoring using unmanned aerial vehicles (UAVs). Hydrology and Earth System Sciences 20(10): 4005-4015. https://hess.copernicus.org/articles/20/4005/2016/
     </p>
-  </li>          
+  </li>        
+  </li>      
 </ul>      
-
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
