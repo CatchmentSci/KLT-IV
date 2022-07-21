@@ -12,18 +12,23 @@ xyzA_conv           = [];
 
 % Define the pre-processing settings
 app.prepro              = 0; %zero = disabled; one = enabled
-app.pre_pro_params      = zeros(1,11); %empty array
-app.pre_pro_params(1)   = []; %roirect
-app.pre_pro_params(2)   = []; %clahe
-app.pre_pro_params(3)   = []; %clahesize
-app.pre_pro_params(4)   = 1; %highp
-app.pre_pro_params(5)   = 30; %highpsize
-app.pre_pro_params(6)   = []; %intenscap
-app.pre_pro_params(7)   = 0; %wienerwurst
-app.pre_pro_params(8)   = 8; %wienerwurstsize
-app.pre_pro_params(9)   = 0; %minintens
-app.pre_pro_params(10)  = 1; %maxintens
-app.pre_pro_params(11)  = 0; %background subtraction
+if app.prepro == 1
+    % assign some default settings - to be modified by the user
+    app.pre_pro_params      = zeros(1,11); %empty array
+    app.pre_pro_params(1)   = []; %roirect
+    app.pre_pro_params(2)   = []; %clahe
+    app.pre_pro_params(3)   = []; %clahesize
+    app.pre_pro_params(4)   = 1; %highp
+    app.pre_pro_params(5)   = 30; %highpsize
+    app.pre_pro_params(6)   = []; %intenscap
+    app.pre_pro_params(7)   = 0; %wienerwurst
+    app.pre_pro_params(8)   = 8; %wienerwurstsize
+    app.pre_pro_params(9)   = 0; %minintens
+    app.pre_pro_params(10)  = 1; %maxintens
+    app.pre_pro_params(11)  = 0; %background subtraction
+else
+    app.pre_pro_params      = zeros(1,11); %empty array if pre-pro not enabled
+end
                    
 switch app.ProcessingModeDropDown.Value
     case {'Single Video'}
