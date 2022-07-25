@@ -43,7 +43,7 @@ xsIn        = cat(1,A1{:});
 
 
 if strcmp(app.ReferenceHeight.Value, 'Water depth [m]') == 1
-    D2      =  app.UITable2.Data(~isnan(app.UITable2.Data(:,1)),2);
+    D2      = app.UITable2.Data(~isnan(app.UITable2.Data(:,1)),2);
     t1      = find(D2<0);
     
     if ~isempty(t1)
