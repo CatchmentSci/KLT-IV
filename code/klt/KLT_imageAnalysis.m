@@ -58,8 +58,11 @@ end
 % [TopLeftX,TopLeftY,LengthX,LengthY]
 objectRegion = [1, 1, app.imgsz(2), app.imgsz(1)]; 
 
+
 % Run the camera parameters function
-KLT_cameraParameters(app)
+if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+    KLT_cameraParameters(app)
+end
 
 % Overwrite the default frame rate?
 % Only run for the first video
@@ -72,8 +75,7 @@ if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
 end
 
 % Define the total number of frames available
-if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
-    
+if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
     try
         totNum = V.NumFrames; % sometimes doesn't exist
     catch
@@ -83,6 +85,7 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
 else
     totNum = length(app.objectFrameStacked);
 end
+
 
 nFrame      = 1;
 app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
@@ -127,26 +130,31 @@ else
 end
 
 % Check if manual time is greater than video time
-if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true && ...
+if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true | ...
+        strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') && ...
         totNum > numel(app.objectFrameStacked)
     totNum = numel(app.objectFrameStacked);
 end
 
 % Run the stabilisation functions as required
-switch app.OrientationDropDown.Value
+if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
 
-    case {'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation'}
-        KLT_stabiliseImageInput(app, V, totNum);
-    case 'Dynamic: GPS + IMU'
-        KLT_stabiliseImageInputGPS(app, V, totNum);
-    case 'Planet [beta]'
-        KLT_stabiliseImageInputPlanet(app, V, totNum);
-        
+    switch app.OrientationDropDown.Value
+
+        case {'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation'}
+            KLT_stabiliseImageInput(app, V, totNum);
+        case 'Dynamic: GPS + IMU'
+            KLT_stabiliseImageInputGPS(app, V, totNum);
+        case 'Planet [beta]'
+            KLT_stabiliseImageInputPlanet(app, V, totNum);
+
+    end
+
 end
 
 % This is the main part of the feature tracking
 while app.s2 < totNum -1
-    if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+    if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.s2-1)/totNum*100) '% Complete'},''));
         pause(0.01)
         
@@ -170,11 +178,13 @@ while app.s2 < totNum -1
             
             uvA         = [];
             uvB         = [];
-            app.gcpA    = app.UITable.Data;
-            available   = find(app.gcpA(:,4) > 0);
-            app.gcpA    = app.gcpA(available,:);
+            if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+                app.gcpA    = app.UITable.Data;
+                available   = find(app.gcpA(:,4) > 0);
+                app.gcpA    = app.gcpA(available,:);
+            end
             
-            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
                 
                 if app.s2.*1/app.videoFrameRate < V.Duration
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
@@ -183,9 +193,10 @@ while app.s2 < totNum -1
                 end
             end
             
-            if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true || ...
-                    strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
+            if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true | ...
+                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true | ...
+                    strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true && ...
+                    strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
                 
                 % Load the stabilised exported files
                 listing = dir(app.subDir);
@@ -200,7 +211,7 @@ while app.s2 < totNum -1
                 else
                     break
                 end
-                
+
             elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
                 % Load the stabilised exported files
                 listing = dir (app.directory_stab);
@@ -218,7 +229,9 @@ while app.s2 < totNum -1
                     % Otherwise do nothing
                 end
                 
-            elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true || ...
+                strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+
                 % Load the correct frame in the video sequence
                 app.objectFrame = app.objectFrameStacked{nFrame};
                 
@@ -301,10 +314,12 @@ while app.s2 < totNum -1
                         clear temp4 temp5
                     end
                 else
-                    temp11 = length(app.gcpA(:,4));
-                    app.k1(1:temp11,1) = app.gcpA(:,4);
-                    app.k1(1:temp11,2) = app.gcpA(:,5);
-                    clear temp11
+                    if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+                        temp11 = length(app.gcpA(:,4));
+                        app.k1(1:temp11,1) = app.gcpA(:,4);
+                        app.k1(1:temp11,2) = app.gcpA(:,5);
+                        clear temp11
+                    end
                 end
             end
             
@@ -326,14 +341,18 @@ while app.s2 < totNum -1
                     app.boundaryLimitsM = app.camA.invproject(app.boundaryLimitsPx,app.TransX,app.TransY,app.Transdem);
                 elseif length(app.boundaryLimitsPx) > 1 && ...
                         strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == true
-                    app.boundaryLimitsM = app.boundaryLimitsPx.*app.imageResolution;
+                    if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+                        app.boundaryLimitsM = app.boundaryLimitsPx.*app.imageResolution;
+                    else
+                        app.boundaryLimitsM = app.boundaryLimitsPx.*1;
+                    end
                 elseif strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == true
                     % do nothing
                 end
             end
         else
             %% This is the end of the tracking sequence
-            if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
                 if app.s2.*1/app.videoFrameRate < V.Duration
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
                 else
@@ -346,9 +365,10 @@ while app.s2 < totNum -1
             p2 = num2str(app.s2);
             fileNameIteration = [p1,p2];
             
-            if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true || ...
-                    strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
+            if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true | ...
+                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true | ...
+                    strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true && ...
+                    strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
                 % Load the stabilised exported files
                 listing = dir(app.subDir);
                 for a = 1:length(listing)
@@ -384,7 +404,9 @@ while app.s2 < totNum -1
                     break
                 end
                 
-            elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true || ...
+                    strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+
                 % Load the correct frame in the video sequence
                 app.objectFrame = app.objectFrameStacked{nFrame};
                 
@@ -474,16 +496,17 @@ while app.s2 < totNum -1
                 end
                 
                 if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
-                    if app.prepro == 0
+                    if app.prepro == 0 && strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
                         KLT_orthorectificationProgessive(app); % Run the continuous orthoscript to determine the movement of the UAV
                     end
                 end
                 
-                if strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
+                if strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
                         strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
                         strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false 
                     
-                    if length(app.TransX) > 1 && strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == false
+                    if length(app.TransX) > 1 && strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == false && ...
+                            strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
                         
                         if app.prepro == 0
                             temper1 = camA_previous.invproject(uvA_initial,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
@@ -530,6 +553,8 @@ while app.s2 < totNum -1
                 else
                     if strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == true
                         app.imageResolution = app.ResolutionmpxEditField.Value; % Catch for GPS + IMU
+                    elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+                        app.imageResolution = 1;
                     end
                     temper1 = uvA_initial.*app.imageResolution;
                     temper2 = uvB_initial.*app.imageResolution;
@@ -625,9 +650,11 @@ while app.s2 < totNum -1
                     clear temp4 temp5
                 end
             else
-                app.k1 = [];
-                app.k1(:,1) = app.gcpA(:,4);
-                app.k1(:,2) = app.gcpA(:,5);
+                if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+                    app.k1 = [];
+                    app.k1(:,1) = app.gcpA(:,4);
+                    app.k1(:,2) = app.gcpA(:,5);
+                end
             end
             
            
@@ -643,9 +670,10 @@ while app.s2 < totNum -1
             end
         end
         
-        if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true || ...
-                strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true || ...
-                strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true
+        if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true | ...
+                strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true | ...
+                strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true && ...
+                strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
             % Load the stabilised exported files
             listing = dir(app.subDir);
             for a = 1:length(listing)

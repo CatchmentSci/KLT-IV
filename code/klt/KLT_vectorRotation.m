@@ -31,8 +31,8 @@ switch app.VelocityDropDown.Value
         if app.end1(2) > t1;    app.end1(2) = t1;   end
 
         % Convert start/stop positions to rw positions as required
-        if  strcmp (app.OrientationValue, 'Dynamic: Stabilisation') == false && ...
-            strcmp (app.OrientationValue, 'Planet [beta]') == false
+        if  strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
+            strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false
             start1_rw   = app.camA_first.invproject(app.start1,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
             end1_rw     = app.camA_first.invproject(app.end1,app.TransX,app.TransY,app.Transdem);
         else
@@ -99,6 +99,9 @@ switch app.ProcessingModeDropDown.Value
         titleBar = 'Define the min and max velocities to be stored across all videos';
     case 'Single Video'
         titleBar = 'Define the minimum and maximum velocities to be used in analysis';
+    case 'Numerical Simulation'
+        titleBar = 'Define the min and max velocities to be stored across all videos';
+
 end
 
 if app.starterInd == 1 || isempty(app.starterInd)
@@ -112,7 +115,7 @@ end
 if ~isempty(app.minVel)
     remover1    = app.refValue < app.minVel | app.refValue > app.maxVel;
 	app.refValue(remover1)      = NaN;
-    app.adjustedVel(remover1)   = NaN
+    app.adjustedVel(remover1)   = NaN;
 end
      
 

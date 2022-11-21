@@ -11,6 +11,7 @@
 % pass with 5px_5pyra_0.1, but 11px as a first pass also works well.
 
 function []  = KLT_stabiliseImageInput(app, V, totNum)
+
 pass = 1;
 answer = 'Yes';
 set(app.RUNButton,'Text','Stabilising image sequence');

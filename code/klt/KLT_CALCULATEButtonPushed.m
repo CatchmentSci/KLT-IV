@@ -1,5 +1,10 @@
 % Button pushed function: CALCULATEButton
 function KLT_CALCULATEButtonPushed(app, ~)
+
+if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+    return
+end
+
 clear app.UITable2.Data M2 xsVelocity xsStd
 
 absDistance = [];
@@ -211,8 +216,9 @@ if cont == 1
         end
         
         QuadraticVelocity   = xsVelocity';
-        paddingIn           = [absDistance(1) - nanmean(diff(absDistance))./2,...
-            absDistance(end) + nanmean(diff(absDistance))./2];
+        differ1 = diff(absDistance);
+        paddingIn           = [absDistance(1) - differ1(1)./2,...
+            absDistance(end) + differ1(2)./2];
         combinedIn = [[paddingIn(1);0]'; ...
             absDistance, QuadraticVelocity; ...
             [paddingIn(2);0]'];
@@ -250,8 +256,9 @@ if cont == 1
         end
         
         CubicVelocity       = xsVelocity';
-        paddingIn           = [absDistance(1) - nanmean(diff(absDistance))./2,...
-            absDistance(end) + nanmean(diff(absDistance))./2];
+        differ1 = diff(absDistance);
+        paddingIn           = [absDistance(1) - differ1(1)./2,...
+            absDistance(end) + differ1(2)./2];
         combinedIn = [[paddingIn(1);0]'; ...
             absDistance, CubicVelocity; ...
             [paddingIn(2);0]'];
@@ -531,8 +538,9 @@ if cont == 1
         base_velocity       = xsVelocity';
         idx_q               = 1;
         QuadraticVelocity   = base_velocity;
-        paddingIn           = [absDistance(1) - nanmean(diff(absDistance))./2,...
-            absDistance(end) + nanmean(diff(absDistance))./2];
+        differ1 = diff(absDistance);
+        paddingIn           = [absDistance(1) - differ1(1)./2,...
+            absDistance(end) + differ1(2)./2];
         combinedIn = [[paddingIn(1);0]'; ...
             absDistance, QuadraticVelocity; ...
             [paddingIn(2);0]'];
@@ -563,8 +571,9 @@ if cont == 1
         
         idx_q           = idx_q + 1;
         CubicVelocity   = base_velocity;
-        paddingIn       = [absDistance(1) - nanmean(diff(absDistance))./2,...
-            absDistance(end) + nanmean(diff(absDistance))./2];
+        differ1 = diff(absDistance);
+        paddingIn           = [absDistance(1) - differ1(1)./2,...
+            absDistance(end) + differ1(2)./2];
         combinedIn = [[paddingIn(1);0]'; ...
             absDistance, CubicVelocity; ...
             [paddingIn(2);0]'];
@@ -609,7 +618,7 @@ if cont == 1
         dlm = fitlm(depthUse,froudeVelocity,'Intercept',false);
         froudeVelocity(missingInd) = depthUse(missingInd).* table2array(dlm.Coefficients(1,1));
                 
-        KLT_plotFcn_All(app, absDistance, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd)
+        %KLT_plotFcn_All(app, absDistance, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd)
 
         for a = 1:length(xsVelocity)
             idx = wetCellsIdx(a) : wetCellsIdx(a+1)-1;
@@ -632,6 +641,7 @@ if cont == 1
 end % cont
 
 % Generate the discharge report
-KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic );
+wetted_width = abs(combinedIn(end,1) - combinedIn(1,1));
+KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic, wetted_width );
 
 end % function

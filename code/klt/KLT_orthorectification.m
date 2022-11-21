@@ -1,5 +1,9 @@
 function [] = KLT_orthorectification(app)
 
+if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+    return
+end
+
 app.rollingGCPs = [];
 KLT_checkGcpCsvData(app)
 
@@ -168,7 +172,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
             zRange(1:11) = z;
         end 
         
-        accptable_rmse = 15;
+        accptable_rmse = 1;
                 
         while ii < 2
             for cycle4 = 1:length(zRange)

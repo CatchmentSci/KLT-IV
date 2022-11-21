@@ -1,13 +1,23 @@
-function KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic );
+function KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic, wetted_width );
 
 text            = fileread('KLT_discharge_report.html');
-newChr          = strrep(text,'VarSiteName',app.file); % assign the video name
+
+[sizer1,~]      = size(app.totalQ);
+
+if sizer1 == 1 % if only one q output
+    newChr          = strrep(text,'VarSiteName',app.file); % assign the video name
+    newChr          = strrep(newChr,'VarFileName',app.file); % assign the video name
+else
+    [~,nameIn,~]    = fileparts(app.directory_save_multiple);
+    newChr          = strrep(text,'VarSiteName',nameIn); % assign the video name
+    newChr          = strrep(newChr,'VarFileName',nameIn); % assign the video name
+end
+
 newChr          = strrep(newChr,'VarCameraType',app.CameraTypeDropDown.Value); % assign the camera type
 newChr          = strrep(newChr,'VarXYZ',...
     [ num2str(round(app.camA.xyz(1,1),2)), ', ' num2str(round(app.camA.xyz(1,2),2)), ', ' num2str(round(app.camA.xyz(1,3),2))]); % assign the optimised camera location
 newChr          = strrep(newChr,'VarYawPitchRoll',...
-    [num2str(round(app.yawpitchrollEditField.Value(1,1),2)) ', '  num2str(round(app.yawpitchrollEditField_2.Value(1,1),2)) ', ' num2str(round(app.yawpitchrollEditField_3.Value(1,1),2))]);
-newChr          = strrep(newChr,'VarFileName',app.file); % assign the video name
+    [num2str(round(app.camA.viewdir(1),2)) ', '  num2str(round(app.camA.viewdir(2),2)) ', ' num2str(round(app.camA.viewdir(3),2))]);
 newChr          = strrep(newChr,'VarVideoDuration',num2str(app.videoDuration)); % assign the video duration
 newChr          = strrep(newChr,'VarFrameRate',num2str(app.videoFrameRate)); % assign the video frame rate
 newChr          = strrep(newChr,'VarResolution',[num2str(size(app.firstFrame,1)) ' x ' num2str(size(app.firstFrame,2))]); % assign the video resolution
@@ -250,13 +260,18 @@ temp2 = [ '[''' temp(1:end-2) ']' ];
 newChr          = strrep(newChr,'VarPlotDistance',temp2); % define depth for the plot
 newChr          = strrep(newChr, 'VarWaterLevel',num2str(app.WatersurfaceelevationmEditField.Value)); % assign the water level
 newChr          = strrep(newChr, 'VarArea',num2str(round(sum(cellArea),2))); % assign the water area
-newChr          = strrep(newChr, 'VarWidth',num2str(round(app.transectLength,2))); % assign the water area
+newChr          = strrep(newChr, 'VarWidth',num2str(round(wetted_width,2))); % assign the water area
 newChr          = strrep(newChr, 'VarMaxD',num2str(round(max(depthUse),2))); % assign the water area
 newChr          = strrep(newChr, 'VarFlowAngle', 'Disabled'); % assign the water area
 
-
 % Write the modified data to the html file
-fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_discharge_summary_report.html'],'w');
+
+if sizer1 == 1 % if only one q output
+    fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_discharge_summary_report.html'],'w');
+else
+    fid = fopen([app.OutputDirectoryButton.Text '\' nameIn '_discharge_summary_report.html'],'w');
+end
+
 fprintf(fid,'%s',newChr);
 fclose(fid);
 

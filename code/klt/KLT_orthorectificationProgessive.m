@@ -1,5 +1,9 @@
 function [] = KLT_orthorectificationProgessive(app)
 
+if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+    return
+end
+
 if strcmp(app.CheckGCPsSwitch.Value, 'On') == 1
     app.ExportGCPdataSwitch.Enable = 'on';
     app.ExportGCPdataSwitch.Value = 'On';

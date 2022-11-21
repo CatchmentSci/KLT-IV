@@ -358,8 +358,75 @@ classdef KLT < matlab.apps.AppBase
                     end
                     app.videoNumber = app.videoNumber + 1;
                     app.startingVideo = [0];
+                
+                 elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true %&& isnan(app.totalQ(1,a)) % ensure no q data
+
+                    % Purge the listbox
+                    if length(find(~cellfun(@isempty,app.ListBox.Items))) == 1000
+                        for x=1:1000 % create an empty listbox again
+                            app.ListBox.Items(x) = {['']};
+                        end
+                    end
+                    
+                    try
+                        if app.videoNumber > 1
+                            KLT_customFOV(app)
+                        end
+                        KLT_imageAnalysis(app)
+                        KLT_flightPath(app)
+                        KLT_vectorRotation(app)
+                        KLT_exportVelocity(app)
+                        KLT_trajectories(app)
+                        KLT_CALCULATEButtonPushed(app)
+                        KLT_appendQoutputs(app)
+                        set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.videoNumber-1)/length(app.fileNameAnalysis)*100) '% Complete'},''));
+                           
+                        if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+                            TextIn = {['Discharge computed for video ', int2str(app.videoNumber), ' of ', num2str(length(app.fileNameAnalysis))]};
+                        else
+                            TextIn = {['Numerical analysis completed for video ', int2str(app.videoNumber), ' of ', num2str(length(app.fileNameAnalysis))]};
+                        end
+
+                        app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                        KLT_printItems(app)
+                        pause(0.01);
+                        app.ListBox.scroll('bottom')
+                        
+                        if app.starterInd == 1
+                            app.startingAppVals             = app; % create a copy of the settings
+                            app.startingAppVals.uvHR        = [];
+                            app.startingAppVals.visHR       = [];
+                            app.startingAppVals.xyzA_final  = [];
+                            app.startingAppVals.xyzB_final  = [];
+                            app.startingAppVals.vel         = [];
+                            app.startingAppVals.refValue    = [];
+                            app.starterInd                  = app.starterInd + 1;
+                            app.startingAppVals.objectFrameStacked = {};
+                            app.startingAppVals.normalVelocity = [];
+                        else
+                            app.starterInd                  = app.starterInd + 1;
+                        end
+                        
+                    catch
+                        
+                        if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
+                            app.compiled_refVal = num2cell(NaN);
+                        else
+                            app.compiled_refVal = [app.compiled_refVal; num2cell(NaN)];
+                        end
+
+                        TextIn = {['Unable to process video ', char(app.fileNameAnalysis(app.videoNumber)) ' . Skipping this file.']};
+                        app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                        KLT_printItems(app)
+                        pause(0.01);
+                        app.ListBox.scroll('bottom')
+                    end
+                    app.videoNumber = app.videoNumber + 1;
+                    app.startingVideo = [0];                
+
                 else
                     app.videoNumber = app.videoNumber + 1;
+
                 end
             end
             
@@ -566,13 +633,46 @@ classdef KLT < matlab.apps.AppBase
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Click here';
                 end
+
+
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true % Create list of images inside the considered directory
+                app.directory = uigetdir;
+                    
+                if length(app.directory) > 1
+                    
+                    direc               = dir([app.directory,filesep]); app.videoDirFileNames={};
+                    [app.videoDirFileNames{1:length(direc),1}] = deal(direc.name);
+                    app.videoDirFileNames = sortrows(app.videoDirFileNames); %sort all image files
+                    app.videoDirFileNames = app.videoDirFileNames(3:end);
+                    app.fileNameAnalysis  = app.videoDirFileNames; % no matching required
+                    
+                    TextIn = strjoin({num2str(length(app.videoDirFileNames)) ' videos selected for analysis'},'');
+                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                    KLT_printItems(app)
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    app.AddVideoButton.Text = 'Multiple selected';
+                    app.AddVideoButton.VerticalAlignment = 'top';
+                            
+                else
+                    TextIn = {'No directory selected, please try again'};
+                    TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+                    TimeIn = strjoin(TimeIn, ' ');
+                    app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+                    KLT_printItems(app)
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    app.AddVideoButton.Text = 'Click here';
+                end
+
+
+
                 
             end
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
                 KLT_bringInImage(app); % Bring in the first image of the video
-            else
-                
+            else                 
                 KLT_bringInImage(app)
                 TextIn = {'Select the video to be used to generate/visualize GCP solutions'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
@@ -757,6 +857,40 @@ classdef KLT < matlab.apps.AppBase
                 app.RUNButton.Position = [655 158 290 22];
                 app.RUNButton.Enable = 'on';
                 app.RUNButton.Visible = 'On';
+                app.OrientationDropDown.Enable = true;
+                app.CrossSectionDropDown.Enable = true;
+                app.ReferenceHeight.Enable = true;
+                app.yawpitchrollEditField.Enable = 'on';
+                app.yawpitchrollEditField_2.Enable = 'on';
+                app.yawpitchrollEditField_3.Enable = 'on';
+                app.CameraxyzEditField.Enable = 'on';
+                app.CameraxyzEditField_2.Enable = 'on';
+                app.CameraxyzEditField_3.Enable = 'on';
+                app.CameraTypeDropDown.Enable = true;
+                app.Cameraxyz_modifyXbox.Enable = 'on';
+                app.Cameraxyz_modifyYbox.Enable = 'on';
+                app.Cameraxyz_modifyZbox.Enable = 'on';
+                app.IgnoreEdgesDropDown.Enable = 'on';               
+                app.GCPDataDropDown.Enable = 'on';
+                app.CheckGCPsSwitch.Enable = 'on';
+                app.ExportGCPdataSwitch.Enable = 'on';
+                app.GCPbuffer_modifyBox.Value = 1;
+                app.BufferaroundGCPsmetersEditField.Enable = 'on';
+                app.ResolutionmpxEditField.Enable = 'on';
+                app.CustomFOVEditField_2.Enable = 'on';
+                app.CustomFOVEditField_3.Enable = 'on';
+                app.CustomFOVEditField_4.Enable = 'on';
+                app.CustomFOVEditField_5.Enable = 'on';
+                app.CellNumberEditField.Enable = 'off';
+                app.InterpolationMethod.Enable = 'on';                
+                app.alphaEditField.Enable = 'on';
+                app.GCPbuffer_modifyBox.Enable = 'on';
+                app.CustomFOV_modifyBox.Enable = 'on';
+                app.OrthophotosSwitch.Enable = 'on';
+                app.ExporttrajectoriesSwitch.Enable = 'on';
+                app.FlightPathPlotSwitch.Enable = 'on';
+                app.TrajectoriesPlotSwitch.Enable = 'on';
+
                 
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == 1
                 app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: GCPs'};
@@ -787,7 +921,96 @@ classdef KLT < matlab.apps.AppBase
                 app.RUNButton.Position = [980 162 290 22];
                 app.RUNButton.Enable = 'on';
                 app.RUNButton.Visible = 'On';
-                
+                app.OrientationDropDown.Enable = true;
+                app.CrossSectionDropDown.Enable = true;
+                app.ReferenceHeight.Enable = true;
+                app.yawpitchrollEditField.Enable = 'on';
+                app.yawpitchrollEditField_2.Enable = 'on';
+                app.yawpitchrollEditField_3.Enable = 'on';
+                app.CameraxyzEditField.Enable = 'on';
+                app.CameraxyzEditField_2.Enable = 'on';
+                app.CameraxyzEditField_3.Enable = 'on';
+                app.CameraTypeDropDown.Enable = true;
+                app.Cameraxyz_modifyXbox.Enable = 'on';
+                app.Cameraxyz_modifyYbox.Enable = 'on';
+                app.Cameraxyz_modifyZbox.Enable = 'on';
+                app.IgnoreEdgesDropDown.Enable = 'on';                
+                app.GCPDataDropDown.Enable = 'on';
+                app.CheckGCPsSwitch.Enable = 'on';
+                app.ExportGCPdataSwitch.Enable = 'on';
+                app.GCPbuffer_modifyBox.Value = 1;
+                app.BufferaroundGCPsmetersEditField.Enable = 'on';
+                app.ResolutionmpxEditField.Enable = 'on';
+                app.CustomFOVEditField_2.Enable = 'on';
+                app.CustomFOVEditField_3.Enable = 'on';
+                app.CustomFOVEditField_4.Enable = 'on';
+                app.CustomFOVEditField_5.Enable = 'on';
+                app.CellNumberEditField.Enable = 'on';
+                app.InterpolationMethod.Enable = 'on';
+                app.alphaEditField.Enable = 'on';
+                app.GCPbuffer_modifyBox.Enable = 'on';
+                app.CustomFOV_modifyBox.Enable = 'on';
+                app.OrthophotosSwitch.Enable = 'on';
+                app.ExporttrajectoriesSwitch.Enable = 'on';
+                app.FlightPathPlotSwitch.Enable = 'off';
+                app.TrajectoriesPlotSwitch.Enable = 'on';
+
+
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == 1
+                app.OrientationDropDown.Value = 'Dynamic: Stabilisation'; % needs to be defined
+                app.CameraTypeDropDown.Enable = false;
+                app.OrientationDropDown.Enable = false;
+                app.CameraxyzEditField.Enable = 'off';
+                app.CameraxyzEditField_2.Enable = 'off';
+                app.CameraxyzEditField_3.Enable = 'off';
+                app.Cameraxyz_modifyXbox.Enable = 'off';
+                app.Cameraxyz_modifyYbox.Enable = 'off';
+                app.Cameraxyz_modifyZbox.Enable = 'off';
+                app.yawpitchrollEditField.Enable = 'off';
+                app.yawpitchrollEditField_2.Enable = 'off';
+                app.yawpitchrollEditField_3.Enable = 'off';
+                app.IgnoreEdgesDropDown.Enable = 'off';
+                app.GCPDataDropDown.Enable = 'off';
+                app.CheckGCPsSwitch.Enable = 'off';
+                app.ExportGCPdataSwitch.Enable = 'off';
+                app.GCPbuffer_modifyBox.Value = 0;
+                app.BufferaroundGCPsmetersEditField.Enable = 'off';
+                app.ResolutionmpxEditField.Enable = 'off';
+                app.CustomFOVEditField_2.Enable = 'off';
+                app.CustomFOVEditField_3.Enable = 'off';
+                app.CustomFOVEditField_4.Enable = 'off';
+                app.CustomFOVEditField_5.Enable = 'off';
+                app.WatersurfaceelevationmEditField.Enable = 'off';
+                app.WatersurfaceelevationmEditField.Visible = 'Off';
+                app.CrossSectionDropDown.Enable = false;
+                app.ReferenceHeight.Enable = false;
+                app.CellNumberEditField.Enable = 'off';
+                app.InterpolationMethod.Enable = 'off';
+                app.alphaEditField.Enable = 'off';
+                app.CALCULATEButton.Enable = 'off';
+                app.CALCULATEButton.Visible = 'Off';
+                app.GCPbuffer_modifyBox.Enable = 'off';
+                app.CustomFOV_modifyBox.Enable = 'off';
+                app.OrthophotosSwitch.Enable = 'off';
+                app.ExporttrajectoriesSwitch.Enable = 'on';
+                app.FlightPathPlotSwitch.Enable = 'off';
+                app.TrajectoriesPlotSwitch.Enable = 'off';
+
+
+                TextIn = {'Multiple video analysis mode selected'; 'Please click Define Video(s) and select the folder containing the videos to be analysed'};
+                app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                KLT_printItems(app)
+                pause(0.01);
+                app.ListBox.scroll('bottom');
+
+                app.CALCULATEButton.Position = [655 158 290 22]; % switched with RUN
+                app.CALCULATEButton.Enable = 'off';
+                app.CALCULATEButton.Visible = 'off';
+                app.RUNButton.Position = [980 162 290 22];
+                app.RUNButton.Enable = 'on';
+                app.RUNButton.Visible = 'On';
+
+
             end
         end
         
@@ -952,7 +1175,7 @@ classdef KLT < matlab.apps.AppBase
             
             % Define the processing mode
             app.ProcessingModeDropDown = uidropdown(app.KLTIV_UIFigure);
-            app.ProcessingModeDropDown.Items = {'Make a selection', 'Single Video', 'Multiple Videos'};
+            app.ProcessingModeDropDown.Items = {'Make a selection', 'Single Video', 'Multiple Videos', 'Numerical Simulation'};
             app.ProcessingModeDropDown.ValueChangedFcn = createCallbackFcn(app, @ProcessingModeDropDownValueChanged, true);
             app.ProcessingModeDropDown.Position = [170 446 140 22];
             app.ProcessingModeDropDown.Value = 'Single Video';

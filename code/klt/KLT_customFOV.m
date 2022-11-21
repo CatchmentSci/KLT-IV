@@ -125,6 +125,15 @@ elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == false 
         app.dem = demIn;
     end
     
+elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+    TransxIn = (1:1:size(app.firstFrame,2)).*1;
+    TransyIn = (1:1:size(app.firstFrame,1)).*1;
+    [app.TransX,app.TransY]=meshgrid(TransxIn,TransyIn);
+    [params] = size(app.TransX);
+    demIn(1:params(1),1:params(2)) = 1;
+    app.Transdem = demIn;
+    app.dem = demIn;
+
 else
     % If the known scale of the image is required
     TransxIn = (1:1:size(app.firstFrame,2)).*app.imageResolution;
@@ -137,7 +146,8 @@ else
 end
 
 
-if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
+if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true || ...
+    strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
     
     if isempty(app.videoNumber) % Specify the file index
         app.videoNumber = 1;
@@ -182,11 +192,20 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
     % Define the save workspace
     app.directory_save_multiple = strjoin ({app.directory_save, '\', app.fileNameAnalysis{app.videoNumber}},'');
     app.directory_save_multiple = app.directory_save_multiple(1:end-4); % remove the extension
-    try
-        mkdir (app.directory_save_multiple);
-    catch
+    if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+        try
+            mkdir (app.directory_save_multiple);
+        catch
+        end
     end
-    app.WatersurfaceelevationmEditField.Value = app.riverLevelAnalysis(app.videoNumber);
+
+    if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
+        app.WatersurfaceelevationmEditField.Value = 0; % not required
+
+    elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
+        app.WatersurfaceelevationmEditField.Value = app.riverLevelAnalysis(app.videoNumber);
+    end
+
     demIn(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
     [params2] = size(app.Transdem);
     app.Transdem(1:params2(1),1:params2(2)) = app.WatersurfaceelevationmEditField.Value;
