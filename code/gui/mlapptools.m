@@ -680,7 +680,11 @@ classdef (Abstract) mlapptools
     
     function [dataTag] = getDataTag(hUIElement)
       warnState = mlapptools.toggleWarnings('off');
-      dataTag = char( struct(hUIElement).Controller.ProxyView.PeerNode.getId() );
+      try
+          dataTag = char( struct(hUIElement).Controller.ProxyView.PeerNode.getId() );
+      catch
+          dataTag = char(struct(hUIElement).Controller.ViewModel.Id); % for 2023 onwards
+      end
       warning(warnState);
     end % getDataTag
     
