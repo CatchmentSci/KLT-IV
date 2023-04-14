@@ -18,9 +18,9 @@ if app.prepro == 1
     app.pre_pro_params(1)   = []; %roirect
     app.pre_pro_params(2)   = []; %clahe
     app.pre_pro_params(3)   = []; %clahesize
-    app.pre_pro_params(4)   = 1; %highp
-    app.pre_pro_params(5)   = 30; %highpsize
-    app.pre_pro_params(6)   = []; %intenscap
+    app.pre_pro_params(4)   = 0; %highp
+    app.pre_pro_params(5)   = 32; %highpsize
+    app.pre_pro_params(6)   = 0; %intenscap
     app.pre_pro_params(7)   = 0; %wienerwurst
     app.pre_pro_params(8)   = 8; %wienerwurstsize
     app.pre_pro_params(9)   = 0; %minintens
