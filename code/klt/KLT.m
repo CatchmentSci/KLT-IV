@@ -203,6 +203,7 @@ classdef KLT < matlab.apps.AppBase
         totalQ
         Transdem
         transectLength
+        transferclass
         transformNormal
         transformTangential
         TransX
