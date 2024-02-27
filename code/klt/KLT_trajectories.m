@@ -167,6 +167,9 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
             h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
                 [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
                 'color', cd(:,ind1(aa)));
+
+            %quiver(xyzA_final2(:,1), xyzA_final2(:,2), app.adjustedVel(:,1), app.adjustedVel(:,2))
+
         end
         
         TextIn = {'Exporting the plot of particle trajectories'};
