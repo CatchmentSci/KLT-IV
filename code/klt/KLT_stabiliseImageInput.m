@@ -31,7 +31,13 @@ while pass < 3
         totNum =  V.NumFrames;
     end
     
-    while s3 < totNum
+    if app.estimater == 0
+        limiter_frame =  totNum + 1;
+    else
+        limiter_frame =  totNum - 1;
+    end
+
+    while s3 < limiter_frame
         template = '00000';
         inputNum = num2str(s3);
         p1 = template(1:end-length(num2str(s3)));
@@ -60,8 +66,13 @@ while pass < 3
                 try
                     app.objectFrame   = rgb2gray(readFrame(V));
                 catch
-                    % if there is a small rounding error somehwere and no more frames then pad the video
-                    app.objectFrame   = app.objectFrame;
+                    try
+                        V.CurrentTime = V.Duration - 0.01; % use the last frame
+                        app.objectFrame   = rgb2gray(readFrame(V));
+                    catch
+                        % if there is a small rounding error somehwere and no more frames then pad the video
+                        app.objectFrame   = app.objectFrame;
+                    end
                 end
             end
             
