@@ -14,10 +14,10 @@ xyzA_conv           = [];
 app.prepro              = 0; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
-    app.pre_pro_params      = zeros(1,11); %empty array
+    app.pre_pro_params      = zeros(1,12); %empty array
     app.pre_pro_params(1)   = []; %roirect
-    app.pre_pro_params(2)   = []; %clahe
-    app.pre_pro_params(3)   = []; %clahesize
+    app.pre_pro_params(2)   = 0; %clahe
+    app.pre_pro_params(3)   = 21; %clahesize
     app.pre_pro_params(4)   = 0; %highp
     app.pre_pro_params(5)   = 32; %highpsize
     app.pre_pro_params(6)   = 0; %intenscap
@@ -25,9 +25,11 @@ if app.prepro == 1
     app.pre_pro_params(8)   = 8; %wienerwurstsize
     app.pre_pro_params(9)   = 0; %minintens
     app.pre_pro_params(10)  = 1; %maxintens
-    app.pre_pro_params(11)  = 0; %background subtraction
+    app.pre_pro_params(11)  = 1; %background subtraction
+    app.pre_pro_params(12)  = 0; %naof
+
 else
-    app.pre_pro_params      = zeros(1,11); %empty array if pre-pro not enabled
+    app.pre_pro_params      = zeros(1,12); %empty array if pre-pro not enabled
 end
                    
 switch app.ProcessingModeDropDown.Value
@@ -78,8 +80,10 @@ end
 if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
     try
         totNum = V.NumFrames; % sometimes doesn't exist
+        app.estimater = 0;
     catch
         totNum = floor(V.Duration.*V.FrameRate); % estimate frame number
+        app.estimater = 1;
     end
     
 else
@@ -153,7 +157,14 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
 end
 
 % This is the main part of the feature tracking
-while app.s2 < totNum -1
+
+if app.estimater == 0
+    limiter_frame =  totNum + 1;
+else
+    limiter_frame =  totNum - 1;
+end
+
+while app.s2 < limiter_frame % MP 20240227 rather than minus 1
     if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.s2-1)/totNum*100) '% Complete'},''));
         pause(0.01)
@@ -246,6 +257,7 @@ while app.s2 < totNum -1
             % set the nFrame image as the new reference to be used
             if app.prepro == 0
                 points      = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion);
+                %points      = detectKAZEFeatures(app.objectFrame, 'ROI', objectRegion);
                 points      = points.Location;
             end
             
@@ -289,6 +301,8 @@ while app.s2 < totNum -1
                     KLT_imageExport(app)
 
                     points = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion);
+                    %points      = detectKAZEFeatures(app.objectFrame, 'ROI', objectRegion);
+
                     points = points.Location;
                     oldPoints   = points; % Make a copy of the points to be used
                     numPoints   = double(oldPoints); % locate the origins of the GCP
@@ -353,7 +367,7 @@ while app.s2 < totNum -1
         else
             %% This is the end of the tracking sequence
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
-                if app.s2.*1/app.videoFrameRate < V.Duration
+                if app.s2.*1/app.videoFrameRate  <= V.Duration % MP 20240227 less than or equal rather than less than
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
                 else
                     break
@@ -601,10 +615,11 @@ while app.s2 < totNum -1
             if app.prepro == 1
                 %KLT_orthorectificationProgessive(app)
                 points = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
+                %points      = detectKAZEFeatures(app.objectFrame, 'ROI', objectRegion);
                 points = points.Location;
             else
-                
                 points = detectMinEigenFeatures(app.objectFrame, 'ROI', objectRegion); % set the nFrame image as the new reference to be used
+                %points = detectKAZEFeatures(app.objectFrame, 'ROI', objectRegion);
                 points = points.Location;
             end
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
