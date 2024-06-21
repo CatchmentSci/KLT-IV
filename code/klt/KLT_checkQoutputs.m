@@ -1,6 +1,6 @@
 function [] = KLT_checkQoutputs(app)
 
-if app.videoNumber == 1 || app.startingVideo == 1
+if isempty(app.QfileOut) || app.videoNumber == 1 || app.startingVideo == 1
     
     app.QfileOut = strjoin({app.directory_save, '\', ...
         'stage_discharge.csv'},'');

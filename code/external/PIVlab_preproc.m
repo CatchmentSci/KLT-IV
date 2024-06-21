@@ -15,6 +15,8 @@ wienerwurstsize = app.pre_pro_params(8);
 minintens       = app.pre_pro_params(9);
 maxintens       = app.pre_pro_params(10);
 backremoval     = app.pre_pro_params(11);
+naof            = app.pre_pro_params(12);
+
 
 if isempty(app.transferclass) % not currently used
     app.transferclass = class(in); % ensures that the imagery input is consistent
@@ -29,6 +31,7 @@ if max(in(:),[],'omitnan') > 1
 else
     in = double(in); %20230406 
 end
+
 
 
 %th      = 10./255;
@@ -46,6 +49,14 @@ in_roi      = replace_num(in_roi,0,NaN);
 idx         = ~isnan(in_roi);
 %in_roi(idx) = imadjust(in_roi(idx)); %20230406
 
+% run the naof image enhancement
+if naof == 1
+    [in_roi] = NAOF2(in_roi);
+    in_roi   = replace_num(in_roi,NaN,0);
+    out      = in_roi;
+end
+
+
 if backremoval ~= 1 % only adjust if no background removal
     in_roi(idx) = imadjust(in_roi(idx),[minintens;maxintens],[]); %20230406
     in_roi      = reshape(in_roi,size(in));
@@ -59,7 +70,7 @@ if backremoval == 1 && isempty(app.backgroundImage)
     inputNum        = num2str(app.s2);
     template        = '00000';
 
-    for a = 1:length(frameRange)
+    for a = 1:679%length(frameRange)
         inputNum        = num2str(frameRange(a));
         p1              = template(1:end-length(inputNum));
         p2              = inputNum;

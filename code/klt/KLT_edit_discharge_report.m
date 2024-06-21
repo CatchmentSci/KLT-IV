@@ -2,7 +2,7 @@ function KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity,
 
 text            = fileread('KLT_discharge_report.html');
 
-[sizer1,~]      = size(app.totalQ);
+[~,sizer1]      = size(app.totalQ);
 
 if sizer1 == 1 % if only one q output
     newChr          = strrep(text,'VarSiteName',app.file); % assign the video name

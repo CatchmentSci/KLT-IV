@@ -242,6 +242,8 @@ if cont == 1
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message1 = ['Q = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
                     msgbox(message1,'Value');
+                    app.totalQ(1,1) = totalQ_quad;
+
                 else
                     app.totalQ(app.videoNumber) = totalQ_quad;
                 end
@@ -283,6 +285,8 @@ if cont == 1
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message1 = ['Q = ' num2str(round(totalQ_cubic,2)) ' m' char(179) '/s'];
                     msgbox(message1,'Value');
+                    app.totalQ(1,1) = totalQ_cubic;
+
                 else
                     app.totalQ(app.videoNumber) = totalQ_cubic;
                 end
@@ -526,6 +530,7 @@ if cont == 1
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message1 = ['Q = ' num2str(round(totalQ_froude,2)) ' m' char(179) '/s'];
                     msgbox(message1,'Value');
+                    app.totalQ(1,1) = totalQ_froude;
                 else
                     app.totalQ(app.videoNumber) = totalQ_froude;
                 end
@@ -563,6 +568,7 @@ if cont == 1
                 totalQ_quad = sum(q);
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message1 = ['Q quadratic = ' num2str(round(totalQ_quad,2)) ' m' char(179) '/s'];
+                    app.totalQ(idx_q,1) = totalQ_quad;
                 else
                     app.totalQ(idx_q,app.videoNumber) = totalQ_quad;
                 end
@@ -598,6 +604,8 @@ if cont == 1
                 totalQ_cubic = sum(q);
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false
                     message2 = ['Q cubic = ' num2str(round(totalQ_cubic,2)) ' m' char(179) '/s'];
+                    app.totalQ(idx_q,1) = totalQ_cubic;
+
                 else
                     app.totalQ(idx_q, app.videoNumber) = totalQ_cubic;
                 end
@@ -631,6 +639,8 @@ if cont == 1
                     message3 = ['Q Froude = ' num2str(round(totalQ_froude,2)) ' m' char(179) '/s'];
                     message = sprintf([message1, '\n', message2, '\n', message3, '\n' ]);
                     msgbox(message,'Value');
+                    app.totalQ(idx_q,1) = totalQ_froude;
+
                 else
                     app.totalQ(idx_q,app.videoNumber) = totalQ_froude;
                 end

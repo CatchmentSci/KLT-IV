@@ -9,6 +9,7 @@ app.visHR           = [];
 app.uvHR            = [];
 app.uvHR            = [];
 xyzA_conv           = [];
+wse_counter         = 100; % set as zero to run the wse reconstruction
 
 % Define the pre-processing settings
 app.prepro              = 0; %zero = disabled; one = enabled
@@ -18,14 +19,14 @@ if app.prepro == 1
     app.pre_pro_params(1)   = []; %roirect
     app.pre_pro_params(2)   = 0; %clahe
     app.pre_pro_params(3)   = 21; %clahesize
-    app.pre_pro_params(4)   = 0; %highp
+    app.pre_pro_params(4)   = 1; %highp
     app.pre_pro_params(5)   = 32; %highpsize
     app.pre_pro_params(6)   = 0; %intenscap
     app.pre_pro_params(7)   = 0; %wienerwurst
     app.pre_pro_params(8)   = 8; %wienerwurstsize
     app.pre_pro_params(9)   = 0; %minintens
     app.pre_pro_params(10)  = 1; %maxintens
-    app.pre_pro_params(11)  = 1; %background subtraction
+    app.pre_pro_params(11)  = 0; %background subtraction
     app.pre_pro_params(12)  = 0; %naof
 
 else
@@ -244,7 +245,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
 
                 % Load the correct frame in the video sequence
-                app.objectFrame = app.objectFrameStacked{nFrame};
+                app.objectFrame = app.objectFrameStacked{app.s2};
                 
             else
                 app.objectFrame = rgb2gray(readFrame(V));
@@ -297,6 +298,10 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 KLT_orthorectificationProgessive(app)
                 if app.prepro == 1
                     app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                    %if isa(app.firstFrame,'uint8')
+                    %    app.objectFrame = uint8(app.objectFrame);
+                    %end
+
                     app.rgbHR = app.objectFrame;
                     KLT_imageExport(app)
 
@@ -418,12 +423,30 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                     break
                 end
                 
+
+                % MP 20240326
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true && ...
+                    app.prepro == 1 % MP 20240326
+                app.objectFrame = app.objectFrameStacked{app.s2};
+                KLT_orthorectificationProgessive(app)
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                KLT_imageExport(app)
+
+
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true || ...
                     strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
 
                 % Load the correct frame in the video sequence
-                app.objectFrame = app.objectFrameStacked{nFrame};
+                app.objectFrame = app.objectFrameStacked{app.s2};
                 
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true && ...
+                    app.prepro == 1 % MP 20240326
+                app.objectFrame = rgb2gray(readFrame(V));
+                KLT_orthorectificationProgessive(app)
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                KLT_imageExport(app)
+
+            
             else
                 app.objectFrame = rgb2gray(readFrame(V));
             end
@@ -603,6 +626,9 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                     end
                 end
             end
+
+            %KLT_wse
+
             clear xyzA_initial xyzB_initial uvA_initial uvB_initial verticalValue2 verticalValue horizontalValue2 horizontalValue
             
             %% restart the tracking sequence
@@ -712,11 +738,26 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
         elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
             
             % Do nothing
-            
+        
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true && ...
+                app.prepro == 1
+
+            app.objectFrame = app.objectFrameStacked{app.s2};
+            KLT_orthorectificationProgessive(app)
+            app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+            app.rgbHR = app.objectFrame;
+            KLT_imageExport(app)
+
+
+            [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
+            visiblePoints = app.newPoints(isFound, :);
+            oldInliers = oldPoints(isFound, :);
+
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
             % Load the correct frame in the video sequence
-            app.objectFrame = app.objectFrameStacked{nFrame};
-            
+            app.objectFrame = app.objectFrameStacked{app.s2};
+
+
         else
             try
                 app.objectFrame = rgb2gray(readFrame(V)); % if no more frames
@@ -725,13 +766,32 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             end
         end
         
-        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false
+        if strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == false && app.prepro == false
             [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
             visiblePoints = app.newPoints(isFound, :);
             oldInliers = oldPoints(isFound, :);
         end
         
     end
+
+
+    % run the wse extraction scipt
+    if wse_counter == 0
+        ei              = 1;
+        wse_counter     = 1;
+        xyzA_wse{1}     = [];
+
+    elseif wse_counter == 10 % extract every 10th iteration i.e. every 0.5s @ 20Hz
+        lu              = sum(cellfun('length',xyzA_wse))+1;
+        xyzA_wse{ei}    = xyzA_conv(lu:end,1:2);
+        xyzB_wse{ei}    = xyzB_conv(lu:end,1:2);
+        KLT_wse        
+        ei              = ei + 1;
+        wse_counter     = 0;
+    end
+    wse_counter = wse_counter + 1;
+
+    % update info
     app.s2 = app.s2 + 1;
     template = '00000';
     inputNum = num2str(app.s2);
@@ -747,6 +807,9 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
     app.ListBox.scroll('bottom');
 end
 clear uvAorig uvBorig uvIndex markers markerColors out
+
+
+
 
 
 % At the end of the stable routine convert the tracked GCPs
@@ -768,6 +831,40 @@ if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
     end
 end
 
+% At the end of the stable routine convert the tracked GCPs when
+% undertaking pre-processing
+if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
+        app.prepro == 1
+        
+        xyzA        = xyzA_conv;
+        xyzB        = xyzB_conv;
+        clear xyzA_conv xyzB_conv
+
+        % convert xyzA
+        lowerbound  = floor(xyzA);
+        upperbound  = lowerbound + 1;
+        justdecimal = xyzA-lowerbound;
+        xyzA_conv = [app.X(1,lowerbound(:,1))' + (app.ResolutionmpxEditField.Value .* justdecimal(:,1)),...
+            app.Y(lowerbound(:,2),1) + (app.ResolutionmpxEditField.Value .* justdecimal(:,2))];
+
+        % convert xyzB
+        lowerbound  = floor(xyzB);
+        upperbound  = lowerbound + 1;
+        justdecimal = xyzB-lowerbound;
+        xyzB_conv = [app.X(1,lowerbound(:,1))' + (app.ResolutionmpxEditField.Value .* justdecimal(:,1)),...
+            app.Y(lowerbound(:,2),1) + (app.ResolutionmpxEditField.Value .* justdecimal(:,2))];
+
+        xyzA        = xyzA_conv;
+        xyzB        = xyzB_conv;
+        clear xyzA_conv xyzB_conv
+
+        % convert all of the positions inc. unsuccesful points
+        out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
+        out2        = cell2mat(app.init_track');
+        out3        = cell2mat(app.fin_track');
+       
+end
+
 if strcmp (app.OrientationDropDown.Value, 'Dynamic: GCPs + Stabilisation') == true && ...
         app.prepro == 0
 
@@ -786,7 +883,7 @@ try
         app.xyzB_final = xyzB(in,1:2);
         
         % this is for the sdi work
-        if exist('out1','var') % only on the tested versions
+        if exist('out1','var') && app.prepro == false % only on the tested versions
             for a = 1:length(app.init_track)
                 idx = find(out1 == a);
                 [in,~] = inpolygon(temper3(idx,1), temper3(idx,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
@@ -799,7 +896,7 @@ try
         app.xyzB_final = xyzB(:,1:2);
     end
     
-    if exist('out1','var') % only on the tested versions
+    if exist('out1','var') && app.prepro == false % only on the tested versions
 
         app.init_track_px = app.init_track; % save the pixel values
         app.fin_track_px = app.fin_track;

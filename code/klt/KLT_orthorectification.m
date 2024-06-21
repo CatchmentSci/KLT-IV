@@ -172,7 +172,7 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
             zRange(1:11) = z;
         end 
         
-        accptable_rmse = 1;
+        accptable_rmse = 10;
                 
         while ii < 2
             for cycle4 = 1:length(zRange)
