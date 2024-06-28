@@ -1,4 +1,4 @@
-function [] = KLT_imageAnalysis(app,wse_counter)  % Starting analysis
+function [] = KLT_imageAnalysis_rerun(app,wse_map_temp)  % Starting analysis
 
 %Clear and create some necessary variables
 app.backgroundImage = [];
@@ -9,15 +9,7 @@ app.visHR           = [];
 app.uvHR            = [];
 app.uvHR            = [];
 xyzA_conv           = [];
-wse_analysis        = 0;
-
-% if wse analysis has already been undertaken re-establish proper
-% properties
-if wse_counter < 0
-    app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
-    wse_analysis = 1;
-end
-
+wse_counter         = -1; % set as zero to run the wse reconstruction or -1 to avoid
 
 % Define the pre-processing settings
 app.prepro              = 1; %zero = disabled; one = enabled
@@ -99,16 +91,11 @@ else
     totNum = length(app.objectFrameStacked);
 end
 
-% set the extract frame times
-nFrame = 1;
-if wse_counter == 0
-    app.iter = 1; % set the extract time as adjacent frames
-else
-    app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
-end
+
+nFrame      = 1;
+app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
 restartWhen = (1:app.iter:totNum);
 ii          = 0;
-
 
 if app.videoDuration == 0
     app.videoDuration = (totNum./app.videoFrameRate); %20210430
@@ -816,6 +803,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             [wse_map] = KLT_wse(app,[],[],ei,xyzA_conv,xyzB_conv);
         end
 
+        app.wse
 
     elseif wse_counter >-1  % run the wse extraction scipt at the end of each sequence
 
@@ -915,11 +903,7 @@ if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
         xyzB        = app.camA.project([xyzB_ortho_orig, t1 ]); % rectify both the start and end positions together
 
         [params]                = size(app.TransX); clear app.Transdem
-        if wse_counter == -1
-            app.Transdem = app.wse_map_out{end};
-        elseif wse_counter == -2
-            app.Transdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
-        end
+        app.Transdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
 
         xyzA_wse{ei}    = xyzA(:,1:2);
         xyzB_wse{ei}    = xyzB(:,1:2);

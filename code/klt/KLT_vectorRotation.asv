@@ -4,6 +4,12 @@ switch app.VelocityDropDown.Value
 
     case 'Normal Component'
         
+        % make sure things are clean before analysis
+        app.vel             = [];
+        app.adjustedVel     = [];
+        app.refValue        = [];
+        app.normalVelocity  = [];
+
         % Update the dialog box
         TextIn             = {'Adjusting trajectories relative to the idealised flow line. Please wait.'};
         TimeIn             = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -118,14 +124,8 @@ end
 
 if ~isempty(app.minVel)
     remover1    = app.refValue < app.minVel | app.refValue > app.maxVel;
-	app.refValue(remover1)          = NaN;
-    app.adjustedVel(remover1,1:2)   = NaN;
-    app.vel(remover1,1:3)           = NaN;
-    app.normalVelocity(remover1)    = NaN;
-    app.initialVel{1}(remover1,1:2) = NaN;
-    app.initialVel{2}(remover1,1:2) = NaN;
-    app.finalVel{1}(remover1,1:2)   = NaN;
-    app.finalVel{2}(remover1,1:2)   = NaN;
+	app.refValue(remover1)      = NaN;
+    app.adjustedVel(remover1)   = NaN;
 end
      
 

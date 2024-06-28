@@ -311,7 +311,7 @@ if cont == 1
         froudeVelocity(missingInd) = depthUse(missingInd).* table2array(dlm.Coefficients(1,1));
         
         graphics = 0;
-        zzz = 2;
+        zzz = 1;
 
         if graphics == 1 %all new
 
@@ -319,7 +319,7 @@ if cont == 1
             waterHgt = app.WatersurfaceelevationmEditField.Value;
             Z = repmat(waterHgt,M,N);
             
-            bathy = xlsread('C:\Users\Matt\OneDrive - Newcastle University\Archive_Dart\Survey\transect_2.474max.csv');
+            bathy = xlsread('D:\OneDrive - Newcastle University\Documents - TENDERLY Archive [Geog]\General\Archive_Dart\Survey\transect_2.474max.csv');
             searchArray = bathy(:,1);
             hgtArray = bathy(:,3);
             
@@ -393,10 +393,18 @@ if cont == 1
                 'SizeData', 40);
             
             % camera lines
-            plot3([app.cameraModelParameters(1),4995],[app.cameraModelParameters(2),4998],[app.cameraModelParameters(3),4999],'k--');
-            plot3([app.cameraModelParameters(1),4967],[app.cameraModelParameters(2),4980],[app.cameraModelParameters(3),5000.39],'k--')
-            plot3([app.cameraModelParameters(1),4967],[app.cameraModelParameters(2),5007],[app.cameraModelParameters(3),5000.39],'k--')
-            plot3([app.cameraModelParameters(1),4992],[app.cameraModelParameters(2),5005],[app.cameraModelParameters(3),4999],'k--');
+            plot3([app.cameraModelParameters(1),4995],[app.cameraModelParameters(2),4998],[app.cameraModelParameters(3),4999],...
+                'Color', [0.8,0.0,0.0], ...
+                'LineStyle', '--');
+            plot3([app.cameraModelParameters(1),4967],[app.cameraModelParameters(2),4980],[app.cameraModelParameters(3),5000.39],...
+                'Color', [0.8,0.0,0.0], ...
+                'LineStyle', '--');
+            plot3([app.cameraModelParameters(1),4967],[app.cameraModelParameters(2),5007],[app.cameraModelParameters(3),5000.39],...
+                'Color', [0.8,0.0,0.0], ...
+                'LineStyle', '--');
+            plot3([app.cameraModelParameters(1),4992],[app.cameraModelParameters(2),5005],[app.cameraModelParameters(3),4999],...
+                'Color', [0.8,0.0,0.0], ...
+                'LineStyle', '--');
             
             grid off;
             box off;
@@ -460,8 +468,8 @@ if cont == 1
                 
                 cb = colorbar(a2,'north');
                 set(cb,'Position',[0.178274596182088 0.614157527417745 0.322276064610865 0.0210451977401113]);
-                ylabel(cb, 'Normal Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
-                cb.FontSize = 14;
+                ylabel(cb, 'Downstream velocity component $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
+                cb.FontSize = 18;
                 set(cb,'TickLabelInterpreter','latex')
                 
                 for aa = 1:length(compCell)
@@ -507,12 +515,12 @@ if cont == 1
                 'String',{inputText},...
                 'FitBoxToText','on',...
                 'Interpreter','LaTex',...
-                'FontSize', 14,...
+                'FontSize', 18,...
                 'EdgeColor','none')
 
-            addpath(genpath('C:\Users\Matt\OneDrive - Newcastle University\MATLAB'));
-            pathIn    = 'C:\Users\Matt\OneDrive - Newcastle University\\';
-            outDir    = [pathIn 'Archive_Dart\Scripts\schematic.png'];
+            addpath(genpath('D:\OneDrive - Newcastle University\MATLAB'));
+            pathIn    = 'D:\OneDrive - Newcastle University\';
+            outDir    = [pathIn 'schematic.png'];
             export_fig (outDir, '-painters')
 
         end

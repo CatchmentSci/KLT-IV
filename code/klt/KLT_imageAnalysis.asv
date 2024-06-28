@@ -1,4 +1,4 @@
-function [] = KLT_imageAnalysis(app)  % Starting analysis
+function [] = KLT_imageAnalysis(app,wse_map_temp)  % Starting analysis
 
 %Clear and create some necessary variables
 app.backgroundImage = [];
@@ -9,10 +9,21 @@ app.visHR           = [];
 app.uvHR            = [];
 app.uvHR            = [];
 xyzA_conv           = [];
-wse_counter         = 0; % set as zero to run the wse reconstruction
+wse_analysis        = 0;
+
+wse_counter         = 0; % set as zero to run the wse reconstruction or -1 to avoid
+
+% if wse analysis has already been undertaken re-establish proper
+% properties
+if app.iter == 1
+    app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
+    wse_counter = -1;
+    wse_analysis = 1;
+end
+
 
 % Define the pre-processing settings
-app.prepro              = 0; %zero = disabled; one = enabled
+app.prepro              = 1; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
     app.pre_pro_params      = zeros(1,12); %empty array
@@ -91,11 +102,16 @@ else
     totNum = length(app.objectFrameStacked);
 end
 
-
-nFrame      = 1;
-app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
+% set the extract frame times
+nFrame = 1;
+if wse_counter == 0
+    app.iter = 1; % set the extract time as adjacent frames
+else
+    app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
+end
 restartWhen = (1:app.iter:totNum);
 ii          = 0;
+
 
 if app.videoDuration == 0
     app.videoDuration = (totNum./app.videoFrameRate); %20210430
@@ -298,11 +314,8 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 KLT_orthorectificationProgessive(app)
                 if app.prepro == 1
                     app.objectFrame = PIVlab_preproc (app,app.rgbHR);
-                    %if isa(app.firstFrame,'uint8')
-                    %    app.objectFrame = uint8(app.objectFrame);
-                    %end
-
                     app.rgbHR = app.objectFrame;
+
                     KLT_imageExport(app)
 
                     points = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion);
@@ -490,6 +503,8 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 s = s + 1;
             end
             
+            % this needs to be modified for when we analyse orthorectified
+            % imagery directly
             if strcmp (app.IgnoreEdgesDropDown.Value, 'Yes') == true && ...
                     strcmp (app.OrientationDropDown.Value, 'Dynamic: GPS + IMU') == false && ...
                     app.prepro == 0 % remove edges if required
@@ -627,8 +642,6 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 end
             end
 
-            %KLT_wse
-
             clear xyzA_initial xyzB_initial uvA_initial uvB_initial verticalValue2 verticalValue horizontalValue2 horizontalValue
             
             %% restart the tracking sequence
@@ -756,6 +769,23 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
             % Load the correct frame in the video sequence
             app.objectFrame = app.objectFrameStacked{app.s2};
+                    
+        
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == false && ...
+                app.prepro == 1
+            try
+                app.objectFrame = rgb2gray(readFrame(V)); % if no more frames
+                KLT_orthorectificationProgessive(app)
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                app.rgbHR = app.objectFrame;
+                KLT_imageExport(app)
+
+                [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
+                visiblePoints = app.newPoints(isFound, :);
+                oldInliers = oldPoints(isFound, :);
+            catch
+                app.s2 = totNum-2; % cause it to exit on the next cycle
+            end
 
 
         else
@@ -776,19 +806,21 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
 
     endof_video = 1; % perform the wse analysis at the end of the video
 
-    if endof_video == 1 % run the wse extraction scipt
+    if endof_video == 1 && wse_counter >-1 % run the wse extraction scipt
         ei              = 1;
         wse_counter     = 1;
         xyzA_wse{1}     = [];
 
-        if app.s2 == totNum-1
+        if app.s2 == limiter_frame -1 && app.prepro == 0
             xyzA_wse{ei}    = xyzA_conv(:,1:2);
             xyzB_wse{ei}    = xyzB_conv(:,1:2);
-            KLT_wse
+            [wse_map] = KLT_wse(app,xyzA_wse,xyzB_wse,ei,xyzA_conv,xyzB_conv);
+        elseif app.s2 == limiter_frame-1 && app.prepro == 1
+            [wse_map] = KLT_wse(app,[],[],ei,xyzA_conv,xyzB_conv);
         end
 
 
-    else % run the wse extraction scipt at the end of each sequence
+    elseif wse_counter >-1  % run the wse extraction scipt at the end of each sequence
 
         if wse_counter == 0
             ei              = 1;
@@ -800,7 +832,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             if ~isempty(xyzA_conv) % catch for no points stored on first iteration
                 xyzA_wse{ei}    = xyzA_conv(lu:end,1:2);
                 xyzB_wse{ei}    = xyzB_conv(lu:end,1:2);
-                KLT_wse
+                [wse_map] = KLT_wse(app,xyzA_wse,xyzB_wse,ei,xyzA_conv,xyzB_conv);
             end
             ei              = ei + 1;
             wse_counter     = 0;
@@ -809,7 +841,6 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
 
 
     end
-
 
     % update info
     app.s2 = app.s2 + 1;
@@ -827,9 +858,6 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
     app.ListBox.scroll('bottom');
 end
 clear uvAorig uvBorig uvIndex markers markerColors out
-
-
-
 
 
 % At the end of the stable routine convert the tracked GCPs
@@ -854,7 +882,7 @@ end
 % At the end of the stable routine convert the tracked GCPs when
 % undertaking pre-processing
 if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
-        app.prepro == 1
+        app.prepro == 1 && wse_counter ~= 1
         
         xyzA        = xyzA_conv;
         xyzB        = xyzB_conv;
@@ -878,6 +906,28 @@ if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
         xyzB        = xyzB_conv;
         clear xyzA_conv xyzB_conv
 
+        % these are the outputs based on analysis on the ortho imagery in
+        % real-world units
+        xyzA_ortho_orig = xyzA;
+        xyzB_ortho_orig = xyzB;
+        app.initialVel = {xyzA_ortho_orig, xyzB_ortho_orig};
+
+        % convert the real world units back to pixel units for wse analysis
+        t1(1:length(xyzA_ortho_orig),1) = nanmean(app.Transdem(:));
+        xyzA        = app.camA.project([xyzA_ortho_orig, t1 ]); % rectify both the start and end positions together
+        xyzB        = app.camA.project([xyzB_ortho_orig, t1 ]); % rectify both the start and end positions together
+
+        [params]                = size(app.TransX); clear app.Transdem
+        if wse_analysis == 1
+            app.Transdem = app.wse_map_out{end};
+        else
+            app.Transdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
+        end
+
+        xyzA_wse{ei}    = xyzA(:,1:2);
+        xyzB_wse{ei}    = xyzB(:,1:2);
+
+
         % convert all of the positions inc. unsuccesful points
         out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
         out2        = cell2mat(app.init_track');
@@ -898,10 +948,30 @@ end
 
 try
     if length(app.boundaryLimitsM)>1
+
+        if wse_counter==1 % if calculating wse then we need to reinstate xyzA/B
+            xyzA = [app.finalVel{1}]; % using the final velocity solutions for the plots
+            xyzB = [app.finalVel{2}];
+        end
+
         [in,~] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
         app.xyzA_final = xyzA(in,1:2);
         app.xyzB_final = xyzB(in,1:2);
-        
+
+
+        % there's some errors in here - need to see why 'in' doesn't match
+        % the other array sizes
+        if wse_counter==1
+            app.adjustedVel = app.adjustedVel(in,1:2);
+            app.vel         = app.vel(in,1:3);
+            app.refValue    = app.refValue(in);
+            app.normalVelocity  = app.normalVelocity(in);
+            app.initialVel{1} = app.initialVel{1}(in,1:2);
+            app.initialVel{2} = app.initialVel{2}(in,1:2);
+            app.finalVel{1} = app.finalVel{1}(in,1:2);
+            app.finalVel{2} = app.finalVel{2}(in,1:2);
+        end
+
         % this is for the sdi work
         if exist('out1','var') && app.prepro == false % only on the tested versions
             for a = 1:length(app.init_track)

@@ -54,9 +54,15 @@ for a = 1:1000 % max number of iterations
     % define filter on first iteration
     if a == 1
         limer = vmag > 0.1;
+        app.initialVel{1} = app.initialVel{1}(limer,1:2);
+        app.initialVel{2} = app.initialVel{2}(limer,1:2);
     end
     xyzA  = xyzA(limer,1:2);
     xyzB  = xyzB(limer,1:2);
+    vmag  = vmag(limer);
+    app.adjustedVel = app.adjustedVel(limer);
+    app.vel
+
 
     % Calculate the flow directions relative to the ideal
     ideal               = end1_rw - start1_rw;
@@ -80,6 +86,15 @@ for a = 1:1000 % max number of iterations
     app.vel(rem1)           = NaN;
     app.adjustedVel(rem1)   = NaN;
     adjus(rem1)             = NaN;
+
+    u                   = cosd(psi).*vmag;
+    u(rem1)             = NaN; % direction filter applied
+    v                   = sind(psi).*vmag;
+    v(rem1)             = NaN; % direction filter applied
+
+    app.refValue        = u;
+    app.normalVelocity  = u;
+    app.adjustedVel     = [u, v]; % check that these are the values exported to excel
 
 
     % calculate the angles for each bin
@@ -156,6 +171,27 @@ for a = 1:1000 % max number of iterations
         exportgraphics(fig,[pwd '\wse_reconstruction_sim_' num2str(aa) '.png'],'Resolution',600)
         pause(5)
         close all;
+
+
+        ideal               = end1_rw - start1_rw;
+        phi                 = rad2deg(atan2(ideal(2), ideal(1)));
+        v1                  = app.initialVel{2}  - app.initialVel{1};
+        obs_dir_initial     = rad2deg(atan2(v1(:,2), v1(:,1)));
+        mag_initial         = sqrt(v1(:,1).^2 + v1(:,2).^2); 
+
+        xyzA_final          = xyzA;
+        xyzB_final          = xyzB;
+        app.finalVel        = {xyzA_final, xyzB_final};
+        v2                  = app.finalVel{2} - app.finalVel{1} ;
+        obs_dir_final       = rad2deg(atan2(v2(:,2), v2(:,1)));
+        mag_final           = sqrt(v2(:,1).^2 + v2(:,2).^2);
+
+        % potential plots to show differences
+        %histogram(mag_initial); hold on;
+        %histogram(mag_final); hold on;
+        %polarhistogram(v1); hold on;
+        %polarhistogram(v2); hold on;
+
         return
     end
 end

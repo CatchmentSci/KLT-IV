@@ -32,8 +32,6 @@ else
     in = double(in); %20230406 
 end
 
-
-
 %th      = 10./255;
 %a       = in(:,:,1)>th; % find pixel values greater than 10
 %a       = bwareaopen(a,50); % find 50 connected pixels

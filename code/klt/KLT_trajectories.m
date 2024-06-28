@@ -9,7 +9,9 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         xyzA_final2 = app.xyzA_final(:,1:2);
         xyzB_final2 = app.xyzB_final(:,1:2);
-        
+        %xyzA_final2 = app.finalVel{1};
+        %xyzB_final2 = app.finalVel{2};
+
         limits = [min(app.refValue,[],'omitnan'); max(app.refValue,[],'omitnan')];
         normalised = app.refValue./max(app.refValue,[],'omitnan');
         f1 = figure ('units','pixels'); %,'outerposition',[0 0 1 1]);
