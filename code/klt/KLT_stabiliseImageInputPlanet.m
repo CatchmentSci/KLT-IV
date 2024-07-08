@@ -66,8 +66,9 @@ if length(app.firstFrame) > 1
 
                 app.firstFrame = app.objectFrame;
                 importedBoundBox = app.boundaryLimitsPx;
+
             elseif s3 > 1
-                V.CurrentTime = s3.*1/app.videoFrameRate; % access the s3 frame
+                %V.CurrentTime = s3.*1/app.videoFrameRate; % access the s3 frame
                 
                 % rollback for newer versions of Matlab - 20220120
                 try

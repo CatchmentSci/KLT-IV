@@ -166,20 +166,17 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         end
 
         % Optimised: line rather than plot (20210310)
-        % Selection: Quiver or line (20240708)
-        quiver1  = 1;
-        if quiver1 == 0
-            h2 = gobjects(1,dataPoints); % preallocate object
-            for aa = dataPoints
-                h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
-                    [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
-                    'color', cd_var(:,ind1(aa)));
-            end
-        else
+        h2 = gobjects(1,dataPoints); % preallocate object
+        for aa = dataPoints 
+            %h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
+            %    [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
+            %    'color', cd_var(:,ind1(aa)));
+
             X = xyzA_final2(ind1,1);
             Y = xyzA_final2(ind1,2);
             U = app.adjustedVel(ind1,1);
             V = app.adjustedVel(ind1,2);
+
             idx = ~isnan(U) & ~isnan(V);
             X = X(idx);
             Y = Y(idx);
@@ -194,12 +191,12 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
 
             % Plot the quiver with colored arrows
             for i = 1:numel(X)
-                quiver(X(i), Y(i), U(i), V(i),15,...
-                    'Color', arrow_colors(i, :),...
-                    'LineWidth', 2 );
+                quiver(X(i), Y(i), U(i), V(i),10, 'Color', arrow_colors(i, :));
             end
             hold off;
             colorbar;
+
+
         end
         
         TextIn = {'Exporting the plot of particle trajectories'};
