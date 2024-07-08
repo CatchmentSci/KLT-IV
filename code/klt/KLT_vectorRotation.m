@@ -1,8 +1,8 @@
-function [] = KLT_vectorRotation(app)
+function [] = KLT_vectorRotation(app,z1)
 
 switch app.VelocityDropDown.Value
 
-    case 'Normal Component'
+    case 'Downstream Component'
         
         % Update the dialog box
         TextIn             = {'Adjusting trajectories relative to the idealised flow line. Please wait.'};
@@ -40,7 +40,7 @@ switch app.VelocityDropDown.Value
             end1_rw     = app.end1.*app.imageResolution;
         end
 
-        if length(app.finalVel)~=2 % run if no wse reconstruction
+        if length(app.finalVel)~=2 || z1 < 0 % run if no wse reconstruction
             % Velocity data for correction
             app.xyzA_final      = app.xyzA_final(1:end,1:2);
             app.xyzB_final      = app.xyzB_final(1:end,1:2);
@@ -74,7 +74,7 @@ switch app.VelocityDropDown.Value
             v(rem1)             = NaN; % direction filter applied
 
             app.refValue        = u;
-            app.normalVelocity  = u;
+            app.downstreamVelocity  = u;
             app.adjustedVel     = [u, v]; % check that these are the values exported to excel
 
             % Update the dialog box
@@ -91,7 +91,7 @@ switch app.VelocityDropDown.Value
         app.vel             = app.xyzB_final - app.xyzA_final;% The raw velocity values - not direction specific
         app.adjustedVel     = app.vel./(app.iter*1/app.videoFrameRate); % divided by time period between start and stop i.e. m s
         app.refValue        = sqrt(app.adjustedVel(:,1).^2 + app.adjustedVel(:,2).^2);
-     	app.normalVelocity(1:length(app.xyzA_final),1) = NaN;
+     	app.downstreamVelocity(1:length(app.xyzA_final),1) = NaN;
 
 
 end
@@ -121,7 +121,7 @@ if ~isempty(app.minVel)
 	app.refValue(remover1)          = NaN;
     app.adjustedVel(remover1,1:2)   = NaN;
     app.vel(remover1,1:3)           = NaN;
-    app.normalVelocity(remover1)    = NaN;
+    app.downstreamVelocity(remover1)    = NaN;
     app.initialVel{1}(remover1,1:2) = NaN;
     app.initialVel{2}(remover1,1:2) = NaN;
     app.finalVel{1}(remover1,1:2)   = NaN;

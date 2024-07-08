@@ -110,8 +110,8 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
             ylabel(d, 'Velocity Magnitude $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
-        elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-            ylabel(d, 'Normal Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
+        elseif strcmp(app.VelocityDropDown.Value, 'Downstream Component') == 1
+            ylabel(d, 'Streamwise Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
         end
         
         d.FontSize = 14;
@@ -140,19 +140,21 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
             zlabel(['Velocity Magnitude $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
-        elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-            zlabel(['Normal Velocity $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
+        elseif strcmp(app.VelocityDropDown.Value, 'Downstream Component') == 1
+            zlabel(['Streamwise Velocity $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
         end
         
         % Query how many trajectories to plot
         if isempty(app.subSample)
-            prompt = ['How many vectors would you like to display? ' num2str(length(app.refValue)) ' were extracted '];
-            dlgtitle = 'Query';
-            definput = num2str(10000); % default value
-            if str2num(definput) > length(app.refValue)
-                definput = num2str(length(app.refValue)); % limited by array size
-            end
-            app.subSample = str2num(cell2mat(inputdlg(prompt,dlgtitle,[1 60],{definput})));
+            %if wse_analysis == 0 % prevent it asking each time after wse reconstruction
+                prompt = ['How many vectors would you like to display? ' num2str(length(app.refValue)) ' were extracted '];
+                dlgtitle = 'Query';
+                definput = num2str(10000); % default value
+                if str2num(definput) > length(app.refValue)
+                    definput = num2str(length(app.refValue)); % limited by array size
+                end
+                app.subSample = str2num(cell2mat(inputdlg(prompt,dlgtitle,[1 60],{definput})));
+            %end
         end
         
         dataPoints = app.subSample;
@@ -165,12 +167,15 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
 
         % Optimised: line rather than plot (20210310)
         h2 = gobjects(1,dataPoints); % preallocate object
-        for aa = 1:dataPoints 
-            h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
-                [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
-                'color', cd(:,ind1(aa)));
+        for aa = dataPoints 
+            %h2(aa) = line([xyzA_final2(ind1(1,aa)), xyzB_final2(ind1(1,aa))],...
+            %    [xyzA_final2(ind1(1,aa),2), xyzB_final2(ind1(1,aa),2)], ...
+            %    'color', cd(:,ind1(aa)));
 
-            %quiver(xyzA_final2(:,1), xyzA_final2(:,2), app.adjustedVel(:,1), app.adjustedVel(:,2))
+            quiver(xyzA_final2(:,1), xyzA_final2(:,2), app.adjustedVel(:,1), app.adjustedVel(:,2),...
+                'Color', (double(cd(:,ind1))./255)');
+
+            quiver(xyzA_final2(:,1), xyzA_final2(:,2), app.adjustedVel(:,1), app.adjustedVel(:,2))
 
         end
         

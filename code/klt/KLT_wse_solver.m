@@ -93,7 +93,7 @@ for a = 1:1000 % max number of iterations
     v(rem1)             = NaN; % direction filter applied
 
     app.refValue        = u;
-    app.normalVelocity  = u;
+    app.downstreamVelocity  = u;
     app.adjustedVel     = [u, v]; % check that these are the values exported to excel
 
 
@@ -137,8 +137,8 @@ for a = 1:1000 % max number of iterations
     if a == 1
         % first trial adding the ones greater and subtracting from smaller
         mean_dir_change{a}              = 0;
-        wse_map{aa,idx}(gtr)            = wse_map{aa,idx}(gtr) + 0.01; %correct
-        wse_map{aa,idx}(lstn)           = wse_map{aa,idx}(lstn) - 0.01;
+        wse_map{aa,idx}(gtr)            = wse_map{aa,idx}(gtr) - 0.01; %correct
+        wse_map{aa,idx}(lstn)           = wse_map{aa,idx}(lstn) + 0.01;
         idx_map                         = zeros(size(wse_map{aa,1}));
         perm_idx_map                    = ones(size(wse_map{aa,1}));
         num_adj(a)                      = sum(sum([gtr(:),lstn(:)]));
@@ -146,16 +146,16 @@ for a = 1:1000 % max number of iterations
         dir_change{a}                   = det_ang{a} - det_ang{a-1};
         mean_dir_change{a}              = nanmean(dir_change{a});
 
-        impr                            = zi{a} - zi{a-1} < 0; % if improvement
+        impr                            = (zi{a}-phi) - (zi{a-1}-phi) < 0; % if improvement
         idx_map (impr & perm_idx_map)   = 1;
         idx_map (~impr)                 = 0;
-        perm_idx_map(~impr)             = 0;
+        perm_idx_map(~impr)             = 0; % perhaps remove this line to allow continuous updates
         num_adj(a)                      = sum(idx_map(:));
 
         idx1                            = impr > 0 & gtr > 0;
-        wse_map{aa,idx}(idx1)           = wse_map{aa,idx}(idx1) + 0.01;
+        wse_map{aa,idx}(idx1)           = wse_map{aa,idx}(idx1) - 0.01;
         idx2                            = impr > 0 & lstn > 0;
-        wse_map{aa,idx}(idx2)           = wse_map{aa,idx}(idx2) - 0.01;
+        wse_map{aa,idx}(idx2)           = wse_map{aa,idx}(idx2) + 0.01;
 
     end
     if num_adj(a) == 0 % stop when no more changes

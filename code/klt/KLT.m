@@ -1,5 +1,5 @@
 classdef KLT < matlab.apps.AppBase
-    
+
     % Properties that correspond to app components
     properties (Access = public)
         KLTIV_UIFigure                  matlab.ui.Figure
@@ -94,7 +94,7 @@ classdef KLT < matlab.apps.AppBase
         InterpolationMethod             matlab.ui.control.DropDown
         ProcessingModeDropDownLabel2    matlab.ui.control.Label
     end
-    
+
     properties (Access = public)
         adjustedVel
         backgroundImage
@@ -162,7 +162,7 @@ classdef KLT < matlab.apps.AppBase
         maxVel
         minVel
         newPoints
-        normalVelocity
+        downstreamVelocity
         objectFrame
         objectFrameStacked
         OrientationValue
@@ -205,7 +205,7 @@ classdef KLT < matlab.apps.AppBase
         Transdem
         transectLength
         transferclass
-        transformNormal
+        transformDownstream
         transformTangential
         TransX
         TransY
@@ -258,22 +258,22 @@ classdef KLT < matlab.apps.AppBase
         finalVel
         wse_map_out
     end
-    
-    
+
+
     methods (Access = private)
-        
+
         % Code that executes after component creation
         function startupFcn(app)
             %saveState(app)
         end
-        
-        
+
+
         % Button pushed function: RUNButton
         function RUNButtonPushed(app, ~)
-            
+
             switch app.OrientationDropDown.Value
                 case 'Make a selection:'
-                    
+
                     % Update the dialog box
                     TextIn             = {'No Orientation was selected. Please select a value and retry.'};
                     TimeIn             = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -284,10 +284,10 @@ classdef KLT < matlab.apps.AppBase
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     error(msg)
-                
+
             end
-            
-            
+
+
             % only run if the settings haven't been reloaded
             if isempty(app.reloaded)
                 app.GCPDataDropDown.Value   =  'Make a selection:';
@@ -302,43 +302,75 @@ classdef KLT < matlab.apps.AppBase
                 set(app.RUNButton,'Text',{'Processing, please wait.'});
                 KLT_customFOV(app)
             end
-            
+
             for a = 1:length(app.fileNameAnalysis)
-                
+
                 if strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true %&& isnan(app.totalQ(1,a)) % ensure no q data
-                    
+
                     % Purge the listbox
                     if length(find(~cellfun(@isempty,app.ListBox.Items))) == 1000
                         for x=1:1000 % create an empty listbox again
                             app.ListBox.Items(x) = {['']};
                         end
                     end
-                    
+
                     try
                         if app.videoNumber > 1
                             KLT_customFOV(app)
                         end
-                        KLT_imageAnalysis(app,0) %set as zero to run the wse reconstruction or -1 to avoid
+                        KLT_imageAnalysis(app,0) %set as zero to run the wse reconstruction or 1 to avoid
 
-                        for z1 = -2:-1
-                            if app.iter == 1
-                                KLT_imageAnalysis(app,z1) %set as zero to run the wse reconstruction or -1 to avoid
+                        wse_routine = 1;
+                        if wse_routine == 1
+                            i1 = -2:-1;
+                        else
+                            i1 = 0;
+                        end
+                        for z1 = i1
+                            if i1 == 0
+                                return
                             end
-
+                            KLT_imageAnalysis(app,z1) %set as zero to run the wse reconstruction or -1 to avoid
                             KLT_flightPath(app)
-                            KLT_vectorRotation(app)
+                            KLT_vectorRotation(app,z1)
                             KLT_exportVelocity(app)
                             KLT_trajectories(app)
-                            KLT_CALCULATEButtonPushed(app)
+                            KLT_CALCULATEButtonPushed(app,z1)
                             KLT_appendQoutputs(app)
+                            
+                            % save the workspace
+                            s = 2;
+                            props = properties(app);
+                            for ii=s:length(props)
+                                try
+                                    currentProperty = getfield(app, char(props(ii)));
+                                    S{ii} = getfield(app,char(props(ii)));
+                                    pause 0.1
+                                catch
+                                end
+                            end
+
+                            if z1 == -1
+                                appender = '_wse';
+                            else
+                                appender = '';
+                            end
+
+                            % Save the files from the workspace to the hard drive
+                           tempIn = char(app.fileNameAnalysis(a));
+                           saving_name = (strcat([app.OutputDirectoryButton.Text '\workspace_' tempIn(1:end-4) appender '.mat']));
+                           props2 = properties(app);
+                           save(saving_name, 'S','props2','-v7.3');
+
                         end
+
                         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.videoNumber-1)/length(app.fileNameAnalysis)*100) '% Complete'},''));
                         TextIn = {['Discharge computed for video ', int2str(app.videoNumber), ' of ', num2str(length(app.fileNameAnalysis))]};
                         app.ListBox.Items = [app.ListBox.Items, TextIn'];
                         KLT_printItems(app)
                         pause(0.01);
                         app.ListBox.scroll('bottom')
-                        
+
                         if app.starterInd == 1
                             app.startingAppVals             = app; % create a copy of the settings
                             app.startingAppVals.uvHR        = [];
@@ -349,13 +381,13 @@ classdef KLT < matlab.apps.AppBase
                             app.startingAppVals.refValue    = [];
                             app.starterInd                  = app.starterInd + 1;
                             app.startingAppVals.objectFrameStacked = {};
-                            app.startingAppVals.normalVelocity = [];
+                            app.startingAppVals.downstreamVelocity = [];
                         else
                             app.starterInd                  = app.starterInd + 1;
                         end
-                        
+
                     catch
-                        
+
                         if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
                             app.compiled_refVal = num2cell(NaN);
                         else
@@ -370,8 +402,8 @@ classdef KLT < matlab.apps.AppBase
                     end
                     app.videoNumber = app.videoNumber + 1;
                     app.startingVideo = [0];
-                
-                 elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true %&& isnan(app.totalQ(1,a)) % ensure no q data
+
+                elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true %&& isnan(app.totalQ(1,a)) % ensure no q data
 
                     % Purge the listbox
                     if length(find(~cellfun(@isempty,app.ListBox.Items))) == 1000
@@ -379,7 +411,7 @@ classdef KLT < matlab.apps.AppBase
                             app.ListBox.Items(x) = {['']};
                         end
                     end
-                    
+
                     try
                         if app.videoNumber > 1
                             KLT_customFOV(app)
@@ -392,7 +424,7 @@ classdef KLT < matlab.apps.AppBase
                         KLT_CALCULATEButtonPushed(app)
                         KLT_appendQoutputs(app)
                         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.videoNumber-1)/length(app.fileNameAnalysis)*100) '% Complete'},''));
-                           
+
                         if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
                             TextIn = {['Discharge computed for video ', int2str(app.videoNumber), ' of ', num2str(length(app.fileNameAnalysis))]};
                         else
@@ -403,7 +435,7 @@ classdef KLT < matlab.apps.AppBase
                         KLT_printItems(app)
                         pause(0.01);
                         app.ListBox.scroll('bottom')
-                        
+
                         if app.starterInd == 1
                             app.startingAppVals             = app; % create a copy of the settings
                             app.startingAppVals.uvHR        = [];
@@ -414,13 +446,13 @@ classdef KLT < matlab.apps.AppBase
                             app.startingAppVals.refValue    = [];
                             app.starterInd                  = app.starterInd + 1;
                             app.startingAppVals.objectFrameStacked = {};
-                            app.startingAppVals.normalVelocity = [];
+                            app.startingAppVals.downstreamVelocity = [];
                         else
                             app.starterInd                  = app.starterInd + 1;
                         end
-                        
+
                     catch
-                        
+
                         if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
                             app.compiled_refVal = num2cell(NaN);
                         else
@@ -434,29 +466,29 @@ classdef KLT < matlab.apps.AppBase
                         app.ListBox.scroll('bottom')
                     end
                     app.videoNumber = app.videoNumber + 1;
-                    app.startingVideo = [0];                
+                    app.startingVideo = [0];
 
                 else
                     app.videoNumber = app.videoNumber + 1;
 
                 end
             end
-            
+
             set(app.RUNButton,'Text','Processing: Complete');
             pause(0.01)
-            
+
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
-                KLT_imageAnalysis(app)
+                KLT_imageAnalysis(app,-3)
                 KLT_flightPath(app)
-                KLT_vectorRotation(app)
+                KLT_vectorRotation(app,-3)
                 KLT_exportVelocity(app)
                 KLT_trajectories(app)
                 set(app.RUNButton,'Text','Processing: Complete');
                 pause(0.01)
             end
         end
-        
-        
+
+
         % If the ROI button is pushed
         function roiButtonPushed(app, event)
             if length(app.firstFrame) > 1
@@ -471,7 +503,7 @@ classdef KLT < matlab.apps.AppBase
                 %Display an error - need to load video
             end
         end
-        
+
         % Button pushed function: OutputDirectoryButton
         function OutputDirectoryButtonPushed(app, event)
             app.s2 = [];
@@ -482,11 +514,11 @@ classdef KLT < matlab.apps.AppBase
             else
                 [app.directory_save] = uigetdir(app.directory);
             end
-            
+
             if length(app.directory_save) > 1
                 app.OutputDirectoryButton.Text = app.directory_save;
                 app.OutputDirectoryButton.VerticalAlignment = 'top';
-                
+
                 TextIn = strjoin({'Output directory is: ' app.directory_save}, '');
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
@@ -494,7 +526,7 @@ classdef KLT < matlab.apps.AppBase
                 KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
-                
+
             else
                 TextIn = {'No video selected, please try again'};
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -506,10 +538,10 @@ classdef KLT < matlab.apps.AppBase
                 app.OutputDirectoryButton.Text = 'Click here';
             end
         end
-        
+
         % Button pushed function: AddVideoButton
         function AddVideoButtonPushed(app, event)
-            
+
             %app.VelocityDropDown.Value = 'Make a selection:';
             app.k1                    = [];
             app.s2                    = [];
@@ -519,7 +551,7 @@ classdef KLT < matlab.apps.AppBase
             app.firstOrthoImage       = [];
             app.GCPDataDropDown.Value = 'Make a selection:';
             set(app.RUNButton,'Text','RUN');
-            
+
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
                 if length(app.directory) < 2
                     % Create list of images inside the considered directory
@@ -527,26 +559,26 @@ classdef KLT < matlab.apps.AppBase
                 else
                     [app.file, app.directory] = uigetfile({'*' 'All Files'},'Select a file',app.directory);
                 end
-                
+
                 if length(app.file) > 1
                     textOutput          = strjoin({app.directory, app.file}, '');
                     TextIn              = {'Single video file selected is:'; textOutput; ...
-                                        'Please wait while it is loaded.'};
+                        'Please wait while it is loaded.'};
                     TimeIn              = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                     TimeIn              = strjoin(TimeIn, ' ');
                     app.ListBox.Items   = [app.ListBox.Items, TimeIn, TextIn'];
-                    
+
                     KLT_printItems(app)
                     pause(0.01);
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = textOutput;
                     app.AddVideoButton.VerticalAlignment = 'top';
-                    
+
                     direc = dir([app.directory,filesep]); filenames={};
                     [filenames{1:length(direc),1}] = deal(direc.name);
                     filenames = sortrows(filenames); %sort all image files
                     amount = length(filenames);
-                    
+
                     TextIn = {'Video file succesfully selected.'};
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
                     KLT_printItems(app)
@@ -554,7 +586,7 @@ classdef KLT < matlab.apps.AppBase
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = textOutput;
                     app.AddVideoButton.VerticalAlignment = 'top';
-                    
+
                 else
                     TextIn = {'No video selected, please try again'};
                     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -565,28 +597,28 @@ classdef KLT < matlab.apps.AppBase
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Click here';
                 end
-                
+
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
                 % Create list of images inside the considered directory
                 app.directory = uigetdir;
-                    
+
                 if length(app.directory) > 1
-                    
+
                     % Provide alternative templates for the year format +
                     % find the index of this from the user input xxxxxxyyyymmdd_HHMM
                     template = inputdlg('Provide the template of the filename inputs e.g. xxxxxxxxyyyymmdd_HHMM',...
                         'Provide the filename template', [1 60]);
-                    
+
                     if length(cell2mat(strfind(template,'y'))) == 4
                         yearsFormat     = 'yyyy';
                         yearInIdx       = cell2mat(strfind(template,'y'));
-                        
+
                     elseif length(cell2mat(strfind(template,'y'))) == 2
                         yearsFormat     = 'yy';
                         yearInIdx       = cell2mat(strfind(template,'y'));
                         preYear         = '20';
                     end
-                    
+
                     monthInIdx          = cell2mat(strfind(template,'m'));
                     dateInIdx           = cell2mat(strfind(template,'d'));
                     hourInIdx           = cell2mat(strfind(template,'H'));
@@ -595,24 +627,24 @@ classdef KLT < matlab.apps.AppBase
                     [app.videoDirFileNames{1:length(direc),1}] = deal(direc.name);
                     app.videoDirFileNames = sortrows(app.videoDirFileNames); %sort all image files
                     app.videoDirFileNames = app.videoDirFileNames(3:end);
-                    
+
                     for a = 1:length(app.videoDirFileNames)
                         try
                             temp        = app.videoDirFileNames{a};
-                            
+
                             if length(cell2mat(strfind(template,'y'))) == 4
                                 yearIn  = temp(yearInIdx(1):yearInIdx(1)+3);
-                                
+
                             elseif length(cell2mat(strfind(template,'y'))) == 2
                                 yearIn  = {preYear, temp(yearInIdx(1):yearInIdx(1)+1)};
                             end
-                            
+
                             monthIn     = temp(monthInIdx:monthInIdx+1);
                             dateIn      = temp(dateInIdx:dateInIdx+1);
                             hourIn      = temp(hourInIdx:hourInIdx+1);
                             minuteIn    = temp(minuteInIdx:minuteInIdx+1);
                             app.videoDatesFormatted{a,1} = [yearIn monthIn dateIn '_' hourIn minuteIn];
-                            
+
                             if isempty(str2num([yearIn monthIn dateIn])) % esnure it can be converted to a number
                                 app.videoDatesFormattedNum(a,1) = 0;
                             else
@@ -627,7 +659,7 @@ classdef KLT < matlab.apps.AppBase
                     idxKeep                     = app.videoDatesFormattedNum > 0;
                     app.videoDatesFormattedNum  = app.videoDatesFormattedNum(idxKeep);
                     app.videoDirFileNames       = app.videoDirFileNames(idxKeep);
-                    
+
                     TextIn = strjoin({num2str(length(app.videoDirFileNames)) ' videos selected for analysis'},'');
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
                     KLT_printItems(app)
@@ -649,15 +681,15 @@ classdef KLT < matlab.apps.AppBase
 
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true % Create list of images inside the considered directory
                 app.directory = uigetdir;
-                    
+
                 if length(app.directory) > 1
-                    
+
                     direc               = dir([app.directory,filesep]); app.videoDirFileNames={};
                     [app.videoDirFileNames{1:length(direc),1}] = deal(direc.name);
                     app.videoDirFileNames = sortrows(app.videoDirFileNames); %sort all image files
                     app.videoDirFileNames = app.videoDirFileNames(3:end);
                     app.fileNameAnalysis  = app.videoDirFileNames; % no matching required
-                    
+
                     TextIn = strjoin({num2str(length(app.videoDirFileNames)) ' videos selected for analysis'},'');
                     app.ListBox.Items = [app.ListBox.Items, TextIn'];
                     KLT_printItems(app)
@@ -665,7 +697,7 @@ classdef KLT < matlab.apps.AppBase
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Multiple selected';
                     app.AddVideoButton.VerticalAlignment = 'top';
-                            
+
                 else
                     TextIn = {'No directory selected, please try again'};
                     TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -679,33 +711,33 @@ classdef KLT < matlab.apps.AppBase
 
 
 
-                
+
             end
-            
+
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
                 KLT_bringInImage(app); % Bring in the first image of the video
-            else                 
+            else
                 KLT_bringInImage(app)
                 TextIn = {'Select the video to be used to generate/visualize GCP solutions'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
                 KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
-                
+
                 [app.file,tempDir] = uigetfile({'*' 'All Files'},'Select the video to be used to generate/visualize GCP solutions',app.directory, 'MultiSelect', 'off');
                 V=VideoReader([tempDir '\' app.file]);
-                
+
                 % rollback for newer versions of Matlab 20220122
                 try
                     I   = images.internal.rgb2graymex(readFrame(V)); % new method for large files
                 catch
                     I   = rgb2gray(readFrame(V));
                 end
-                    
+
                 app.objectFrame = rgb2gray(readFrame(V));
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
-                
+
                 TextIn = {'Video successfully loaded'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
                 KLT_printItems(app)
@@ -713,7 +745,7 @@ classdef KLT < matlab.apps.AppBase
                 app.ListBox.scroll('bottom');
             end
         end
-        
+
         % Callback function
         function PlatformTypeDropDownValueChanged(app, event)
             value = app.PlatformTypeDropDown.Value;
@@ -736,16 +768,16 @@ classdef KLT < matlab.apps.AppBase
                 app.ListBox.scroll('bottom');
             end
         end
-        
+
 
         % Value changed function: CrosssectionInputDropDown
         function CrosssectionInputDropDownValueChanged(app, event)
             app.xsData = app.CrosssectionInputDropDown.Value;
-            
+
             if strcmp (app.xsData, 'From .csv file') == 1
                 disp ('Importing bathymetry from pre-defined csv file')
                 [app.xsfile, app.xsdirectory] = uigetfile({'*.csv' '.csv Files'},'Select a file',app.directory);
-                
+
                 if length(app.xsfile) > 1
                     [data_text,~] = readtext(strjoin({app.xsdirectory app.xsfile },''), ',', '','','textual'); % read in the csv file
                     clear app.xs
@@ -754,27 +786,27 @@ classdef KLT < matlab.apps.AppBase
                     app.xs = app.xs(1:app.xsdims,:);
                     app.UITable2.Data = app.xs;
                 end
-                
+
                 app.xInder = [];
                 app.yInder = [];
                 for a = 1:length(app.UITable2.Data)
                     if (a > 0 && ...                  % if first row or higher
                             (~isnan(app.UITable2.Data(a,1)) && ...         % second column (height) is numeric
                             ~isnan(app.UITable2.Data(a,2)) ))             % first column (chainage) is numeric
-                        
+
                         if app.UITable2.Data(a,1) > app.transectLength
                             message = sprintf('Warning! \nSpecified distance exceeds the transect length.');
                             msgbox(message, 'Error','error');
                         end
-                        
+
                         app.startXS = [app.X(1,round(app.XS_pts(1,1))),app.Y(round(app.XS_pts(2,1)))];
                         app.endXS = [app.X(1,round(app.XS_pts(1,2))),app.Y(round(app.XS_pts(2,2)))];
                         sumX = (app.endXS(1) - app.startXS(1)); % Total change in x
                         sumY = (app.endXS(2) - app.startXS(2)); % Total change in y
-                        
+
                         fractX = app.UITable2.Data(a,1)./app.transectLength; % Fraction of change in X
                         fractY = app.UITable2.Data(a,1)./app.transectLength; % Fraction of change in Y
-                        
+
                         originalLength = length(app.xInder);
                         app.xInder(originalLength+1) = app.startXS(1) + (fractX.*sumX);
                         app.yInder(originalLength+1) = app.startXS(2) + (fractY.*sumY);
@@ -788,10 +820,10 @@ classdef KLT < matlab.apps.AppBase
                     NaN NaN; NaN NaN; NaN NaN; NaN NaN; NaN NaN;...
                     NaN NaN; NaN NaN; NaN NaN; NaN NaN; NaN NaN]; % Maximum of 20 bathy points
                 app.UITable2.ColumnEditable = true;
-                
+
             end % if input type
         end % function
-        
+
         % Value changed function: CameraTypeDropDown
         function CameraTypeDropDownValueChanged(app, event)
             value = app.CameraTypeDropDown.Value;
@@ -800,7 +832,7 @@ classdef KLT < matlab.apps.AppBase
                 app.k = [0, 0];
                 app.p = [0, 0];
             end % if not listed
-            
+
             TextIn = strjoin({'Camera model selected is: '; app.CameraTypeDropDown.Value},' ');
             TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
             TimeIn = strjoin(TimeIn, ' ');
@@ -809,12 +841,12 @@ classdef KLT < matlab.apps.AppBase
             pause(0.01);
             app.ListBox.scroll('bottom');
         end % function
-        
+
         % Value changed function: CheckGCPsSwitch
         function CheckGCPsSwitchValueChanged(app, event)
             % empty function
         end
-        
+
         % Value changed function: IgnoreEdgesDropDown
         function IgnoreEdgesDropDownValueChanged(app, event)
             value = app.IgnoreEdgesDropDown.Value;
@@ -826,7 +858,7 @@ classdef KLT < matlab.apps.AppBase
                 KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
-                
+
             elseif strcmp (app.IgnoreEdgesDropDown.Value, 'No') == 1
                 TextIn = {'Ignore edges not selected:'; 'The entirety of the image will be used in the analysis'};
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -837,16 +869,16 @@ classdef KLT < matlab.apps.AppBase
                 app.ListBox.scroll('bottom');
             end
         end
-        
+
         function ProcessingModeDropDownValueChanged(app, ~)
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
-                app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}; %, 'Planet [beta]'}
+                app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU', 'Planet [beta]'}
                 app.OrientationDropDown.Value = 'Make a selection:';
                 app.CrossSectionDropDown.Items = {'Make a selection:', 'Referenced survey [m]', 'Relative distances [m]'};
                 app.CrossSectionDropDown.Value = 'Make a selection:';
                 app.ReferenceHeight.Items = {'Make a selection:', 'True bed elevation [m]', 'Water depth [m]'};
                 app.ReferenceHeight.Value = 'Make a selection:';
-                
+
                 TextIn = {'Please select a single video for analysis'};
                 TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
                 TimeIn = strjoin(TimeIn, ' ');
@@ -854,7 +886,7 @@ classdef KLT < matlab.apps.AppBase
                 KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
-                
+
                 % Ensure the correct input buttons are enabled/disabled
                 app.AddLevelButton.Enable = 'off';
                 app.AddLevelButton.Visible = 'Off';
@@ -882,7 +914,7 @@ classdef KLT < matlab.apps.AppBase
                 app.Cameraxyz_modifyXbox.Enable = 'on';
                 app.Cameraxyz_modifyYbox.Enable = 'on';
                 app.Cameraxyz_modifyZbox.Enable = 'on';
-                app.IgnoreEdgesDropDown.Enable = 'on';               
+                app.IgnoreEdgesDropDown.Enable = 'on';
                 app.GCPDataDropDown.Enable = 'on';
                 app.CheckGCPsSwitch.Enable = 'on';
                 app.ExportGCPdataSwitch.Enable = 'on';
@@ -894,7 +926,7 @@ classdef KLT < matlab.apps.AppBase
                 app.CustomFOVEditField_4.Enable = 'on';
                 app.CustomFOVEditField_5.Enable = 'on';
                 app.CellNumberEditField.Enable = 'off';
-                app.InterpolationMethod.Enable = 'on';                
+                app.InterpolationMethod.Enable = 'on';
                 app.alphaEditField.Enable = 'on';
                 app.GCPbuffer_modifyBox.Enable = 'on';
                 app.CustomFOV_modifyBox.Enable = 'on';
@@ -903,7 +935,7 @@ classdef KLT < matlab.apps.AppBase
                 app.FlightPathPlotSwitch.Enable = 'on';
                 app.TrajectoriesPlotSwitch.Enable = 'on';
 
-                
+
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == 1
                 app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: GCPs'};
                 app.OrientationDropDown.Value = 'Make a selection:';
@@ -911,13 +943,13 @@ classdef KLT < matlab.apps.AppBase
                 app.CrossSectionDropDown.Value = 'Make a selection:';
                 app.ReferenceHeight.Items = {'Make a selection:', 'True bed elevation [m]'};
                 app.ReferenceHeight.Value = 'Make a selection:';
-                
+
                 TextIn = {'Multiple video analysis mode selected'; 'Please click Define Video(s) and select the folder containing the videos to be analysed'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
                 KLT_printItems(app)
                 pause(0.01);
                 app.ListBox.scroll('bottom');
-                
+
                 % Ensure the correct input buttons are enabled/disabled
                 app.AddLevelButton.Enable = 'on';
                 app.AddLevelButton.Visible = 'On';
@@ -926,7 +958,7 @@ classdef KLT < matlab.apps.AppBase
                 app.roiButton.Enable = 'on';
                 app.ExportDefaultValuesButton.Enable = 'off';
                 app.LoadDefaultValuesButton.Enable = 'off';
-                
+
                 app.CALCULATEButton.Position = [655 158 290 22]; % switched with RUN
                 app.CALCULATEButton.Enable = 'off';
                 app.CALCULATEButton.Visible = 'off';
@@ -946,7 +978,7 @@ classdef KLT < matlab.apps.AppBase
                 app.Cameraxyz_modifyXbox.Enable = 'on';
                 app.Cameraxyz_modifyYbox.Enable = 'on';
                 app.Cameraxyz_modifyZbox.Enable = 'on';
-                app.IgnoreEdgesDropDown.Enable = 'on';                
+                app.IgnoreEdgesDropDown.Enable = 'on';
                 app.GCPDataDropDown.Enable = 'on';
                 app.CheckGCPsSwitch.Enable = 'on';
                 app.ExportGCPdataSwitch.Enable = 'on';
@@ -1025,30 +1057,30 @@ classdef KLT < matlab.apps.AppBase
 
             end
         end
-        
-       
+
+
         function ExportDefaultValuesButtonPushed(app, event)
             KLT_saveState(app)
         end
-        
+
         function LoadDefaultValuesButtonPushed(app, event)
             KLT_loadState(app)
         end
     end
-    
+
     % App initialization and construction
     methods (Access = private)
-        
+
         % Create UIFigure and components
         function createComponents(app)
-            
+
             % Create KLTIV UIFigure
             app.KLTIV_UIFigure = uifigure;
             app.KLTIV_UIFigure.Color = [ 1 1 1];
             app.KLTIV_UIFigure.Position = [100 100 1287 538]; %width < 1366; hgt < 786
             app.KLTIV_UIFigure.Name = 'KLT-IV (v1.02)';
             app.KLTIV_UIFigure.Resize = 'off';
-            
+
             warning off Matlab:HandleGraphics:ObsoletedProperty:JavaFrame
             warning off Matlab:structOnObject
             while true
@@ -1063,7 +1095,7 @@ classdef KLT < matlab.apps.AppBase
                     pause(0.5); % Give the figure (webpage) some more time to load
                 end
             end
-            
+
             % Try to load the correct icon
             try
                 if isdeployed % Stand-alone mode.
@@ -1078,10 +1110,10 @@ classdef KLT < matlab.apps.AppBase
                 end
             catch
             end
-            
+
             app.CONTROLDIMS = [app.KLTIV_UIFigure.Position(3),...
                 app.KLTIV_UIFigure.Position(4)];
-            
+
             % Create scrollPane
             app.scrollPane = uipanel(app.KLTIV_UIFigure);
             app.scrollPane.AutoResizeChildren = 'off';
@@ -1090,7 +1122,7 @@ classdef KLT < matlab.apps.AppBase
                 0,...
                 app.KLTIV_UIFigure.Position(3),...
                 app.KLTIV_UIFigure.Position(4)];
-            
+
             % Inject CSS in head
             app.WEBWINDOW = mlapptools.getWebWindow(app.KLTIV_UIFigure);
             cssText = [...
@@ -1137,18 +1169,18 @@ classdef KLT < matlab.apps.AppBase
                 '  }\n', ...
                 '</style>\n''' ...
                 ];
-            
+
             pause(3) % Insert a pause to ensure the above is executed properly
             app.WEBWINDOW.executeJS(['document.head.innerHTML += ', ...
                 cssText]);
-            
+
             % add .scrollpane class to scrollPane div
             [~,scrollID] = mlapptools.getWebElements(app.scrollPane);
             scrollClassString = sprintf(...
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 scrollID.ID_attr, scrollID.ID_val, 'scrollpane');
             app.WEBWINDOW.executeJS(scrollClassString);
-            
+
             % Create VideoInputsLabel
             app.VideoInputsLabel = uilabel(app.KLTIV_UIFigure);
             app.VideoInputsLabel.FontName = 'Ubuntu';
@@ -1156,7 +1188,7 @@ classdef KLT < matlab.apps.AppBase
             app.VideoInputsLabel.FontColor = [0.149 0.149 0.149];
             app.VideoInputsLabel.Position = [65 482 190 34];
             app.VideoInputsLabel.Text = '(1) Video Inputs';
-            
+
             % Create the first panel
             i = 1;
             app.ControlHandles = gobjects(i,100); %no. of items in panel and no of panels
@@ -1164,13 +1196,13 @@ classdef KLT < matlab.apps.AppBase
             app.ControlHandles(i,1).AutoResizeChildren = 'off';
             app.ControlHandles(i,1).Position = [15 215 300 315];
             app.ControlHandles(i,1).BorderType = 'none';
-            
+
             [~,panelID] = mlapptools.getWebElements(app.ControlHandles(i,1));
             setClassString = sprintf(...
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'controlbox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            
+
             % Define the processing mode label outline
             app.ProcessingModeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.ProcessingModeDropDownLabel.Position = [20 446 140 22];
@@ -1184,7 +1216,7 @@ classdef KLT < matlab.apps.AppBase
             app.ProcessingModeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.ProcessingModeDropDownLabel.Position = [20 446 140 22];
             app.ProcessingModeDropDownLabel.Text = '    Mode';
-            
+
             % Define the processing mode
             app.ProcessingModeDropDown = uidropdown(app.KLTIV_UIFigure);
             app.ProcessingModeDropDown.Items = {'Make a selection', 'Single Video', 'Multiple Videos', 'Numerical Simulation'};
@@ -1192,7 +1224,7 @@ classdef KLT < matlab.apps.AppBase
             app.ProcessingModeDropDown.Position = [170 446 140 22];
             app.ProcessingModeDropDown.Value = 'Single Video';
             app.ProcessingModeDropDown.FontName = 'Roboto';
-            
+
             app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 349 140 22];
@@ -1207,7 +1239,7 @@ classdef KLT < matlab.apps.AppBase
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 349 140 22];
             app.AddVideoButtonLabel.Text = '    Define Video(s)';
-            
+
             %  Create AddVideoButton Label
             app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
@@ -1223,7 +1255,7 @@ classdef KLT < matlab.apps.AppBase
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 414 140 22];
             app.AddVideoButtonLabel.Text = '    Define Video(s)';
-            
+
             %  Create AddVideoButton
             app.AddVideoButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.AddVideoButton.Position = [170 414 140 22];
@@ -1243,7 +1275,7 @@ classdef KLT < matlab.apps.AppBase
             app.AddVideoButton.FontName = 'Roboto';
             app.AddVideoButton.VerticalAlignment = 'center';
             app.AddVideoButton.HorizontalAlignment = 'center';
-            
+
             % Create CameraTypeDropDownLabel
             app.CameraTypeDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.CameraTypeDropDownLabel.HorizontalAlignment = 'left';
@@ -1259,7 +1291,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraTypeDropDownLabel.HorizontalAlignment = 'left';
             app.CameraTypeDropDownLabel.Position = [20 381 140 22];
             app.CameraTypeDropDownLabel.Text = '    Camera Type';
-            
+
             % Create CameraTypeDropDown
             app.CameraTypeDropDown = uidropdown(app.KLTIV_UIFigure);
             app.CameraTypeDropDown.FontName = 'Roboto';
@@ -1278,7 +1310,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraTypeDropDown.ValueChangedFcn = createCallbackFcn(app, @CameraTypeDropDownValueChanged, true);
             app.CameraTypeDropDown.Position = [170 381 140 22];
             app.CameraTypeDropDown.Value = 'Make a selection';
-            
+
             % Create OrientationDropDownLabel
             app.OrientationDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.OrientationDropDownLabel.HorizontalAlignment = 'left';
@@ -1294,15 +1326,15 @@ classdef KLT < matlab.apps.AppBase
             app.OrientationDropDownLabel.HorizontalAlignment = 'left';
             app.OrientationDropDownLabel.Position = [20 349 140 22];
             app.OrientationDropDownLabel.Text = '    Orientation';
-            
+
             % Create OrientationDropDown
             app.OrientationDropDown = uidropdown(app.KLTIV_UIFigure);
-            app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}; %, 'Planet [beta]'}
+            app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU', 'Planet [beta]'}
             app.OrientationDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_OrientationDropDownValueChanged, true);
             app.OrientationDropDown.FontName = 'Roboto';
             app.OrientationDropDown.Position = [170 349 140 22];
             app.OrientationDropDown.Value = 'Make a selection:';
-            
+
             % Create CameraxyzLabel
             app.CameraxyzEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditFieldLabel.FontName = 'Ubuntu';
@@ -1318,7 +1350,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraxyzEditFieldLabel.Position = [20 317 140 22];
             app.CameraxyzEditFieldLabel.Text = '    Camera [x]';
             app.CameraxyzEditFieldLabel.FontName = 'Ubuntu';
-            
+
             % Create CameraxyzEditField
             app.CameraxyzEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CameraxyzEditField.ValueDisplayFormat = '%.2f';
@@ -1326,7 +1358,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraxyzEditField.FontColor = [0.149 0.149 0.149];
             app.CameraxyzEditField.Position = [170 317 140 22];
             app.CameraxyzEditField.Value = 9;
-            
+
             % Create CameraxyzLabel2
             app.CameraxyzEditField_2Label = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditField_2Label.FontName = 'Ubuntu';
@@ -1343,7 +1375,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraxyzEditField_2Label.Position = [20 285 140 22];
             app.CameraxyzEditField_2Label.Text = '    Camera [y]';
             app.ControlHandles(i,6) = app.CameraxyzEditField_2Label;
-            
+
             % Create CameraxyzEditField_2
             app.CameraxyzEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CameraxyzEditField_2.ValueDisplayFormat = '%.2f';
@@ -1351,7 +1383,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraxyzEditField_2.FontColor = [0.149 0.149 0.149];
             app.CameraxyzEditField_2.Position = [170 285 140 22];
             app.CameraxyzEditField_2.Value = 15;
-            
+
             % Create CameraxyzLabel3
             app.CameraxyzEditField_3Label = uilabel(app.KLTIV_UIFigure);
             app.CameraxyzEditField_3Label.FontName = 'Ubuntu';
@@ -1368,7 +1400,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraxyzEditField_3Label.Position = [20 253 140 22];
             app.CameraxyzEditField_3Label.Text = '    Camera [z]';
             app.ControlHandles(i,7) = app.CameraxyzEditField_3Label;
-            
+
             % Create CameraxyzEditField_3
             app.CameraxyzEditField_3 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CameraxyzEditField_3.ValueDisplayFormat = '%.2f';
@@ -1376,7 +1408,7 @@ classdef KLT < matlab.apps.AppBase
             app.CameraxyzEditField_3.FontColor = [0.149 0.149 0.149];
             app.CameraxyzEditField_3.Position = [170 253 140 22];
             app.CameraxyzEditField_3.Value = 36;
-            
+
             % Create tickboxes for adjustment = xbox
             app.Cameraxyz_modifyXbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditFieldLabel.Position];
@@ -1384,7 +1416,7 @@ classdef KLT < matlab.apps.AppBase
             app.Cameraxyz_modifyXbox.Position = tempPos;
             app.Cameraxyz_modifyXbox.Text = '';
             app.Cameraxyz_modifyXbox.Value = 1;
-            
+
             % Create tickboxes for adjustment = ybox
             app.Cameraxyz_modifyYbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditField_2Label.Position];
@@ -1392,7 +1424,7 @@ classdef KLT < matlab.apps.AppBase
             app.Cameraxyz_modifyYbox.Position = tempPos;
             app.Cameraxyz_modifyYbox.Text = '';
             app.Cameraxyz_modifyYbox.Value = 1;
-            
+
             % Create tickboxes for adjustment = ybox
             app.Cameraxyz_modifyZbox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CameraxyzEditField_3Label.Position];
@@ -1400,7 +1432,7 @@ classdef KLT < matlab.apps.AppBase
             app.Cameraxyz_modifyZbox.Position = tempPos;
             app.Cameraxyz_modifyZbox.Text = '';
             app.Cameraxyz_modifyZbox.Value = 1;
-            
+
             % Create yawpitchrollEditFieldLabel
             app.yawpitchrollEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.yawpitchrollEditFieldLabel.HorizontalAlignment = 'left';
@@ -1420,14 +1452,14 @@ classdef KLT < matlab.apps.AppBase
             app.yawpitchrollEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.yawpitchrollEditFieldLabel.Position = [20 221 140 22];
             app.yawpitchrollEditFieldLabel.Text = '    [Yaw, Pitch, Roll]';
-            
+
             % Create yawpitchrollEditField
             app.yawpitchrollEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.yawpitchrollEditField.ValueDisplayFormat = '%.2f';
             app.yawpitchrollEditField.FontName = 'Roboto';
             app.yawpitchrollEditField.FontColor = [0.149 0.149 0.149];
             app.yawpitchrollEditField.Position = [170 221 45 22];
-            
+
             % Create yawpitchrollEditField_2
             app.yawpitchrollEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.yawpitchrollEditField_2.ValueDisplayFormat = '%.2f';
@@ -1435,7 +1467,7 @@ classdef KLT < matlab.apps.AppBase
             app.yawpitchrollEditField_2.FontColor = [0.149 0.149 0.149];
             app.yawpitchrollEditField_2.Position = [216.6667 221 45 22];
             app.yawpitchrollEditField_2.Value = 1.5708;
-            
+
             % Create yawpitchrollEditField_3
             app.yawpitchrollEditField_3 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.yawpitchrollEditField_3.ValueDisplayFormat = '%.2f';
@@ -1443,7 +1475,7 @@ classdef KLT < matlab.apps.AppBase
             app.yawpitchrollEditField_3.FontColor = [0.149 0.149 0.149];
             app.yawpitchrollEditField_3.Position = [262.6667 221 45 22];
             app.yawpitchrollEditField_3.Value = 0;
-            
+
             % Create box no.2
             app.ControlHandles(i,9) = uipanel(app.scrollPane);
             app.ControlHandles(i,9).AutoResizeChildren = 'off';
@@ -1454,7 +1486,7 @@ classdef KLT < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'controlbox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            
+
             % Create Settings label
             app.VideoInputsLabel = uilabel(app.KLTIV_UIFigure);
             app.VideoInputsLabel.FontName = 'Ubuntu';
@@ -1462,7 +1494,7 @@ classdef KLT < matlab.apps.AppBase
             app.VideoInputsLabel.FontColor = [0.149 0.149 0.149];
             app.VideoInputsLabel.Position = [90 155 190 34];
             app.VideoInputsLabel.Text = '(2) Settings';
-            
+
             % Create ExtractionratesEditFieldLabel
             app.ExtractionratesEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.ExtractionratesEditFieldLabel.HorizontalAlignment = 'left';
@@ -1482,7 +1514,7 @@ classdef KLT < matlab.apps.AppBase
             app.ExtractionratesEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.ExtractionratesEditFieldLabel.Position = [20 120 140 22];
             app.ExtractionratesEditFieldLabel.Text = '    Extract rate (s)';
-            
+
             % Create ExtractionratesEditField
             app.ExtractionratesEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.ExtractionratesEditField.ValueDisplayFormat = '%.2f';
@@ -1490,7 +1522,7 @@ classdef KLT < matlab.apps.AppBase
             app.ExtractionratesEditField.FontColor = [0.149 0.149 0.149];
             app.ExtractionratesEditField.Position = [170 120 140 22];
             app.ExtractionratesEditField.Value = 1;
-            
+
             % Create BlocksizepxEditFieldLabel
             app.BlocksizepxEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.BlocksizepxEditFieldLabel.HorizontalAlignment = 'left';
@@ -1510,7 +1542,7 @@ classdef KLT < matlab.apps.AppBase
             app.BlocksizepxEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.BlocksizepxEditFieldLabel.Position = [20 90 140 22];
             app.BlocksizepxEditFieldLabel.Text = '    Block size (px)';
-            
+
             % Create BlocksizepxEditField
             app.BlocksizepxEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.BlocksizepxEditField.ValueDisplayFormat = '%.0f';
@@ -1518,7 +1550,7 @@ classdef KLT < matlab.apps.AppBase
             app.BlocksizepxEditField.FontColor = [0.149 0.149 0.149];
             app.BlocksizepxEditField.Position = [170 90 140 22];
             app.BlocksizepxEditField.Value = 31;
-            
+
             % Create IgnoreEdgesDropDownLabel
             app.IgnoreEdgesDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.IgnoreEdgesDropDownLabel.HorizontalAlignment = 'left';
@@ -1538,7 +1570,7 @@ classdef KLT < matlab.apps.AppBase
             app.IgnoreEdgesDropDownLabel.FontColor = [0.149 0.149 0.149];
             app.IgnoreEdgesDropDownLabel.Position = [20 60 140 22];
             app.IgnoreEdgesDropDownLabel.Text = '    Ignore Edges?';
-            
+
             % Create IgnoreEdgesDropDown
             app.IgnoreEdgesDropDown = uidropdown(app.KLTIV_UIFigure);
             app.IgnoreEdgesDropDown.Items = {'Make a selection', 'Yes', 'No'};
@@ -1547,7 +1579,7 @@ classdef KLT < matlab.apps.AppBase
             app.IgnoreEdgesDropDown.FontColor = [0.149 0.149 0.149];
             app.IgnoreEdgesDropDown.Position = [170 60 140 22];
             app.IgnoreEdgesDropDown.Value = 'Make a selection';
-            
+
             % Create VelocityDropDownLabel
             app.VelocityDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.VelocityDropDownLabel.HorizontalAlignment = 'left';
@@ -1567,16 +1599,16 @@ classdef KLT < matlab.apps.AppBase
             app.VelocityDropDownLabel.FontColor = [0.149 0.149 0.149];
             app.VelocityDropDownLabel.Position = [20 30 140 22];
             app.VelocityDropDownLabel.Text = '    Vel. component';
-            
+
             % Create VelocityDropDown
             app.VelocityDropDown = uidropdown(app.KLTIV_UIFigure);
-            app.VelocityDropDown.Items = {'Velocity Magnitude', 'Normal Component'}; %'Make a selection:', 'Normal Component',
+            app.VelocityDropDown.Items = {'Velocity Magnitude', 'Downstream Component'}; %'Make a selection:', 'Downstream Component',
             app.VelocityDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_VelocityDropDownValueChanged, true);
             app.VelocityDropDown.FontName = 'Roboto';
             app.VelocityDropDown.FontColor = [0.149 0.149 0.149];
             app.VelocityDropDown.Position = [170 30 140 22];
             app.VelocityDropDown.Value = 'Velocity Magnitude';
-            
+
             % Create GroundControlLabel
             app.GroundControlLabel = uilabel(app.KLTIV_UIFigure);
             app.GroundControlLabel.FontName = 'Ubuntu';
@@ -1584,7 +1616,7 @@ classdef KLT < matlab.apps.AppBase
             app.GroundControlLabel.FontColor = [0.149 0.149 0.149];
             app.GroundControlLabel.Position = [365 482 240 34];
             app.GroundControlLabel.Text = '(3) Ground Control';
-            
+
             % Create third panel
             app.ControlHandles(i,14) = uipanel(app.scrollPane);
             app.ControlHandles(i,14).AutoResizeChildren = 'off';
@@ -1595,7 +1627,7 @@ classdef KLT < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'controlbox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            
+
             % Create GCPDataDropDownLabel
             app.GCPDataDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.GCPDataDropDownLabel.HorizontalAlignment = 'left';
@@ -1615,7 +1647,7 @@ classdef KLT < matlab.apps.AppBase
             app.GCPDataDropDownLabel.FontColor = [0.149 0.149 0.149];
             app.GCPDataDropDownLabel.Position = [335 446 140 22];
             app.GCPDataDropDownLabel.Text = '    GCP Data';
-            
+
             % Create GCPDataDropDown
             app.GCPDataDropDown = uidropdown(app.KLTIV_UIFigure);
             app.GCPDataDropDown.Items = {'Make a selection:', 'Inputted manually', 'From .csv file', 'Select from image'};
@@ -1624,7 +1656,7 @@ classdef KLT < matlab.apps.AppBase
             app.GCPDataDropDown.FontColor = [0.149 0.149 0.149];
             app.GCPDataDropDown.Position = [485 446 140 22];
             app.GCPDataDropDown.Value = 'Make a selection:';
-            
+
             % Create CheckGCPsSwitchLabel
             app.CheckGCPsSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.CheckGCPsSwitchLabel.HorizontalAlignment = 'left';
@@ -1642,13 +1674,13 @@ classdef KLT < matlab.apps.AppBase
             app.CheckGCPsSwitchLabel.FontName = 'Ubuntu';
             app.CheckGCPsSwitchLabel.Position = [335 414 140 22];
             app.CheckGCPsSwitchLabel.Text = '    Check GCPs';
-            
+
             % Create CheckGCPsSwitch
             app.CheckGCPsSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.CheckGCPsSwitch.ValueChangedFcn = createCallbackFcn(app, @CheckGCPsSwitchValueChanged, true);
             app.CheckGCPsSwitch.FontName = 'Roboto';
             app.CheckGCPsSwitch.Position = [535 413 140 22];
-            
+
             % Create ExportGCPdataSwitchLabel
             app.ExportGCPdataSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.ExportGCPdataSwitchLabel.FontName = 'Ubuntu';
@@ -1664,12 +1696,12 @@ classdef KLT < matlab.apps.AppBase
             app.ExportGCPdataSwitchLabel.FontName = 'Ubuntu';
             app.ExportGCPdataSwitchLabel.Position = [335 381 140 22];
             app.ExportGCPdataSwitchLabel.Text = '    Export GCPs?';
-            
+
             % Create ExportGCPdataSwitch
             app.ExportGCPdataSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.ExportGCPdataSwitch.FontName = 'Roboto';
             app.ExportGCPdataSwitch.Position = [535 381 140 22];
-            
+
             % Create UITable
             app.UITable = uitable(app.KLTIV_UIFigure);
             app.UITable.ColumnName = {'X [meters]'; 'Y [meters]'; 'Z [meters]'; 'X [px]'; 'Y [px]'};
@@ -1679,7 +1711,7 @@ classdef KLT < matlab.apps.AppBase
             app.UITable.ForegroundColor = [0.149 0.149 0.149];
             app.UITable.FontName = 'Roboto';
             app.UITable.Position = [335 153 290 219];
-            
+
             % Create BufferaroundGCPsmetersEditFieldLabel
             app.BufferaroundGCPsmetersEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.BufferaroundGCPsmetersEditFieldLabel.HorizontalAlignment = 'left';
@@ -1699,7 +1731,7 @@ classdef KLT < matlab.apps.AppBase
             app.BufferaroundGCPsmetersEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.BufferaroundGCPsmetersEditFieldLabel.Position = [335 120 140 22];
             app.BufferaroundGCPsmetersEditFieldLabel.Text = '    GCP buffer (m)';
-            
+
             % Create tickboxes for adjustment = GCP buffer
             app.GCPbuffer_modifyBox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.BufferaroundGCPsmetersEditFieldLabel.Position];
@@ -1707,14 +1739,14 @@ classdef KLT < matlab.apps.AppBase
             app.GCPbuffer_modifyBox.Position = tempPos;
             app.GCPbuffer_modifyBox.Text = '';
             app.GCPbuffer_modifyBox.Value = 1;
-            
+
             % Create BufferaroundGCPsmetersEditField
             app.BufferaroundGCPsmetersEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.BufferaroundGCPsmetersEditField.FontName = 'Roboto';
             app.BufferaroundGCPsmetersEditField.FontColor = [0.149 0.149 0.149];
             app.BufferaroundGCPsmetersEditField.Position = [485 120 140 22];
             app.BufferaroundGCPsmetersEditField.Value = 10;
-            
+
             % Create CustomFOVEditFieldLabel_2
             app.CustomFOVEditFieldLabel_2 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_2.HorizontalAlignment = 'left';
@@ -1732,7 +1764,7 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_2.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_2.Position = [335 77 140 22];
             app.CustomFOVEditFieldLabel_2.Text = '    Custom FOV:';
-            
+
             % Create tickboxes for adjustment = custom FOV buffer
             app.CustomFOV_modifyBox = uicheckbox(app.KLTIV_UIFigure);
             tempPos = [app.CustomFOVEditFieldLabel_2.Position];
@@ -1740,31 +1772,31 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOV_modifyBox.Position = tempPos;
             app.CustomFOV_modifyBox.Text = '';
             app.CustomFOV_modifyBox.Value = 0;
-            
+
             % Create CustomFOVEditField_2
             app.CustomFOVEditField_2 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_2.FontName = 'Roboto';
             app.CustomFOVEditField_2.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_2.Position = [526 96 27 22];
-            
+
             % Create CustomFOVEditField_3
             app.CustomFOVEditField_3 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_3.FontName = 'Roboto';
             app.CustomFOVEditField_3.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_3.Position = [598 96 27 22];
-            
+
             % Create CustomFOVEditField_4
             app.CustomFOVEditField_4 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_4.FontName = 'Roboto';
             app.CustomFOVEditField_4.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_4.Position = [526 63 27 22];
-            
+
             % Create CustomFOVEditField_5
             app.CustomFOVEditField_5 = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CustomFOVEditField_5.FontName = 'Roboto';
             app.CustomFOVEditField_5.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditField_5.Position = [598 63 27 22];
-            
+
             % Create CustomFOVEditFieldLabel_3
             app.CustomFOVEditFieldLabel_3 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_3.HorizontalAlignment = 'left';
@@ -1772,7 +1804,7 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_3.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_3.Position = [488 96 36 22];
             app.CustomFOVEditFieldLabel_3.Text = 'X min';
-            
+
             % Create CustomFOVEditFieldLabel_4
             app.CustomFOVEditFieldLabel_4 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_4.HorizontalAlignment = 'left';
@@ -1780,7 +1812,7 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_4.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_4.Position = [488 63 36 22];
             app.CustomFOVEditFieldLabel_4.Text = 'X max';
-            
+
             % Create CustomFOVEditFieldLabel_6
             app.CustomFOVEditFieldLabel_6 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_6.HorizontalAlignment = 'left';
@@ -1788,7 +1820,7 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_6.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_6.Position = [563 96 36 22];
             app.CustomFOVEditFieldLabel_6.Text = 'Y min';
-            
+
             % Create CustomFOVEditFieldLabel_7
             app.CustomFOVEditFieldLabel_7 = uilabel(app.KLTIV_UIFigure);
             app.CustomFOVEditFieldLabel_7.HorizontalAlignment = 'left';
@@ -1796,14 +1828,14 @@ classdef KLT < matlab.apps.AppBase
             app.CustomFOVEditFieldLabel_7.FontColor = [0.149 0.149 0.149];
             app.CustomFOVEditFieldLabel_7.Position = [563 63 36 22];
             app.CustomFOVEditFieldLabel_7.Text = 'Y max';
-            
+
             % Create WatersurfaceelevationmEditField
             app.WatersurfaceelevationmEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.WatersurfaceelevationmEditField.FontName = 'Roboto';
             app.WatersurfaceelevationmEditField.FontColor = [0.149 0.149 0.149];
             app.WatersurfaceelevationmEditField.Position = [485 30 140 22];
             app.WatersurfaceelevationmEditField.Value = 0;
-            
+
             % Create WatersurfaceelevationmEditFieldLabel
             app.WatersurfaceelevationmEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.WatersurfaceelevationmEditFieldLabel.HorizontalAlignment = 'left';
@@ -1823,7 +1855,7 @@ classdef KLT < matlab.apps.AppBase
             app.WatersurfaceelevationmEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.WatersurfaceelevationmEditFieldLabel.Position = [335 30 140 22];
             app.WatersurfaceelevationmEditFieldLabel.Text = '    WSE (m)';
-            
+
             %  Create AddLevel Button -- this is minimised unless multiple
             %  videos are being analysed
             app.AddLevelButton = uibutton(app.KLTIV_UIFigure, 'push');
@@ -1841,7 +1873,7 @@ classdef KLT < matlab.apps.AppBase
             app.AddLevelButton.HorizontalAlignment = 'center';
             app.AddLevelButton.Enable = 'off';
             app.AddLevelButton.Visible = 'Off';
-            
+
             % Create box no.4
             app.ControlHandles(i,23) = uipanel(app.scrollPane);
             app.ControlHandles(i,23).AutoResizeChildren = 'off';
@@ -1852,14 +1884,14 @@ classdef KLT < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'controlbox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            
+
             % Create AnalysisLabel
             app.AnalysisLabel = uilabel(app.KLTIV_UIFigure);
             app.AnalysisLabel.FontName = 'Ubuntu';
             app.AnalysisLabel.FontSize = 26;
             app.AnalysisLabel.Position = [730 482 240 34];
             app.AnalysisLabel.Text = '(4) Analysis';
-            
+
             % Create output directory text
             app.OutputDirectoryButtonText = uilabel(app.KLTIV_UIFigure);
             app.OutputDirectoryButtonText.Text = '';
@@ -1877,14 +1909,14 @@ classdef KLT < matlab.apps.AppBase
             app.OutputDirectoryButtonText.FontName = 'Ubuntu';
             app.OutputDirectoryButtonText.FontColor = [0.149 0.149 0.149];
             app.OutputDirectoryButtonText.Position = [655 446 140 22];
-            
+
             % Create OutputDirectoryButton
             app.OutputDirectoryButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.OutputDirectoryButton.ButtonPushedFcn = createCallbackFcn(app, @OutputDirectoryButtonPushed, true);
             app.OutputDirectoryButton.FontName = 'Roboto';
             app.OutputDirectoryButton.Position = [805 446 140 22];
             app.OutputDirectoryButton.Text = 'Click here';
-            
+
             % Create ROI text
             app.roiButtonText = uilabel(app.KLTIV_UIFigure);
             app.roiButtonText.Text = '';
@@ -1902,14 +1934,14 @@ classdef KLT < matlab.apps.AppBase
             app.OutputDirectoryButtonText.FontName = 'Ubuntu';
             app.OutputDirectoryButtonText.FontColor = [0.149 0.149 0.149];
             app.OutputDirectoryButtonText.Position = [655 414 140 22];
-            
+
             % Create ROI Button
             app.roiButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.roiButton.ButtonPushedFcn = createCallbackFcn(app, @roiButtonPushed, true);
             app.roiButton.FontName = 'Roboto';
             app.roiButton.Position = [805 414 140 22];
             app.roiButton.Text = 'Click here';
-            
+
             % Create ExporttrajectoriesSwitchLabel
             app.ExporttrajectoriesSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.ExporttrajectoriesSwitchLabel.FontName = 'Ubuntu';
@@ -1925,12 +1957,12 @@ classdef KLT < matlab.apps.AppBase
             app.ExporttrajectoriesSwitchLabel.FontName = 'Ubuntu';
             app.ExporttrajectoriesSwitchLabel.Position = [655 382 140 22];
             app.ExporttrajectoriesSwitchLabel.Text = '    Export Velocity?';
-            
+
             % Create ExporttrajectoriesSwitch
             app.ExporttrajectoriesSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.ExporttrajectoriesSwitch.FontName = 'Roboto';
             app.ExporttrajectoriesSwitch.Position = [850 382 140 22];
-            
+
             % Create OrthophotosSwitchLabel
             app.OrthophotosSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.OrthophotosSwitchLabel.FontName = 'Ubuntu';
@@ -1946,12 +1978,12 @@ classdef KLT < matlab.apps.AppBase
             app.OrthophotosSwitchLabel.FontName = 'Ubuntu';
             app.OrthophotosSwitchLabel.Position = [655 350 140 22];
             app.OrthophotosSwitchLabel.Text = '    Orthophotos?';
-            
+
             % Create OrthophotosSwitch
             app.OrthophotosSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.OrthophotosSwitch.FontName = 'Roboto';
             app.OrthophotosSwitch.Position = [850 350 140 22];
-            
+
             % Create ResolutionmpxEditFieldLabel
             app.ResolutionmpxEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.ResolutionmpxEditFieldLabel.HorizontalAlignment = 'left';
@@ -1969,13 +2001,13 @@ classdef KLT < matlab.apps.AppBase
             app.ResolutionmpxEditFieldLabel.FontName = 'Ubuntu';
             app.ResolutionmpxEditFieldLabel.Position = [655 318 140 22];
             app.ResolutionmpxEditFieldLabel.Text = '    Resolution (m/px)';
-            
+
             % Create ResolutionmpxEditField
             app.ResolutionmpxEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.ResolutionmpxEditField.FontName = 'Roboto';
             app.ResolutionmpxEditField.Position = [805 318 140 22];
             app.ResolutionmpxEditField.Value = 0.01;
-            
+
             % Create FlightPathPlotSwitchLabel
             app.FlightPathPlotSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.FlightPathPlotSwitchLabel.HorizontalAlignment = 'left';
@@ -1993,12 +2025,12 @@ classdef KLT < matlab.apps.AppBase
             app.FlightPathPlotSwitchLabel.FontName = 'Ubuntu';
             app.FlightPathPlotSwitchLabel.Position = [655 286 140 22];
             app.FlightPathPlotSwitchLabel.Text = '    Plot Movement?';
-            
+
             % Create FlightPathPlotSwitch
             app.FlightPathPlotSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.FlightPathPlotSwitch.FontName = 'Roboto';
             app.FlightPathPlotSwitch.Position = [850 286 140 22];
-            
+
             % Create TrajectoriesPlotSwitchLabel
             app.TrajectoriesPlotSwitchLabel = uilabel(app.KLTIV_UIFigure);
             app.TrajectoriesPlotSwitchLabel.HorizontalAlignment = 'left';
@@ -2016,12 +2048,12 @@ classdef KLT < matlab.apps.AppBase
             app.TrajectoriesPlotSwitchLabel.FontName = 'Ubuntu';
             app.TrajectoriesPlotSwitchLabel.Position = [655 254 140 22];
             app.TrajectoriesPlotSwitchLabel.Text = '    Plot Velocity?';
-            
+
             % Create TrajectoriesPlotSwitch
             app.TrajectoriesPlotSwitch = uiswitch(app.KLTIV_UIFigure, 'slider');
             app.TrajectoriesPlotSwitch.FontName = 'Roboto';
             app.TrajectoriesPlotSwitch.Position = [850 254 140 22];
-            
+
             % Create ExportDefaultValues Label
             app.ExportDefaultValuesLabel = uilabel(app.KLTIV_UIFigure);
             app.ExportDefaultValuesLabel.HorizontalAlignment = 'left';
@@ -2039,14 +2071,14 @@ classdef KLT < matlab.apps.AppBase
             app.ExportDefaultValuesLabel.FontName = 'Ubuntu';
             app.ExportDefaultValuesLabel.Position = [655 222 140 22];
             app.ExportDefaultValuesLabel.Text = '    Export Settings';
-            
+
             % Create ExportDefaultValuesButton
             app.ExportDefaultValuesButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.ExportDefaultValuesButton.ButtonPushedFcn = createCallbackFcn(app, @ExportDefaultValuesButtonPushed, true);
             app.ExportDefaultValuesButton.FontName = 'Roboto';
             app.ExportDefaultValuesButton.Position = [805 222 140 22];
             app.ExportDefaultValuesButton.Text = 'Click here';
-            
+
             % Create ExportDefaultValues Label
             app.LoadDefaultValuesLabel = uilabel(app.KLTIV_UIFigure);
             app.LoadDefaultValuesLabel.HorizontalAlignment = 'left';
@@ -2064,14 +2096,14 @@ classdef KLT < matlab.apps.AppBase
             app.LoadDefaultValuesLabel.FontName = 'Ubuntu';
             app.LoadDefaultValuesLabel.Position = [655 190 140 22];
             app.LoadDefaultValuesLabel.Text = '    Load Settings';
-            
+
             % Create ExportDefaultValuesButton
             app.LoadDefaultValuesButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.LoadDefaultValuesButton.ButtonPushedFcn = createCallbackFcn(app, @LoadDefaultValuesButtonPushed, true);
             app.LoadDefaultValuesButton.FontName = 'Roboto';
             app.LoadDefaultValuesButton.Position = [805 190 140 22];
             app.LoadDefaultValuesButton.Text = 'Click here';
-            
+
             % Create RUNButton
             app.RUNButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.RUNButton.ButtonPushedFcn = createCallbackFcn(app, @RUNButtonPushed, true);
@@ -2079,7 +2111,7 @@ classdef KLT < matlab.apps.AppBase
             app.RUNButton.FontColor = [0.149 0.149 0.149];
             app.RUNButton.Position = [655 158 290 22];
             app.RUNButton.Text = 'RUN';
-            
+
             % Create box no.5
             app.ControlHandles(i,31) = uipanel(app.scrollPane);
             app.ControlHandles(i,31).AutoResizeChildren = 'off';
@@ -2090,14 +2122,14 @@ classdef KLT < matlab.apps.AppBase
                 'dojo.addClass(dojo.query("[%s = ''%s'']")[0], "%s")',...
                 panelID.ID_attr, panelID.ID_val, 'controlbox');
             app.WEBWINDOW.executeJS(setClassString); % add class to DOM element
-            
+
             % Create AnalysisLabel
             app.AnalysisLabel = uilabel(app.KLTIV_UIFigure);
             app.AnalysisLabel.FontName = 'Ubuntu';
             app.AnalysisLabel.FontSize = 26;
             app.AnalysisLabel.Position = [1045 482 240 34];
             app.AnalysisLabel.Text = '(5) Discharge';
-            
+
             % Create CrossSectionDropDownLabel
             app.CrossSectionDropDownLabel = uilabel(app.KLTIV_UIFigure);
             app.CrossSectionDropDownLabel.HorizontalAlignment = 'left';
@@ -2117,7 +2149,7 @@ classdef KLT < matlab.apps.AppBase
             app.CrossSectionDropDownLabel.FontColor = [0.149 0.149 0.149];
             app.CrossSectionDropDownLabel.Position = [980 446 140 22];
             app.CrossSectionDropDownLabel.Text = '    Cross-section Input';
-            
+
             % Create CrossSectionDropDown
             app.CrossSectionDropDown = uidropdown(app.KLTIV_UIFigure);
             app.CrossSectionDropDown.Items = {'Make a selection:', 'Referenced survey [m]', 'Relative distances [m]'};
@@ -2126,7 +2158,7 @@ classdef KLT < matlab.apps.AppBase
             app.CrossSectionDropDown.FontColor = [0.149 0.149 0.149];
             app.CrossSectionDropDown.Position = [1130 446 140 22];
             app.CrossSectionDropDown.Value = 'Make a selection:';
-            
+
             % Create Reference height label
             app.ReferenceHeightLabel = uilabel(app.KLTIV_UIFigure);
             app.ReferenceHeightLabel.HorizontalAlignment = 'left';
@@ -2146,7 +2178,7 @@ classdef KLT < matlab.apps.AppBase
             app.ReferenceHeightLabel.FontColor = [0.149 0.149 0.149];
             app.ReferenceHeightLabel.Position = [980 414 140 22];
             app.ReferenceHeightLabel.Text = '    Reference Height';
-            
+
             % Create Reference height settings
             app.ReferenceHeight = uidropdown(app.KLTIV_UIFigure);
             app.ReferenceHeight.Items = {'Make a selection:', 'True bed elevation [m]', 'Water depth [m]'};
@@ -2155,7 +2187,7 @@ classdef KLT < matlab.apps.AppBase
             app.ReferenceHeight.FontColor = [0.149 0.149 0.149];
             app.ReferenceHeight.Position = [1130 414 140 22];
             app.ReferenceHeight.Value = 'Make a selection:';
-            
+
             % Create UITable2
             app.UITable2 = uitable(app.KLTIV_UIFigure);
             app.UITable2.ColumnName = {'Chainage'; 'Elevation'};
@@ -2163,7 +2195,7 @@ classdef KLT < matlab.apps.AppBase
             app.UITable2.CellEditCallback = createCallbackFcn(app, @KLT_editCel2, true);
             app.UITable2.FontName = 'Roboto';
             app.UITable2.Position = [980 282 290 123];
-            
+
             % Create CellNumberEditFieldLabel
             app.CellNumberEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.CellNumberEditFieldLabel.HorizontalAlignment = 'left';
@@ -2183,14 +2215,14 @@ classdef KLT < matlab.apps.AppBase
             app.CellNumberEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.CellNumberEditFieldLabel.Position = [980 254 140 22];
             app.CellNumberEditFieldLabel.Text = '    Number of cells';
-            
+
             % Create CellNumberEditField
             app.CellNumberEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.CellNumberEditField.FontName = 'Roboto';
             app.CellNumberEditField.FontColor = [0.149 0.149 0.149];
             app.CellNumberEditField.Position = [1130 254 140 22];
             app.CellNumberEditField.Value = 20;
-            
+
             % Create Interpoation method
             app.InterpolationMethodLabel = uilabel(app.KLTIV_UIFigure);
             app.InterpolationMethodLabel.HorizontalAlignment = 'left';
@@ -2210,7 +2242,7 @@ classdef KLT < matlab.apps.AppBase
             app.InterpolationMethodLabel.FontColor = [0.149 0.149 0.149];
             app.InterpolationMethodLabel.Position = [980 222 140 22];
             app.InterpolationMethodLabel.Text = '    Interpolation method';
-            
+
             % Create InterpolationMethod field
             app.InterpolationMethod = uidropdown(app.KLTIV_UIFigure);
             app.InterpolationMethod.Items = {'Make a selection:', 'All', 'Quadratic Polynomial', 'Cubic Polynomial', 'Constant Froude' };
@@ -2218,7 +2250,7 @@ classdef KLT < matlab.apps.AppBase
             app.InterpolationMethod.FontColor = [0.149 0.149 0.149];
             app.InterpolationMethod.Position = [1130 222 140 22];
             app.InterpolationMethod.Value = 'Make a selection:';
-            
+
             % Create alphaEditFieldLabel
             app.alphaEditFieldLabel = uilabel(app.KLTIV_UIFigure);
             app.alphaEditFieldLabel.HorizontalAlignment = 'left';
@@ -2238,14 +2270,14 @@ classdef KLT < matlab.apps.AppBase
             app.alphaEditFieldLabel.FontColor = [0.149 0.149 0.149];
             app.alphaEditFieldLabel.Position = [980 190 140 22];
             app.alphaEditFieldLabel.Text = '    Alpha';
-            
+
             % Create alphaEditField
             app.alphaEditField = uieditfield(app.KLTIV_UIFigure, 'numeric');
             app.alphaEditField.FontName = 'Roboto';
             app.alphaEditField.FontColor = [0.149 0.149 0.149];
             app.alphaEditField.Position = [1130 190 140 22];
             app.alphaEditField.Value = 0.85;
-            
+
             % Create CALCULATEButton
             app.CALCULATEButton = uibutton(app.KLTIV_UIFigure, 'push');
             app.CALCULATEButton.ButtonPushedFcn = createCallbackFcn(app, @KLT_CALCULATEButtonPushed, true);
@@ -2253,7 +2285,7 @@ classdef KLT < matlab.apps.AppBase
             app.CALCULATEButton.FontColor = [0.149 0.149 0.149];
             app.CALCULATEButton.Position = [980 162 290 22];
             app.CALCULATEButton.Text = 'CALCULATE';
-            
+
             % Create ListBox
             app.ListBox = uilistbox(app.KLTIV_UIFigure);
             for x=1:1000 % create an empty listbox
@@ -2263,38 +2295,38 @@ classdef KLT < matlab.apps.AppBase
             app.ListBox.Position = [650 15 625 132];
             app.ListBox.FontName = 'Roboto';
             app.ListBox.Value = '';
-            
+
         end
-        
+
     end
-    
+
     methods (Access = public)
-        
+
         % Construct app
         function app = KLT
-            
+
             try
-                
+
                 % Create and configure components
                 createComponents(app)
-                
+
                 % Register the app with App Designer
                 registerApp(app, app.KLTIV_UIFigure)
-                
+
                 % Execute the startup function
                 runStartupFcn(app, @startupFcn)
-                
+
             catch err
-                
+
                 KLT_errorCallback(app,err)
-                
+
             end
-            
+
             if nargout == 0
                 clear app
             end
         end
-        
+
         % Code that executes before app deletion
         function delete(app)
             delete(app.KLTIV_UIFigure) % Delete UIFigure when app is deleted

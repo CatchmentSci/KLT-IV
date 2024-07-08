@@ -1,4 +1,4 @@
-function KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic, wetted_width );
+function KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic, wetted_width, z1 );
 
 text            = fileread('KLT_discharge_report.html');
 
@@ -266,10 +266,16 @@ newChr          = strrep(newChr, 'VarFlowAngle', 'Disabled'); % assign the water
 
 % Write the modified data to the html file
 
-if sizer1 == 1 % if only one q output
-    fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_discharge_summary_report.html'],'w');
+if z1 == -1
+    appender = '_wse';
 else
-    fid = fopen([app.OutputDirectoryButton.Text '\' nameIn '_discharge_summary_report.html'],'w');
+    appender = '';
+end
+
+if sizer1 == 1 % if only one q output
+    fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_discharge_summary_report' appender '.html'],'w');
+else
+    fid = fopen([app.OutputDirectoryButton.Text '\' nameIn '_discharge_summary_report' appender '.html'],'w');
 end
 
 fprintf(fid,'%s',newChr);

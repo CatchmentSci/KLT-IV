@@ -48,7 +48,7 @@ if length(app.firstFrame) > 1
             totNum =  V.NumFrames;
         end
         
-        while s3 < totNum
+        while s3 < totNum + 1
             template = '00000';
             inputNum = num2str(s3);
             p1 = template(1:end-length(num2str(s3)));

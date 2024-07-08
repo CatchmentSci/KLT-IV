@@ -13,6 +13,7 @@ wse_analysis        = 0;
 
 % if wse analysis has already been undertaken re-establish proper
 % properties
+wse_counter = 0
 if wse_counter < 0
     app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
     wse_analysis = 1;
@@ -20,7 +21,7 @@ end
 
 
 % Define the pre-processing settings
-app.prepro              = 1; %zero = disabled; one = enabled
+app.prepro              = 0; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
     app.pre_pro_params      = zeros(1,12); %empty array
@@ -78,11 +79,13 @@ end
 % Overwrite the default frame rate?
 % Only run for the first video
 if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
-    defaultValue        = {num2str(app.videoFrameRate)};
-    titleBar            = 'Manually overwrite the frame rate present in the meta-data?';
-    userPrompt          = {'Defined frame rates: '};
-    caUserInput         = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
-    app.videoFrameRate  = str2double(caUserInput{1});
+    if wse_analysis == 0 % prevent it asking each time after wse reconstruction
+        defaultValue        = {num2str(app.videoFrameRate)};
+        titleBar            = 'Manually overwrite the frame rate present in the meta-data?';
+        userPrompt          = {'Defined frame rates: '};
+        caUserInput         = inputdlg(userPrompt, titleBar, [1, 60], defaultValue);
+        app.videoFrameRate  = str2double(caUserInput{1});
+    end
 end
 
 % Define the total number of frames available
@@ -116,17 +119,20 @@ end
 
 % Enter the start and stop of the video analysis
 % Only run for the first video
-if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1 
-    defaultValue    = {'0', num2str(round(app.videoDuration))};
-    titleBar        = 'Define the start and end of the video in seconds';
-    userPrompt      = {'Starting point (s): ', 'Finishing point (s): '};
-    caUserInput     = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
-    app.videoStart  = str2num(caUserInput{1});
-    app.videoClip   = str2num(caUserInput{2});
-    if abs(app.videoClip -  round(app.videoDuration)) > 0 % if video is clipped
-        app.clipped = true;
-    else
-        app.clipped = false;
+if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
+    if wse_analysis == 0 % prevent it asking each time after wse reconstruction
+
+        defaultValue    = {'0', num2str(round(app.videoDuration))};
+        titleBar        = 'Define the start and end of the video in seconds';
+        userPrompt      = {'Starting point (s): ', 'Finishing point (s): '};
+        caUserInput     = inputdlg(userPrompt, titleBar, [1, 80], defaultValue);
+        app.videoStart  = str2num(caUserInput{1});
+        app.videoClip   = str2num(caUserInput{2});
+        if abs(app.videoClip -  round(app.videoDuration)) > 0 % if video is clipped
+            app.clipped = true;
+        else
+            app.clipped = false;
+        end
     end
 end
 
@@ -315,13 +321,12 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
 
                     KLT_imageExport(app)
 
-                    points = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion);
-                    %points      = detectKAZEFeatures(app.objectFrame, 'ROI', objectRegion);
-
-                    points = points.Location;
+                    points      = detectMinEigenFeatures(app.objectFrame); %, 'ROI', objectRegion);
+                    points      = points.Location;
                     oldPoints   = points; % Make a copy of the points to be used
                     numPoints   = double(oldPoints); % locate the origins of the GCP
                     
+
                 end
                 
                 camA_previous = app.camA;
@@ -638,7 +643,6 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                     end
                 end
             end
-
             clear xyzA_initial xyzB_initial uvA_initial uvB_initial verticalValue2 verticalValue horizontalValue2 horizontalValue
             
             %% restart the tracking sequence
@@ -801,6 +805,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
 
     end
 
+    
     endof_video = 1; % perform the wse analysis at the end of the video
 
     if endof_video == 1 && wse_counter >-1 % run the wse extraction scipt
@@ -808,13 +813,13 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
         wse_counter     = 1;
         xyzA_wse{1}     = [];
 
-        if app.s2 == limiter_frame -1 && app.prepro == 0
-            xyzA_wse{ei}    = xyzA_conv(:,1:2);
-            xyzB_wse{ei}    = xyzB_conv(:,1:2);
-            [wse_map] = KLT_wse(app,xyzA_wse,xyzB_wse,ei,xyzA_conv,xyzB_conv);
-        elseif app.s2 == limiter_frame-1 && app.prepro == 1
-            [wse_map] = KLT_wse(app,[],[],ei,xyzA_conv,xyzB_conv);
-        end
+        %if app.s2 == limiter_frame -1 && app.prepro == 0
+        %    xyzA_wse{ei}    = xyzA_conv(:,1:2);
+        %    xyzB_wse{ei}    = xyzB_conv(:,1:2);
+        %    [wse_map] = KLT_wse(app,xyzA_wse,xyzB_wse,ei,xyzA_conv,xyzB_conv);
+        %elseif app.s2 == limiter_frame-1 && app.prepro == 1
+        %    [wse_map] = KLT_wse(app,[],[],ei,xyzA_conv,xyzB_conv);
+        %end
 
 
     elseif wse_counter >-1  % run the wse extraction scipt at the end of each sequence
@@ -921,9 +926,8 @@ if strcmp (app.OrientationDropDown.Value, 'Stationary: GCPs') == true && ...
             app.Transdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
         end
 
-        xyzA_wse{ei}    = xyzA(:,1:2);
-        xyzB_wse{ei}    = xyzB(:,1:2);
-
+        xyzA = app.camA.invproject(xyzA(:,1:2) ,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
+        xyzB = app.camA.invproject(xyzB(:,1:2) ,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
 
         % convert all of the positions inc. unsuccesful points
         out1        = cell2mat(arrayfun(@(x) x.*ones(1,size(app.init_track{x},1)), 1:numel(app.init_track),'uni',0)).'; % 
@@ -947,8 +951,8 @@ try
     if length(app.boundaryLimitsM)>1
 
         if wse_counter==1 % if calculating wse then we need to reinstate xyzA/B
-            xyzA = [app.finalVel{1}]; % using the final velocity solutions for the plots
-            xyzB = [app.finalVel{2}];
+            %xyzA = [app.finalVel{1}]; % using the final velocity solutions for the plots
+            %xyzB = [app.finalVel{2}];
         end
 
         [in,~] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
@@ -959,14 +963,14 @@ try
         % there's some errors in here - need to see why 'in' doesn't match
         % the other array sizes
         if wse_counter==1
-            app.adjustedVel = app.adjustedVel(in,1:2);
-            app.vel         = app.vel(in,1:3);
-            app.refValue    = app.refValue(in);
-            app.normalVelocity  = app.normalVelocity(in);
-            app.initialVel{1} = app.initialVel{1}(in,1:2);
-            app.initialVel{2} = app.initialVel{2}(in,1:2);
-            app.finalVel{1} = app.finalVel{1}(in,1:2);
-            app.finalVel{2} = app.finalVel{2}(in,1:2);
+            %app.adjustedVel = app.adjustedVel(in,1:2);
+            %app.vel         = app.vel(in,1:3);
+            %app.refValue    = app.refValue(in);
+            %app.downstreamVelocity  = app.downstreamVelocity(in);
+            %app.initialVel{1} = app.initialVel{1}(in,1:2);
+            %app.initialVel{2} = app.initialVel{2}(in,1:2);
+            %app.finalVel{1} = app.finalVel{1}(in,1:2);
+            %app.finalVel{2} = app.finalVel{2}(in,1:2);
         end
 
         % this is for the sdi work

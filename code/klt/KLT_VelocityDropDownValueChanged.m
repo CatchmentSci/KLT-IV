@@ -3,8 +3,8 @@ function KLT_VelocityDropDownValueChanged(app, ~)
 
 switch app.VelocityDropDown.Value
 
-    case 'Normal Component'
-        TextIn = {'Normal component selected:'; 'The streamwise velocity will be computed'};
+    case 'Downstream Component'
+        TextIn = {'Downstream Component selected:'; 'The streamwise velocity will be computed'};
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
         app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
@@ -13,7 +13,7 @@ switch app.VelocityDropDown.Value
         app.ListBox.scroll('bottom');
 
         try
-            % Define the normal flow direction
+            % Define the downstream flow direction
             app.pts = KLT_readPoints(app.firstFrame,2,1); hold on;
             disp(app.pts)
             try

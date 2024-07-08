@@ -369,11 +369,17 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
                     filenameJpg = [ app.file(1:end-4) '_frame' fileNameIteration '.jpg'];
                 elseif ~isempty(app.directory_save_multiple)
                     dirIn = [app.directory_save_multiple '\orthorectified\'];
-                    mkdir (dirIn);
+                    try
+                        mkdir (dirIn);
+                    catch
+                    end
                     filenameJpg = [dirIn '\' app.fileNameAnalysis{app.videoNumber}(1:end-4) '_frame' fileNameIteration '.jpg'];
                 else
                     dirIn = [app.directory_save '\orthorectified\'];
-                    mkdir (dirIn);
+                    try
+                        mkdir (dirIn);
+                    catch
+                    end
                     filenameJpg = [dirIn '\' app.fileNameAnalysis{app.videoNumber}(1:end-4) '_frame' fileNameIteration '.jpg'];
                 end
                 
