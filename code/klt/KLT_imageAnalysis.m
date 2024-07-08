@@ -13,7 +13,7 @@ wse_analysis        = 0;
 
 % if wse analysis has already been undertaken re-establish proper
 % properties
-wse_counter = 0
+%wse_counter = 0
 if wse_counter < 0
     app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
     wse_analysis = 1;
@@ -21,7 +21,7 @@ end
 
 
 % Define the pre-processing settings
-app.prepro              = 0; %zero = disabled; one = enabled
+app.prepro              = 1; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
     app.pre_pro_params      = zeros(1,12); %empty array
@@ -813,13 +813,13 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
         wse_counter     = 1;
         xyzA_wse{1}     = [];
 
-        %if app.s2 == limiter_frame -1 && app.prepro == 0
-        %    xyzA_wse{ei}    = xyzA_conv(:,1:2);
-        %    xyzB_wse{ei}    = xyzB_conv(:,1:2);
-        %    [wse_map] = KLT_wse(app,xyzA_wse,xyzB_wse,ei,xyzA_conv,xyzB_conv);
-        %elseif app.s2 == limiter_frame-1 && app.prepro == 1
-        %    [wse_map] = KLT_wse(app,[],[],ei,xyzA_conv,xyzB_conv);
-        %end
+        if app.s2 == limiter_frame -1 && app.prepro == 0
+            xyzA_wse{ei}    = xyzA_conv(:,1:2);
+            xyzB_wse{ei}    = xyzB_conv(:,1:2);
+            [wse_map] = KLT_wse(app,xyzA_wse,xyzB_wse,ei,xyzA_conv,xyzB_conv);
+        elseif app.s2 == limiter_frame-1 && app.prepro == 1
+            [wse_map] = KLT_wse(app,[],[],ei,xyzA_conv,xyzB_conv);
+        end
 
 
     elseif wse_counter >-1  % run the wse extraction scipt at the end of each sequence
@@ -951,8 +951,8 @@ try
     if length(app.boundaryLimitsM)>1
 
         if wse_counter==1 % if calculating wse then we need to reinstate xyzA/B
-            %xyzA = [app.finalVel{1}]; % using the final velocity solutions for the plots
-            %xyzB = [app.finalVel{2}];
+            xyzA = [app.finalVel{1}]; % using the final velocity solutions for the plots
+            xyzB = [app.finalVel{2}];
         end
 
         [in,~] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
@@ -963,14 +963,14 @@ try
         % there's some errors in here - need to see why 'in' doesn't match
         % the other array sizes
         if wse_counter==1
-            %app.adjustedVel = app.adjustedVel(in,1:2);
-            %app.vel         = app.vel(in,1:3);
-            %app.refValue    = app.refValue(in);
-            %app.downstreamVelocity  = app.downstreamVelocity(in);
-            %app.initialVel{1} = app.initialVel{1}(in,1:2);
-            %app.initialVel{2} = app.initialVel{2}(in,1:2);
-            %app.finalVel{1} = app.finalVel{1}(in,1:2);
-            %app.finalVel{2} = app.finalVel{2}(in,1:2);
+            app.adjustedVel = app.adjustedVel(in,1:2);
+            app.vel         = app.vel(in,1:3);
+            app.refValue    = app.refValue(in);
+            app.downstreamVelocity  = app.downstreamVelocity(in);
+            app.initialVel{1} = app.initialVel{1}(in,1:2);
+            app.initialVel{2} = app.initialVel{2}(in,1:2);
+            app.finalVel{1} = app.finalVel{1}(in,1:2);
+            app.finalVel{2} = app.finalVel{2}(in,1:2);
         end
 
         % this is for the sdi work

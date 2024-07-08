@@ -872,7 +872,7 @@ classdef KLT < matlab.apps.AppBase
 
         function ProcessingModeDropDownValueChanged(app, ~)
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
-                app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU', 'Planet [beta]'}
+                app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}%, 'Planet [beta]'}
                 app.OrientationDropDown.Value = 'Make a selection:';
                 app.CrossSectionDropDown.Items = {'Make a selection:', 'Referenced survey [m]', 'Relative distances [m]'};
                 app.CrossSectionDropDown.Value = 'Make a selection:';
@@ -1329,7 +1329,7 @@ classdef KLT < matlab.apps.AppBase
 
             % Create OrientationDropDown
             app.OrientationDropDown = uidropdown(app.KLTIV_UIFigure);
-            app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU', 'Planet [beta]'}
+            app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU'}%, 'Planet [beta]'}
             app.OrientationDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_OrientationDropDownValueChanged, true);
             app.OrientationDropDown.FontName = 'Roboto';
             app.OrientationDropDown.Position = [170 349 140 22];
