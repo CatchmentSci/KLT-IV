@@ -14,10 +14,12 @@ else
 end
 
 newChr          = strrep(newChr,'VarCameraType',app.CameraTypeDropDown.Value); % assign the camera type
-newChr          = strrep(newChr,'VarXYZ',...
-    [ num2str(round(app.camA.xyz(1,1),2)), ', ' num2str(round(app.camA.xyz(1,2),2)), ', ' num2str(round(app.camA.xyz(1,3),2))]); % assign the optimised camera location
-newChr          = strrep(newChr,'VarYawPitchRoll',...
-    [num2str(round(app.camA.viewdir(1),2)) ', '  num2str(round(app.camA.viewdir(2),2)) ', ' num2str(round(app.camA.viewdir(3),2))]);
+if strcmp(app.OrientationDropDown.Value, 'Dynamic: Stabilisation') ~=1
+    newChr          = strrep(newChr,'VarXYZ',...
+        [ num2str(round(app.camA.xyz(1,1),2)), ', ' num2str(round(app.camA.xyz(1,2),2)), ', ' num2str(round(app.camA.xyz(1,3),2))]); % assign the optimised camera location
+    newChr          = strrep(newChr,'VarYawPitchRoll',...
+        [num2str(round(app.camA.viewdir(1),2)) ', '  num2str(round(app.camA.viewdir(2),2)) ', ' num2str(round(app.camA.viewdir(3),2))]);
+end
 newChr          = strrep(newChr,'VarVideoDuration',num2str(app.videoDuration)); % assign the video duration
 newChr          = strrep(newChr,'VarFrameRate',num2str(app.videoFrameRate)); % assign the video frame rate
 newChr          = strrep(newChr,'VarResolution',[num2str(size(app.firstFrame,1)) ' x ' num2str(size(app.firstFrame,2))]); % assign the video resolution
@@ -34,32 +36,33 @@ newChr          = strrep(newChr, 'VarVelComponent',app.VelocityDropDown.Value); 
 newChr          = strrep(newChr, 'VarIgnoreEdges',app.IgnoreEdgesDropDown.Value ); % assign the velocity component
 
 % Add the GCP data
-GCPtext         = fileread('KLT_discharge_report_GCP_template.txt');
-for a = 1:size(app.gcpA,1)
+if strcmp(app.OrientationDropDown.Value, 'Dynamic: Stabilisation') ~=1
+    GCPtext         = fileread('KLT_discharge_report_GCP_template.txt');
+    for a = 1:size(app.gcpA,1)
 
-    GCPtext_mod     = strrep(GCPtext,'GCP x1', num2str(app.gcpA(a,1))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'GCP y1', num2str(app.gcpA(a,2))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'GCP z1', num2str(app.gcpA(a,3))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'GCP x2', num2str(app.gcpA(a,4))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'GCP y2', num2str(app.gcpA(a,5))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'x error', num2str(round(app.GCPdiff(a,1),2))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'y error', num2str(round(app.GCPdiff(a,2),2))); 
-    GCPtext_mod     = strrep(GCPtext_mod,'total error', num2str(abs(round(sqrt(app.GCPdiff(a,1).^2+app.GCPdiff(a,2)),2))));
+        GCPtext_mod     = strrep(GCPtext,'GCP x1', num2str(app.gcpA(a,1)));
+        GCPtext_mod     = strrep(GCPtext_mod,'GCP y1', num2str(app.gcpA(a,2)));
+        GCPtext_mod     = strrep(GCPtext_mod,'GCP z1', num2str(app.gcpA(a,3)));
+        GCPtext_mod     = strrep(GCPtext_mod,'GCP x2', num2str(app.gcpA(a,4)));
+        GCPtext_mod     = strrep(GCPtext_mod,'GCP y2', num2str(app.gcpA(a,5)));
+        GCPtext_mod     = strrep(GCPtext_mod,'x error', num2str(round(app.GCPdiff(a,1),2)));
+        GCPtext_mod     = strrep(GCPtext_mod,'y error', num2str(round(app.GCPdiff(a,2),2)));
+        GCPtext_mod     = strrep(GCPtext_mod,'total error', num2str(abs(round(sqrt(app.GCPdiff(a,1).^2+app.GCPdiff(a,2)),2))));
 
-    if a == 1
-        fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_GCP_data.txt'],'w');
-        fprintf(fid,'%s',GCPtext_mod);
-        fclose(fid);
-    else
-        fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_GCP_data.txt'],'a');
-        fprintf(fid,'%s',[GCPtext_mod]);
-        fclose(fid);
+        if a == 1
+            fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_GCP_data.txt'],'w');
+            fprintf(fid,'%s',GCPtext_mod);
+            fclose(fid);
+        else
+            fid = fopen([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_GCP_data.txt'],'a');
+            fprintf(fid,'%s',[GCPtext_mod]);
+            fclose(fid);
+        end
     end
+
+    GCPtext_mod     = fileread([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_GCP_data.txt']);
+    newChr          = strrep(newChr, '<!--    GCP text placeholder    -->',GCPtext_mod ); % assign the velocity component
 end
-
-GCPtext_mod     = fileread([app.OutputDirectoryButton.Text '\' app.file(1:end-4) '_GCP_data.txt']);
-newChr          = strrep(newChr, '<!--    GCP text placeholder    -->',GCPtext_mod ); % assign the velocity component
-
 
 % Add the PP information
 if app.prepro == 0
