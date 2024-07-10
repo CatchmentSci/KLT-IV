@@ -108,8 +108,8 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
             ylabel(d, 'Velocity Magnitude $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
-        elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-            ylabel(d, 'Normal Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
+        elseif strcmp(app.VelocityDropDown.Value, 'Downstream Component') == 1
+            ylabel(d, 'Streamwise Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
         end
         
         d.FontSize = 14;
@@ -138,8 +138,8 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         if strcmp (app.VelocityDropDown.Value, 'Velocity Magnitude') == 1
             zlabel(['Velocity Magnitude $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
-        elseif strcmp(app.VelocityDropDown.Value, 'Normal Component') == 1
-            zlabel(['Normal Velocity $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
+        elseif strcmp(app.VelocityDropDown.Value, 'Downstream Component') == 1
+            zlabel(['Streamwise Velocity $\mathrm{(m \ s^{-1})}$'] , 'Interpreter','LaTex');
         end
         
         % Query how many trajectories to plot

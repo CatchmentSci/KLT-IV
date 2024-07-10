@@ -162,7 +162,7 @@ classdef KLT < matlab.apps.AppBase
         maxVel
         minVel
         newPoints
-        normalVelocity
+        downstreamVelocity
         objectFrame
         objectFrameStacked
         OrientationValue
@@ -205,7 +205,7 @@ classdef KLT < matlab.apps.AppBase
         Transdem
         transectLength
         transferclass
-        transformNormal
+        transformDownstream
         transformTangential
         TransX
         TransY
@@ -339,7 +339,7 @@ classdef KLT < matlab.apps.AppBase
                             app.startingAppVals.refValue    = [];
                             app.starterInd                  = app.starterInd + 1;
                             app.startingAppVals.objectFrameStacked = {};
-                            app.startingAppVals.normalVelocity = [];
+                            app.startingAppVals.downstreamVelocity = [];
                         else
                             app.starterInd                  = app.starterInd + 1;
                         end
@@ -404,7 +404,7 @@ classdef KLT < matlab.apps.AppBase
                             app.startingAppVals.refValue    = [];
                             app.starterInd                  = app.starterInd + 1;
                             app.startingAppVals.objectFrameStacked = {};
-                            app.startingAppVals.normalVelocity = [];
+                            app.startingAppVals.downstreamVelocity = [];
                         else
                             app.starterInd                  = app.starterInd + 1;
                         end
@@ -1560,7 +1560,7 @@ classdef KLT < matlab.apps.AppBase
             
             % Create VelocityDropDown
             app.VelocityDropDown = uidropdown(app.KLTIV_UIFigure);
-            app.VelocityDropDown.Items = {'Velocity Magnitude', 'Normal Component'}; %'Make a selection:', 'Normal Component',
+            app.VelocityDropDown.Items = {'Velocity Magnitude', 'Downstream Component'}; %'Make a selection:', 'Normal Component',
             app.VelocityDropDown.ValueChangedFcn = createCallbackFcn(app, @KLT_VelocityDropDownValueChanged, true);
             app.VelocityDropDown.FontName = 'Roboto';
             app.VelocityDropDown.FontColor = [0.149 0.149 0.149];

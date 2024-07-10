@@ -2,7 +2,7 @@ function [] = KLT_vectorRotation(app)
 
 switch app.VelocityDropDown.Value
 
-    case 'Normal Component'
+    case 'Downstream Component'
         
         % Update the dialog box
         TextIn             = {'Adjusting trajectories relative to the idealised flow line. Please wait.'};
@@ -72,7 +72,7 @@ switch app.VelocityDropDown.Value
         v(rem1)             = NaN; % direction filter applied
         
         app.refValue        = u;
-        app.normalVelocity  = u;
+        app.downstreamVelocity  = u;
         app.adjustedVel     = [u, v]; % check that these are the values exported to excel
    
         % Update the dialog box
@@ -88,7 +88,7 @@ switch app.VelocityDropDown.Value
         app.vel             = app.xyzB_final - app.xyzA_final;% The raw velocity values - not direction specific
         app.adjustedVel     = app.vel./(app.iter*1/app.videoFrameRate); % divided by time period between start and stop i.e. m s
         app.refValue        = sqrt(app.adjustedVel(:,1).^2 + app.adjustedVel(:,2).^2);
-     	app.normalVelocity(1:length(app.xyzA_final),1) = NaN;
+     	app.downstreamVelocity(1:length(app.xyzA_final),1) = NaN;
 
 end
     

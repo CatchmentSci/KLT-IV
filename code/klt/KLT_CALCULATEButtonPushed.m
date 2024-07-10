@@ -460,7 +460,7 @@ if cont == 1
                 
                 cb = colorbar(a2,'north');
                 set(cb,'Position',[0.178274596182088 0.614157527417745 0.322276064610865 0.0210451977401113]);
-                ylabel(cb, 'Normal Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
+                ylabel(cb, 'Streamwise Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
                 cb.FontSize = 14;
                 set(cb,'TickLabelInterpreter','latex')
                 

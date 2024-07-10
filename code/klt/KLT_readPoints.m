@@ -32,11 +32,11 @@ if liner == 0 % Provide the input dialogue box for the manual coordaintes entry
     zoom on
 end
 
-if liner == 1 % normal component
+if liner == 1 % downstream component
     f1 = figure('units', 'normalized', 'outerposition',[0 0 1 1]);
     hold on;
     imshow(image); hold on;     % display image
-    title ('Register the normal direction of flow: using the right mouse button select the start and stop of a flow-line');
+    title ('Register the downstream direction of flow: using the right mouse button select the start and stop of a flow-line');
     zoom off
 elseif liner == 2 % check GCPs
     imshow(image); hold on;     % display image
