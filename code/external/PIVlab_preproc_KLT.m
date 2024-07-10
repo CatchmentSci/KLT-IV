@@ -1,4 +1,4 @@
-function out = PIVlab_preproc (app,in)
+function out = PIVlab_preproc_KLT (app,in)
 %preprocessing does not change the image class anymore
 %works with uint8, uint16, singe and double RGB and gray images.
 %this function preprocesses the images

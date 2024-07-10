@@ -297,7 +297,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 KLT_orthorectification(app) % Run the starting orthoscript
                 KLT_orthorectificationProgessive(app)
                 if app.prepro == 1
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                    app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
                     %if isa(app.firstFrame,'uint8')
                     %    app.objectFrame = uint8(app.objectFrame);
                     %end
@@ -399,7 +399,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 if Index > 0 && app.prepro == 1
                     app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                     KLT_orthorectificationProgessive(app)
-                    app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                    app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
                     KLT_imageExport(app)
                     
                 elseif Index > 0
@@ -429,7 +429,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                     app.prepro == 1 % MP 20240326
                 app.objectFrame = app.objectFrameStacked{app.s2};
                 KLT_orthorectificationProgessive(app)
-                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
                 KLT_imageExport(app)
 
 
@@ -443,7 +443,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                     app.prepro == 1 % MP 20240326
                 app.objectFrame = rgb2gray(readFrame(V));
                 KLT_orthorectificationProgessive(app)
-                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
                 KLT_imageExport(app)
 
             
@@ -725,7 +725,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             if Index > 0 && app.prepro == 1
                 app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
                 KLT_orthorectificationProgessive(app)
-                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
                 app.rgbHR = app.objectFrame;
                 KLT_imageExport(app)
    
@@ -744,7 +744,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
 
             app.objectFrame = app.objectFrameStacked{app.s2};
             KLT_orthorectificationProgessive(app)
-            app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+            app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
             app.rgbHR = app.objectFrame;
             KLT_imageExport(app)
 
