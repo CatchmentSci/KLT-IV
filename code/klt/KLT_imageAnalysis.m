@@ -767,6 +767,20 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             visiblePoints = app.newPoints(isFound, :);
             oldInliers = oldPoints(isFound, :);
 
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true && ...
+                app.prepro == 1
+
+            app.objectFrame = rgb2gray(readFrame(V));
+            KLT_orthorectificationProgessive(app)
+            app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
+            app.rgbHR = app.objectFrame;
+            KLT_imageExport(app)
+
+
+            [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
+            visiblePoints = app.newPoints(isFound, :);
+            oldInliers = oldPoints(isFound, :);
+
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
             % Load the correct frame in the video sequence
             app.objectFrame = app.objectFrameStacked{app.s2};
