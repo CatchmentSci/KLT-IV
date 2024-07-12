@@ -959,6 +959,7 @@ classdef KLT < matlab.apps.AppBase
 
 
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == 1
+                app.OrientationDropDown.Items = {'Make a selection:', 'Dynamic: Stabilisation'};
                 app.OrientationDropDown.Value = 'Dynamic: Stabilisation'; % needs to be defined
                 app.CameraTypeDropDown.Enable = false;
                 app.OrientationDropDown.Enable = false;
@@ -1128,7 +1129,8 @@ classdef KLT < matlab.apps.AppBase
                 '</style>\n''' ...
                 ];
             
-            pause(3) % Insert a pause to ensure the above is executed properly
+            % increase the pause time if error is encountered here
+            pause(10) % Alllow enough time to ensure the above is executed properly
             app.WEBWINDOW.executeJS(['document.head.innerHTML += ', ...
                 cssText]);
             

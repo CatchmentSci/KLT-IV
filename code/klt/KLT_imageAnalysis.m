@@ -12,7 +12,7 @@ xyzA_conv           = [];
 wse_counter         = 100; % set as zero to run the wse reconstruction
 
 % Define the pre-processing settings
-app.prepro              = 0; %zero = disabled; one = enabled
+app.prepro              = 1; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
     app.pre_pro_params      = zeros(1,12); %empty array
@@ -729,7 +729,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 app.rgbHR = app.objectFrame;
                 KLT_imageExport(app)
    
-            elseif Index > 0% && app.prepro == 1
+            elseif Index > 0
                 app.objectFrame = rgb2gray(readFrame(V));
             else
                 break
@@ -741,7 +741,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
         
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true && ...
                 app.prepro == 1
-
+            
             app.objectFrame = app.objectFrameStacked{app.s2};
             KLT_orthorectificationProgessive(app)
             app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
@@ -752,6 +752,22 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
             visiblePoints = app.newPoints(isFound, :);
             oldInliers = oldPoints(isFound, :);
+
+
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true && ...
+                app.prepro == 1
+
+            app.objectFrame = rgb2gray(readFrame(V));
+            KLT_orthorectificationProgessive(app)
+            app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
+            app.rgbHR = app.objectFrame;
+            KLT_imageExport(app)
+
+
+            [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
+            visiblePoints = app.newPoints(isFound, :);
+            oldInliers = oldPoints(isFound, :);
+
 
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true
             % Load the correct frame in the video sequence
@@ -878,6 +894,7 @@ end
 
 try
     if length(app.boundaryLimitsM)>1
+
         [in,~] = inpolygon(xyzA(:,1),xyzA(:,2),app.boundaryLimitsM(:,1),app.boundaryLimitsM(:,2));
         app.xyzA_final = xyzA(in,1:2);
         app.xyzB_final = xyzB(in,1:2);

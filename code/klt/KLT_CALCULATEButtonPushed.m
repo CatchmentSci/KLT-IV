@@ -654,4 +654,12 @@ end % cont
 wetted_width = abs(combinedIn(end,1) - combinedIn(1,1));
 KLT_edit_discharge_report(app,absDistance, depthUse, QuadraticVelocity, CubicVelocity, froudeVelocity, missingInd, cellArea, totalQ_froude, totalQ_quad, totalQ_cubic, wetted_width );
 
+TextIn = {'Flow discharge calculated. Discharge summary report saved.'};
+TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
+TimeIn = strjoin(TimeIn, ' ');
+app.ListBox.Items = [app.ListBox.Items, TimeIn, TextIn'];
+KLT_printItems(app)
+pause(0.01);
+app.ListBox.scroll('bottom');
+
 end % function
