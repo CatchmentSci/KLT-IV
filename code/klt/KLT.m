@@ -326,45 +326,52 @@ classdef KLT < matlab.apps.AppBase
                             wse_routine = 1;
                             i1 = -2:-1;
                         else
-                             wse_routine = 0;
-                             i1 = 0;
+                            wse_routine = 0;
+                            i1 = 0;
                         end
 
                         for z1 = i1
                             if i1 == 0
+                                KLT_flightPath(app)
+                                KLT_vectorRotation(app,z1)
+                                KLT_exportVelocity(app)
+                                KLT_trajectories(app)
+                                KLT_CALCULATEButtonPushed(app,z1)
+                                KLT_appendQoutputs(app)
                                 return
-                            end
-                            KLT_imageAnalysis(app,z1) %set as zero to run the wse reconstruction or -1 to avoid
-                            KLT_flightPath(app)
-                            KLT_vectorRotation(app,z1)
-                            KLT_exportVelocity(app)
-                            KLT_trajectories(app)
-                            KLT_CALCULATEButtonPushed(app,z1)
-                            KLT_appendQoutputs(app)
-                            
-                            % save the workspace
-                            s = 2;
-                            props = properties(app);
-                            for ii=s:length(props)
-                                try
-                                    currentProperty = getfield(app, char(props(ii)));
-                                    S{ii} = getfield(app,char(props(ii)));
-                                    pause 0.1
-                                catch
-                                end
-                            end
-
-                            if z1 == -1
-                                appender = '_wse';
                             else
-                                appender = '';
-                            end
+                                KLT_imageAnalysis(app,z1) %set as zero to run the wse reconstruction or -1 to avoid
+                                KLT_flightPath(app)
+                                KLT_vectorRotation(app,z1)
+                                KLT_exportVelocity(app)
+                                KLT_trajectories(app)
+                                KLT_CALCULATEButtonPushed(app,z1)
+                                KLT_appendQoutputs(app)
 
-                            % Save the files from the workspace to the hard drive
-                           tempIn = char(app.fileNameAnalysis(a));
-                           saving_name = (strcat([app.OutputDirectoryButton.Text '\workspace_' tempIn(1:end-4) appender '.mat']));
-                           props2 = properties(app);
-                           save(saving_name, 'S','props2','-v7.3');
+                                % save the workspace
+                                s = 2;
+                                props = properties(app);
+                                for ii=s:length(props)
+                                    try
+                                        currentProperty = getfield(app, char(props(ii)));
+                                        S{ii} = getfield(app,char(props(ii)));
+                                        pause 0.1
+                                    catch
+                                    end
+                                end
+
+                                if z1 == -1
+                                    appender = '_wse';
+                                else
+                                    appender = '';
+                                end
+
+                                % Save the files from the workspace to the hard drive
+                                tempIn = char(app.fileNameAnalysis(a));
+                                saving_name = (strcat([app.OutputDirectoryButton.Text '\workspace_' tempIn(1:end-4) appender '.mat']));
+                                props2 = properties(app);
+                                save(saving_name, 'S','props2','-v7.3');
+                            end
 
                         end
 
