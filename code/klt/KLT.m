@@ -318,14 +318,18 @@ classdef KLT < matlab.apps.AppBase
                         if app.videoNumber > 1
                             KLT_customFOV(app)
                         end
-                        KLT_imageAnalysis(app,0) %set as zero to run the wse reconstruction or 1 to avoid
 
-                        wse_routine = 1;
-                        if wse_routine == 1
+                        z1 = -3; %set as zero to run the wse reconstruction or -3 to avoid
+                        KLT_imageAnalysis(app,z1) 
+
+                        if z1 == 0
+                            wse_routine = 1;
                             i1 = -2:-1;
                         else
-                            i1 = 0;
+                             wse_routine = 0;
+                             i1 = 0;
                         end
+
                         for z1 = i1
                             if i1 == 0
                                 return

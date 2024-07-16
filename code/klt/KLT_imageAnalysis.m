@@ -13,8 +13,7 @@ wse_analysis        = 0;
 
 % if wse analysis has already been undertaken re-establish proper
 % properties
-%wse_counter = 0
-if wse_counter < 0
+if wse_counter > -3 && wse_counter < 0
     app.iter    = round(app.videoFrameRate./(1/app.ExtractionratesEditField.Value)); %set extraction rate
     wse_analysis = 1;
 end
