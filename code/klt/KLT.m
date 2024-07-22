@@ -318,23 +318,33 @@ classdef KLT < matlab.apps.AppBase
                         if app.videoNumber > 1
                             KLT_customFOV(app)
                         end
-                        KLT_imageAnalysis(app,0) %set as zero to run the wse reconstruction or 1 to avoid
 
                         wse_routine = 1;
                         if wse_routine == 1
+                            app.OrthophotosSwitch.Value = 'On'; % force orthophoto generation
+                            app.OrthophotosSwitch.Enable = 'off'; % disable user changing the option
+                            KLT_imageAnalysis(app,0) %set as zero to run the wse reconstruction or -3 to avoid
                             i1 = -2:-1;
                         else
-                            i1 = 0;
+                            i1 = -3;
+                            KLT_imageAnalysis(app,i1) %set as zero to run the wse reconstruction or -3 to avoid
+                            KLT_flightPath(app)
+                            KLT_vectorRotation(app,i1)
+                            KLT_exportVelocity(app)
+                            KLT_trajectories(app,i1)
+                            KLT_CALCULATEButtonPushed(app,i1)
+                            KLT_appendQoutputs(app)
                         end
+                        
                         for z1 = i1
-                            if i1 == 0
+                            if i1 == -3
                                 return
                             end
                             KLT_imageAnalysis(app,z1) %set as zero to run the wse reconstruction or -1 to avoid
                             KLT_flightPath(app)
                             KLT_vectorRotation(app,z1)
                             KLT_exportVelocity(app)
-                            KLT_trajectories(app)
+                            KLT_trajectories(app,z1)
                             KLT_CALCULATEButtonPushed(app,z1)
                             KLT_appendQoutputs(app)
                             

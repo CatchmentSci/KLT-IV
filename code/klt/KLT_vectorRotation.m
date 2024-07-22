@@ -32,9 +32,21 @@ switch app.VelocityDropDown.Value
 
         % Convert start/stop positions to rw positions as required
         if  strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
-            strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false
+                strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false && ...
+                nanmax(app.Transdem(:))-nanmin(app.Transdem(:)) < 0.0001 % not a variable elevation
+
             start1_rw   = app.camA_first.invproject(app.start1,app.TransX,app.TransY,app.Transdem); % rectify both the start and end positions together
             end1_rw     = app.camA_first.invproject(app.end1,app.TransX,app.TransY,app.Transdem);
+
+        elseif strcmp (app.OrientationDropDown.Value, 'Dynamic: Stabilisation') == false && ...
+                strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == false && ...
+                nanmax(app.Transdem(:))-nanmin(app.Transdem(:)) > 0.0001 % a variable elevation is used
+            
+            [params] = size(app.TransX);
+            tempdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
+
+            start1_rw   = app.camA_first.invproject(app.start1,app.TransX,app.TransY,tempdem); % rectify both the start and end positions together
+            end1_rw     = app.camA_first.invproject(app.end1,app.TransX,app.TransY,tempdem);
         else
             start1_rw   = app.start1.*app.imageResolution;
             end1_rw     = app.end1.*app.imageResolution;

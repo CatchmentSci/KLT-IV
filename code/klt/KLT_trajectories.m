@@ -1,4 +1,4 @@
-function [] = KLT_trajectories(app)
+function [] = KLT_trajectories(app,z1)
 if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
     try
         TextIn = {'Initiating the particle trajectories plot. Please wait.'};
@@ -146,7 +146,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         
         % Query how many trajectories to plot
         if isempty(app.subSample)
-            if wse_analysis == 0 % prevent it asking each time after wse reconstruction
+            if z1 < -1 % prevent it asking each time after wse reconstruction
                 prompt = ['How many vectors would you like to display? ' num2str(length(app.refValue)) ' were extracted '];
                 dlgtitle = 'Query';
                 definput = num2str(10000); % default value

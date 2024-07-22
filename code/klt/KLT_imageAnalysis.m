@@ -357,6 +357,8 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 end
             end
             
+            %there's an error here for the first video when analysing
+            %multiple
             tracker = vision.PointTracker('MaxBidirectionalError', 1.0,...
                 'BlockSize', app.Blocksize); % Create a new tracker; error allowed of up-to one cell
             initialize(tracker, points, app.objectFrame); % Restart the tracker for the new image (I.e. the 10th image is used as the base)
