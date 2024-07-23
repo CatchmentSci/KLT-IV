@@ -407,7 +407,8 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         app.ListBox.scroll('bottom');
     end
     
-elseif strcmp(app.OrientationDropDown.Value,'Dynamic: Stabilisation') == 1
+elseif strcmp(app.OrientationDropDown.Value,'Dynamic: Stabilisation') == 1 || ...
+         strcmp(app.OrientationDropDown.Value,'Planet [beta]') == 1 % mod 20240723
     
     % Translate px coordinates to metric coordinates
     [imageSize(1), imageSize(2)] = size(app.firstFrame);

@@ -57,6 +57,8 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
             
         elseif app.prepro == 1
             h1 = image(app.X(1,:),app.Y(:,1),app.objectFrame.*255);        
+        elseif strcmp(app.OrientationDropDown.Value,'Planet [beta]') == 1 % mod 20240723
+            h1 = image(app.X(1,:),app.Y(:,1),app.objectFrame);
         else
             h1 = image(app.X(1,:),app.Y(:,1),app.rgbHR,'CDataMapping','scaled');
         end
@@ -82,7 +84,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         yLims = get(a1,'ylim');
         set(a1,'xtick',[],'ytick',[]); %remove its ticks
         set(a1,'TickLabelInterpreter','latex')
-        set(a1,'fontsize',18)
+        set(a1,'fontsize',22)
         
         a2 = axes;
         hold on;
@@ -92,7 +94,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         set(a2,'ylim',yLims)
         set(a2,'color','none')
         set(a2,'TickLabelInterpreter','latex')
-        set(a2,'fontsize',18)
+        set(a2,'fontsize',22)
         linkaxes([a1,a2],'xy'); % link the x and y-axis
         
         %Create the colobar and set appropriate position
@@ -114,7 +116,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
             ylabel(d, 'Streamwise Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
         end
         
-        d.FontSize = 18;
+        d.FontSize = 22;
         d.Location = 'eastoutside';
         set(d,'TickLabelInterpreter','latex')
         cd_var = colormap(a2, parula); % take your pick (doc colormap)
@@ -167,7 +169,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
 
         % Optimised: line rather than plot (20210310)
         % Selection: Quiver or line (20240708)
-        quiver1  = 0;
+        quiver1  = 1;
         if quiver1 == 0
             h2 = gobjects(1,dataPoints); % preallocate object
             for aa = 1:dataPoints
@@ -199,7 +201,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
                     'LineWidth', 2 );
             end
             hold off;
-            colorbar;
+            %colorbar;
         end
         
         TextIn = {'Exporting the plot of particle trajectories'};
