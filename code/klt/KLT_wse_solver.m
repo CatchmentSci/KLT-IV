@@ -82,9 +82,9 @@ for a = 1:1000 % max number of iterations
         rem1                    = find(abs(adjus - phi) >= app.filterAngle & abs(adjus - phi) <= (360-app.filterAngle));
     end
     
-    idx2                    = adjus - phi < 0;
+    %idx2                    = adjus - phi < 0;
     det_ang{a}              = adjus - phi;
-    det_ang{a}(idx2)        = det_ang{a}(idx2)  +  360;
+    %det_ang{a}(idx2)        = det_ang{a}(idx2)  +  360;
 
     app.vel(rem1)           = NaN;
     app.adjustedVel(rem1)   = NaN;
@@ -114,7 +114,7 @@ for a = 1:1000 % max number of iterations
 
     x           = mean([xyzA(:,1),xyzB(:,1)],2);
     y           = mean([xyzA(:,2),xyzB(:,2)],2);
-    z           = adjus;
+    z           = det_ang{a}; % the difference between actual + ideal
 
     % Find index to bins
     [n_x,bn_x]  = histc(x,xi) ; % xi=bin edges, n_x is the number of observations in each bin, and bn_x indexes the bin that each datapoint goes into
@@ -134,43 +134,66 @@ for a = 1:1000 % max number of iterations
     idx = sum(cellfun('length',wse_map(aa,:))>0);
 
     % categorise deviation of the vector
-    gtr  = zi{a}-phi > 0;
-    lstn = zi{a}-phi < 0;
+    gtr  = zi{a} > 0;
+    lstn = zi{a} < 0;
 
     if a == 1
         % first trial adding the ones greater and subtracting from smaller
         mean_dir_change{a}              = 0;
-        wse_map{aa,idx}(gtr)            = wse_map{aa,idx}(gtr) + 0.01; %correct
-        wse_map{aa,idx}(lstn)           = wse_map{aa,idx}(lstn) - 0.01;
+        wse_map{aa,idx}(gtr)            = wse_map{aa,idx}(gtr) + 0.05; %correct
+        wse_map{aa,idx}(lstn)           = wse_map{aa,idx}(lstn) - 0.05;
         idx_map                         = zeros(size(wse_map{aa,1}));
         perm_idx_map                    = ones(size(wse_map{aa,1}));
         num_adj(a)                      = sum(sum([gtr(:),lstn(:)]));
         impr                            = ~perm_idx_map; % initially set as zero
+        num_adj(a)                      = sum(idx_map(:) > 0);
+
     else
-        dir_change{a}                   = det_ang{a} - det_ang{a-1};
-        mean_dir_change{a}              = nanmean(dir_change{a});
+        
+        impr                            = ~perm_idx_map; % initially set as zero
 
-        pos_idx                         = find(zi{a}-phi > 0); % if its a positive offset
-        neg_idx                         = find(zi{a}-phi < 0); % if its a negative offset
+        dir_change{a}                   = zi{a} - zi{a-1};
+        mean_dir_change{a}              = nanmedian(dir_change{a}(:));
 
-        impr(pos_idx((zi{a}(pos_idx)-phi) - (zi{a-1}(pos_idx)-phi) < 0)) = 1 ; % if improvement
-        impr(neg_idx((zi{a}(neg_idx)-phi) - (zi{a-1}(neg_idx)-phi) > 0)) = 1 ; % if improvement
+        % use the mean_dir_change to be flexible with the adjustment scale
 
-        %impr                            = (zi{a}-phi) - (zi{a-1}-phi) < 0; % if improvement
+        pos_idx                         = find(zi{a} > 0); % if its a positive offset
+        neg_idx                         = find(zi{a} < 0); % if its a negative offset
+
+        %impr(pos_idx((zi{a}(pos_idx)) - (zi{a-1}(pos_idx)) < 0)) = 1 ; % if improvement
+        %impr(neg_idx((zi{a}(neg_idx)) - (zi{a-1}(neg_idx)) > 0)) = 1 ; % if improvement
+
+        % check if there has been an improvement
+        temp_idx  =     find(zi{a} < 0 & (zi{a-1} < 0)); % both negative
+        temp_idx2 =     find(zi{a}(temp_idx) - zi{a-1}(temp_idx) > 0); % if improvement
+        impr(temp_idx(temp_idx2)) = 1; % ok
+
+        temp_idx    = find(zi{a} > 0 & (zi{a-1} > 0)); % both positive
+        temp_idx2   = find(zi{a}(temp_idx) - zi{a-1}(temp_idx) < 0); % if improvement
+        impr(temp_idx(temp_idx2)) = 1; % ok
+
+        temp_idx  =     find(zi{a} < 0 & (zi{a-1} > 0)); % initially positive then negative
+        temp_idx2 =     find(zi{a-1}(temp_idx) + zi{a}(temp_idx) > 0); % if improvement
+        impr(temp_idx(temp_idx2)) = 1; % ok
+
+        temp_idx  =     find(zi{a} > 0 & (zi{a-1} < 0)); % initially negative then positive
+        temp_idx2 =     find(zi{a}(temp_idx) + zi{a-1}(temp_idx) < 0); % if improvement
+        impr(temp_idx(temp_idx2)) = 1; % ok
+
+        % update logic map
         idx_map (impr & perm_idx_map)   = 1;
         idx_map (~impr)                 = 0;
-        perm_idx_map(~impr)             = 0; % perhaps remove this line to allow continuous updates
+        %perm_idx_map(~impr)             = 0; % perhaps remove this line to allow continuous updates
 
+        % alter the wse accordingly
         idx1                            = idx_map > 0 & gtr > 0;
-        wse_map{aa,idx}(idx1)           = wse_map{aa,idx}(idx1) + 0.01;
+        wse_map{aa,idx}(idx1)           = wse_map{aa,idx}(idx1) + 0.05;
         idx2                            = idx_map > 0 & lstn > 0;
-        wse_map{aa,idx}(idx2)           = wse_map{aa,idx}(idx2) - 0.01;
-
-        num_adj(a)                      = sum(wse_map{aa,end}(:))./numel(wse_map{aa,end});
-
+        wse_map{aa,idx}(idx2)           = wse_map{aa,idx}(idx2) - 0.05;
+        num_adj(a)                      = sum(idx_map(:) > 0);
 
     end
-    if num_adj(a) == 0 % stop when no more changes
+    if a > 1 && mean_dir_change{a}  == 0 % stop when no more changes
 
         % set up the figure
         fig=figure(1); hold on;
