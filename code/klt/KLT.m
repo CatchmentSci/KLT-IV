@@ -1090,7 +1090,7 @@ classdef KLT < matlab.apps.AppBase
             app.KLTIV_UIFigure = uifigure;
             app.KLTIV_UIFigure.Color = [ 1 1 1];
             app.KLTIV_UIFigure.Position = [100 100 1287 538]; %width < 1366; hgt < 786
-            app.KLTIV_UIFigure.Name = 'KLT-IV (v1.02)';
+            app.KLTIV_UIFigure.Name = 'KLT-IV (Satellite Exp.)';
             app.KLTIV_UIFigure.Resize = 'off';
 
             warning off Matlab:HandleGraphics:ObsoletedProperty:JavaFrame
