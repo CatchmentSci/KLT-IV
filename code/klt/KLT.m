@@ -102,6 +102,7 @@ classdef KLT < matlab.apps.AppBase
         Blocksize
         boundaryLimitsM
         boundaryLimitsPx
+        boundaryLimitsPlanetPx % HD 20240729
         c
         camA
         camA_first

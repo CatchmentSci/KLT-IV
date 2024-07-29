@@ -1,5 +1,17 @@
 function [] = KLT_imageAnalysis(app,wse_counter)  % Starting analysis
 
+% HD 20240729. Changed from "% do nothong" to 
+% app.boundaryLimitsM = app.boundaryLimitsPx.*app.imageResolution;
+% Previously, it seemed as though both the ROI and
+% regions for planet stabilisation were both being stored as
+% app.boundaryLimitsPx. This meant regardless of the ROI, velocities and
+% trajectories were being exported for the whole image frame. By adding a
+% new app feature called boundaryLimitsPlanetPx, the regions used for
+% planet stabilisation were able to be stored separately and
+% boundaryLimitsPx could be used to create boundaryLimitsM in
+% KLT_imageAnalysis.m so that any velocities and trajectories exported
+% would be from the user defined ROI.
+
 %Clear and create some necessary variables
 app.backgroundImage = [];
 app.init_track      = {};
@@ -380,7 +392,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                         app.boundaryLimitsM = app.boundaryLimitsPx.*1;
                     end
                 elseif strcmp (app.OrientationDropDown.Value, 'Planet [beta]') == true
-                    % do nothing
+                    app.boundaryLimitsM = app.boundaryLimitsPx.*app.imageResolution; % HD 20240729
                 end
             end
         else

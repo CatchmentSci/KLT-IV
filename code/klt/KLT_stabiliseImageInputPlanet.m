@@ -3,12 +3,14 @@ function []  = KLT_stabiliseImageInputPlanet(app, V, totNum)
 if length(app.firstFrame) > 1
     polyNum = 1;
     looper = true;
-    app.boundaryLimitsPx = {};
+    app.boundaryLimitsPlanetPx = {}; % HD 20240726. 
+    % Changed from app.boundaryLimitsPx to app.boundaryLimitsPlanetPx to 
+    % try and stop the planet stabilisation areas and ROI getting confused.
     [roiPoints] = KLT_readPoints(app.firstFrame,100,5,app,[])'; hold on;
     roiPoints = replace_num(roiPoints,0,NaN);
     useVals = ~isnan(roiPoints(:,1));
-    app.boundaryLimitsPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
-    plot(app.boundaryLimitsPx{polyNum,1});
+    app.boundaryLimitsPlanetPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
+    plot(app.boundaryLimitsPlanetPx{polyNum,1});
     
     while looper == true
         
@@ -22,8 +24,8 @@ if length(app.firstFrame) > 1
                 [roiPoints] = KLT_readPoints(app.firstFrame,100,5,app,[])'; hold on;
                 roiPoints = replace_num(roiPoints,0,NaN);
                 useVals = ~isnan(roiPoints(:,1));
-                app.boundaryLimitsPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
-                plot(app.boundaryLimitsPx{polyNum,1});
+                app.boundaryLimitsPlanetPx{polyNum,1} = polyshape(roiPoints(useVals,1),roiPoints(useVals,2));
+                plot(app.boundaryLimitsPlanetPx{polyNum,1});
             case 'No'
                 looper = false;
                 title ('Close the window and continue');
@@ -65,7 +67,7 @@ if length(app.firstFrame) > 1
                 end
 
                 app.firstFrame = app.objectFrame;
-                importedBoundBox = app.boundaryLimitsPx;
+                importedBoundBox = app.boundaryLimitsPlanetPx;
 
             elseif s3 > 1
                 %V.CurrentTime = s3.*1/app.videoFrameRate; % access the s3 frame

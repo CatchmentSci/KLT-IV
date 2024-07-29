@@ -7,6 +7,18 @@ function [pts, GCPimageReal] = KLT_readPoints(image, n, liner, app, a)
 %   column is [X; Y] for one point.
 %
 %   POINTS = READPOINTS(IMAGE, N) reads up to N points only.
+
+% HD 20240729. Changed app.boundaryLimitsPx to app.boundaryLimitsPlanetPx
+% where liner == 5. Previously, it seemed as though both the ROI and
+% regions for planet stabilisation were both being stored as
+% app.boundaryLimitsPx. This meant regardless of the ROI, velocities and
+% trajectories were being exported for the whole image frame. By adding a
+% new app feature called boundaryLimitsPlanetPx, the regions used for
+% planet stabilisation were able to be stored separately and
+% boundaryLimitsPx could be used to create boundaryLimitsM in
+% KLT_imageAnalysis.m so that any velocities and trajectories exported
+% would be from the user defined ROI.
+
 if nargin < 2
     n = Inf;
     pts = zeros(2, 0);
@@ -58,15 +70,15 @@ elseif liner == 4 % Polygon for definition of ROI
     title ('Define the region of interest using the right mouse button. Press enter when complete');
     zoom off
 elseif liner == 5 % Polygon for definition of stabilisation ROI
-    if isempty(app.boundaryLimitsPx) == true
+    if isempty(app.boundaryLimitsPlanetPx) == true % HD 20240729 
         f1 = figure('units', 'normalized', 'outerposition',[0 0 1 1]);
         hold on;
         imshow(image); hold on;     % display image
         title ('Define the region(s) to be used for stabilisation. Press enter when complete and close the window');
         zoom off
-    elseif isempty(app.boundaryLimitsPx) == false
-        for z = 1:length(app.boundaryLimitsPx)
-            plot(app.boundaryLimitsPx{z,1});
+    elseif isempty(app.boundaryLimitsPlanetPx) == false % HD 20240729
+        for z = 1:length(app.boundaryLimitsPlanetPx) % HD 20240729 
+            plot(app.boundaryLimitsPlanetPx{z,1}); % HD 20240729 
         end
     end
 end
