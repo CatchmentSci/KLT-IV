@@ -18,7 +18,7 @@ set(app.RUNButton,'Text','Stabilising image sequence');
 while pass < 3
     s3 = 1;
     if pass == 1 % initial pass settings
-        fractionUse = 0.1;
+        fractionUse = 1.0; % HD changed for stabilisng 3m/px imagery 25/07/2024
         pyramids = 5;
         blockSize = 21;
         totNum =  V.NumFrames;

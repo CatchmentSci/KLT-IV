@@ -105,6 +105,8 @@ switch app.ProcessingModeDropDown.Value
         titleBar = 'Define the minimum and maximum velocities to be used in analysis';
     case 'Numerical Simulation'
         titleBar = 'Define the min and max velocities to be stored across all videos';
+    case 'Image Pair [beta]' % HD 20241018
+        titleBar = 'Define the min and max velocities to be stored across all videos';
 
 end
 

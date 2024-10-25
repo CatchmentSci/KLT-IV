@@ -1,6 +1,7 @@
 function KLT_bringInImage(app) % Extract the first image from the video
 
-if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
+if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == 1
+    % HD 20241017 added OR Image Pair
     answer = questdlg('Would you like to re-encode the video(s)? (Default: No)', ...
         'Re-encode Video?', ...
         {'Yes','No'});

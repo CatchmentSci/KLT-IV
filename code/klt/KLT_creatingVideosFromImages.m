@@ -1,4 +1,4 @@
-function []  = KLT_creatingVideosFromImages(app, pass, answer)
+ function []  = KLT_creatingVideosFromImages(app, pass, answer)
 
 if strcmp(answer,'Yes') == 1 % only run if new frames have been written
     if pass > 2

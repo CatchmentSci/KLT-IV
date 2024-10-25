@@ -58,6 +58,10 @@ switch app.ProcessingModeDropDown.Value
         V                   = VideoReader(strjoin ({app.directory, app.file},''));
         app.videoDuration   = V.Duration; % Extract the length of the video
         app.videoFrameRate  = V.FrameRate; % Extract the frame rate of the video
+    case {'Image Pair [beta]'} % HD 20241018
+        V                   = VideoReader(strjoin ({app.directory, app.file},''));
+        app.videoDuration   = V.Duration; 
+        app.videoFrameRate  = V.FrameRate; 
 end
 
 TextIn              = {'Begining image processing'};
@@ -100,7 +104,8 @@ if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
 end
 
 % Define the total number of frames available
-if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
+if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+   strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true % HD added Image Pair 20241018
     try
         totNum = V.NumFrames; % sometimes doesn't exist
         app.estimater = 0;
@@ -196,7 +201,8 @@ else
 end
 
 while app.s2 < limiter_frame % MP 20240227 rather than minus 1
-    if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
+    if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+       strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true % HD 20241018 added image pair
         set(app.RUNButton,'Text',strjoin({'Processing: ' int2str((app.s2-1)/totNum*100) '% Complete'},''));
         pause(0.01)
         
@@ -226,7 +232,8 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 app.gcpA    = app.gcpA(available,:);
             end
             
-            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+               strcmp (app.ProcessingModeDropDown.Value, 'Iage Pair [beta]') == true % HD 20241018 added image pair.
                 
                 if app.s2.*1/app.videoFrameRate < V.Duration
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
@@ -397,7 +404,8 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             end
         else
             %% This is the end of the tracking sequence
-            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+               strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true % HD 20241018 added image pair
                 if app.s2.*1/app.videoFrameRate  <= V.Duration % MP 20240227 less than or equal rather than less than
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
                 else
@@ -465,8 +473,16 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 % Load the correct frame in the video sequence
                 app.objectFrame = app.objectFrameStacked{app.s2};
                 
-            elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true && ...
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Single Video')  == true && ...
                     app.prepro == 1 % MP 20240326
+                app.objectFrame = rgb2gray(readFrame(V));
+                KLT_orthorectificationProgessive(app)
+                app.objectFrame = PIVlab_preproc (app,app.rgbHR);
+                KLT_imageExport(app)
+
+            % HD 20241018 added Image Pair.       
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]')  == true && ...
+                    app.prepro == 1
                 app.objectFrame = rgb2gray(readFrame(V));
                 KLT_orthorectificationProgessive(app)
                 app.objectFrame = PIVlab_preproc (app,app.rgbHR);
@@ -791,6 +807,21 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
             visiblePoints = app.newPoints(isFound, :);
             oldInliers = oldPoints(isFound, :);
+
+        % HD 20241018 added Image Pair
+        elseif strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true && ...
+                app.prepro == 1
+
+            app.objectFrame = rgb2gray(readFrame(V));
+            KLT_orthorectificationProgessive(app)
+            app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
+            app.rgbHR = app.objectFrame;
+            KLT_imageExport(app)
+
+
+            [app.newPoints, isFound] = step(tracker, app.objectFrame); % Track the features through the next frame
+            visiblePoints = app.newPoints(isFound, :);
+            oldInliers = oldPoints(isFound, :);    
 
 
         elseif strcmp (app.ProcessingModeDropDown.Value, 'Multiple Videos') == true

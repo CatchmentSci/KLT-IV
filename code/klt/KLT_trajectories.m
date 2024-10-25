@@ -84,7 +84,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         yLims = get(a1,'ylim');
         set(a1,'xtick',[],'ytick',[]); %remove its ticks
         set(a1,'TickLabelInterpreter','latex')
-        set(a1,'fontsize',22)
+        set(a1,'fontsize',18)
         
         a2 = axes;
         hold on;
@@ -94,7 +94,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
         set(a2,'ylim',yLims)
         set(a2,'color','none')
         set(a2,'TickLabelInterpreter','latex')
-        set(a2,'fontsize',22)
+        set(a2,'fontsize',18)
         linkaxes([a1,a2],'xy'); % link the x and y-axis
         
         %Create the colobar and set appropriate position
@@ -116,7 +116,7 @@ if strcmp (app.TrajectoriesPlotSwitch.Value, 'On') == 1
             ylabel(d, 'Streamwise Velocity $\mathrm{(m \ s^{-1})}$' , 'Interpreter','LaTex');
         end
         
-        d.FontSize = 22;
+        d.FontSize = 18;
         d.Location = 'eastoutside';
         set(d,'TickLabelInterpreter','latex')
         cd_var = colormap(a2, parula); % take your pick (doc colormap)

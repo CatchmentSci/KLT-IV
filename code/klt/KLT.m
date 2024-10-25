@@ -258,6 +258,8 @@ classdef KLT < matlab.apps.AppBase
         initialVel
         finalVel
         wse_map_out
+        selectedImages % HD 20241016 Image Pairs
+        timeSeparation % HD 20241016 Image Pairs
     end
 
 
@@ -489,7 +491,8 @@ classdef KLT < matlab.apps.AppBase
             set(app.RUNButton,'Text','Processing: Complete');
             pause(0.01)
 
-            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == true
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+               strcmp(app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true % HD 20241017 Added OR Image Pair
                 KLT_imageAnalysis(app,-3)
                 KLT_flightPath(app)
                 KLT_vectorRotation(app,-3)
@@ -720,13 +723,96 @@ classdef KLT < matlab.apps.AppBase
                     app.ListBox.scroll('bottom');
                     app.AddVideoButton.Text = 'Click here';
                 end
+%% --------------- HD Image Pair ---------------
+% Started October 2024
+            elseif strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true
+                [app.file, app.directory] = uigetfile({'*.jpg; *.png; *.tif; *.bmp', 'Image Files (*.jpg, *.png, *.tif, *.bmp)'}, ...
+                               'Select two images', 'MultiSelect', 'on'); 
+                
+                  % Check if the user selected files
+                if isequal(app.file, 0)
+                    % No files selected
+                    TextIn = {'No images selected. Please try again.'};
+                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                    KLT_printItems(app);
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    return; % Exit if no files selected
+                elseif iscell(app.file) && length(app.file) ~= 2
+                    % Check if exactly two images are selected
+                    TextIn = {'Please select exactly two images.'};
+                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                    KLT_printItems(app);
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    return; % Exit if not exactly two files
+                elseif ischar(app.file)
+                    % If the user selects only one file, convert it to a cell array
+                    files = {files};
+                    TextIn = {'Please select exactly two images.'}; % Add message for one image selected
+                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                    KLT_printItems(app);
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    return; % Exit if only one file is selected
+                end
 
+                % Store the selected image paths
+                app.selectedImages = fullfile(app.directory, app.file); % Store full paths of selected images
+            
+                % Notify user of successful selection
+                TextIn = {['Selected images: ' app.file{1} ' and ' app.file{2}]};
+                app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                KLT_printItems(app);
+                pause(0.01);
+                app.ListBox.scroll('bottom');
 
+                % Prompt to input tiem seapartion between captures.
+                prompt = {'Enter the time separation between captures (in seconds):'};
+                dlgtitle = 'Time Separation Input';
+                dims = [1 35];
+                definput = {'0'}; % Default value
+                answer = inputdlg(prompt, dlgtitle, dims, definput);
+            
+                % Check if the user pressed cancel
+                if isempty(answer)
+                    TextIn = {'Input cancelled. Please try again.'};
+                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                    KLT_printItems(app);
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    return; % Exit if canceled
+                end
+            
+                % Validate input
+                timeSeparation = str2double(answer{1});
+                if isnan(timeSeparation) || timeSeparation < 0
+                    TextIn = {'Please enter a valid non-negative number.'};
+                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                    KLT_printItems(app);
+                    pause(0.01);
+                    app.ListBox.scroll('bottom');
+                    return; % Exit if input is not valid
+                end
+            
+                % Store the time separation value in the app
+                app.timeSeparation = timeSeparation; % Add this property in your app's properties section if not already defined
+            
+                % Notify user of successful input
+                TextIn = {['Time separation set to: ' num2str(app.timeSeparation) ' seconds.']};
+                app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                KLT_printItems(app);
+                pause(0.01);
+                app.ListBox.scroll('bottom');
 
+                % Convert Image Pairs to a video.
+                KLT_imagePairToVideo(app, app.selectedImages, timeSeparation);
 
+%% --------------- HD Image Pair ---------------
             end
 
-            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+               strcmp(app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == 1 % HD 20241017 Added OR Image Pair
                 KLT_bringInImage(app); % Bring in the first image of the video
             else
                 KLT_bringInImage(app)
@@ -883,7 +969,8 @@ classdef KLT < matlab.apps.AppBase
         end
 
         function ProcessingModeDropDownValueChanged(app, ~)
-            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') == 1
+            if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
+               strcmp(app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == 1 % HD 20241017 Added OR Image Pair
                 app.OrientationDropDown.Items = {'Make a selection:', 'Stationary: Nadir', 'Stationary: GCPs','Dynamic: GCPs', 'Dynamic: GCPs + Stabilisation', 'Dynamic: Stabilisation',  'Dynamic: GPS + IMU', 'Planet [beta]'}
                 app.OrientationDropDown.Value = 'Make a selection:';
                 app.CrossSectionDropDown.Items = {'Make a selection:', 'Referenced survey [m]', 'Relative distances [m]'};
@@ -1233,7 +1320,7 @@ classdef KLT < matlab.apps.AppBase
 
             % Define the processing mode
             app.ProcessingModeDropDown = uidropdown(app.KLTIV_UIFigure);
-            app.ProcessingModeDropDown.Items = {'Make a selection', 'Single Video', 'Multiple Videos', 'Numerical Simulation'};
+            app.ProcessingModeDropDown.Items = {'Make a selection', 'Single Video', 'Multiple Videos', 'Numerical Simulation', 'Image Pair [beta]'}; % Image pair HD 20241016
             app.ProcessingModeDropDown.ValueChangedFcn = createCallbackFcn(app, @ProcessingModeDropDownValueChanged, true);
             app.ProcessingModeDropDown.Position = [170 446 140 22];
             app.ProcessingModeDropDown.Value = 'Single Video';
@@ -1252,7 +1339,7 @@ classdef KLT < matlab.apps.AppBase
             app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 349 140 22];
-            app.AddVideoButtonLabel.Text = '    Define Video(s)';
+            app.AddVideoButtonLabel.Text = '    Define Imagery'; % HD 20241025 Changed from '    Define Video(s)'
 
             %  Create AddVideoButton Label
             app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
@@ -1268,7 +1355,7 @@ classdef KLT < matlab.apps.AppBase
             app.AddVideoButtonLabel = uilabel(app.KLTIV_UIFigure);
             app.AddVideoButtonLabel.HorizontalAlignment = 'left';
             app.AddVideoButtonLabel.Position = [20 414 140 22];
-            app.AddVideoButtonLabel.Text = '    Define Video(s)';
+            app.AddVideoButtonLabel.Text = '    Define Imagery'; % HD 20241025 Changed from '    Define Video(s)'
 
             %  Create AddVideoButton
             app.AddVideoButton = uibutton(app.KLTIV_UIFigure, 'push');
