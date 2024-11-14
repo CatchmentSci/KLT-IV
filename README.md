@@ -55,9 +55,7 @@ The following open source packages are used in this project:
 <h2 id="Repository Structure"> :cactus: Repository Structure</h2>
 <p align="justify"> 
   
-* There are currently two branches of KLT-IV software on Git. 
-* [v1.02](https://github.com/CatchmentSci/KLT-IV/tree/v1.02) is the most recent, tested version.
-* [main](https://github.com/CatchmentSci/KLT-IV/tree/main) is undergoing active development and has not been fully tested.
+* [main](https://github.com/CatchmentSci/KLT-IV/tree/main) is the most recent version of the software. This is undergoing active development and may not have been fully tested.
 
 Below is the an outline of the folder structure within the `main` branch with descriptions provided:
 </p>
