@@ -106,6 +106,12 @@ Below is the an outline of the folder structure within the `main` branch with de
 
 <ul>
   <li>
+    <p>Firnandino Wijaya, et al., (2023) Comparative Assessment of Different Image Velocimetry Techniques for Measuring River Velocities Using Unmanned Aerial Vehicle Imagery. Water 2023, 15(22), 3941; https://doi.org/10.3390/w15223941
+    </p>
+  </li> 
+  <li>
+  
+  <li>
     <p>Dariia Strelnikova, et al., (2022) Rapid detection of the change in surface flow patterns near fish passages at hydropower dams with the use of UAS based videos under controlled discharge conditions. Frontiers: Remote Sensing 3(798973). https://www.frontiersin.org/articles/10.3389/frsen.2022.798973/
     </p>
   </li> 
