@@ -106,6 +106,10 @@ Below is the an outline of the folder structure within the `main` branch with de
 
 <ul>
   <li>
+    <p>Matthew T. Perks, et al., (2025) Unsupervised image velocimetry for automated computation of river flow velocities. Hydrol. Earth Syst. Sci. Discuss. [preprint], https://doi.org/10.5194/hess-2024-213, in review.
+    </p>
+  </li> 
+  <li>
     <p>Firnandino Wijaya, et al., (2023) Comparative Assessment of Different Image Velocimetry Techniques for Measuring River Velocities Using Unmanned Aerial Vehicle Imagery. Water 2023, 15(22), 3941; https://doi.org/10.3390/w15223941
     </p>
   </li> 
