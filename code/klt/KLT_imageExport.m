@@ -24,7 +24,8 @@ if strcmp (app.OrthophotosSwitch.Value, 'On') == 1
             app.rgbHR(:,:,jj) = reshape(interp2(A(:,:,jj),uvHR1,uvHR2),size(app.rgbHR));
         end
 
-    elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == 1 % no GCPs
+    elseif strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == 1 || ...
+         strcmp(app.OrientationDropDown.Value,'Planet [beta]') == 1 % no GCPs. HD 20250402 To try and resolve no enhancement for 'Planet [beta]'
         app.rgbHR = app.objectFrame;
     else % if updated camera model is required
         [app.uvHR,~,app.inframeHR]=app.camA.project([app.X(:),app.Y(:), app.dem(:)]); % High res DEM input

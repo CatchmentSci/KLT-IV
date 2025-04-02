@@ -32,15 +32,15 @@ end
 
 
 % Define the pre-processing settings
-app.prepro              = 0; %zero = disabled; one = enabled
+app.prepro              = 1; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
     app.pre_pro_params      = zeros(1,12); %empty array
     app.pre_pro_params(1)   = []; %roirect
-    app.pre_pro_params(2)   = 0; %clahe
-    app.pre_pro_params(3)   = 21; %clahesize
-    app.pre_pro_params(4)   = 1; %highp
-    app.pre_pro_params(5)   = 32; %highpsize
+    app.pre_pro_params(2)   = 1; %clahe
+    app.pre_pro_params(3)   = 24; %clahesize
+    app.pre_pro_params(4)   = 0; %highp
+    app.pre_pro_params(5)   = 8; %highpsize
     app.pre_pro_params(6)   = 0; %intenscap
     app.pre_pro_params(7)   = 0; %wienerwurst
     app.pre_pro_params(8)   = 8; %wienerwurstsize
