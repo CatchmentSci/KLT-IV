@@ -726,48 +726,122 @@ classdef KLT < matlab.apps.AppBase
 %% --------------- HD Image Pair ---------------
 % Started October 2024
             elseif strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true
-                [app.file, app.directory] = uigetfile({'*.jpg; *.png; *.tif; *.bmp', 'Image Files (*.jpg, *.png, *.tif, *.bmp)'}, ...
-                               'Select two images', 'MultiSelect', 'on'); 
-                
-                  % Check if the user selected files
-                if isequal(app.file, 0)
-                    % No files selected
-                    TextIn = {'No images selected. Please try again.'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    KLT_printItems(app);
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    return; % Exit if no files selected
-                elseif iscell(app.file) && length(app.file) ~= 2
-                    % Check if exactly two images are selected
-                    TextIn = {'Please select exactly two images.'};
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    KLT_printItems(app);
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    return; % Exit if not exactly two files
-                elseif ischar(app.file)
-                    % If the user selects only one file, convert it to a cell array
-                    files = {files};
-                    TextIn = {'Please select exactly two images.'}; % Add message for one image selected
-                    app.ListBox.Items = [app.ListBox.Items, TextIn'];
-                    KLT_printItems(app);
-                    pause(0.01);
-                    app.ListBox.scroll('bottom');
-                    return; % Exit if only one file is selected
-                end
-
-                % Store the selected image paths
-                app.selectedImages = fullfile(app.directory, app.file); % Store full paths of selected images
+            % -------------------------------------------------------------------------
+            % Modified File Selection and Grouping for Image Pair [beta]
+            % -------------------------------------------------------------------------
+            [app.file, app.directory] = uigetfile({ ...
+                '*.tif;*.xml;*.json','Supported Files (*.tif, *.xml, *.json)'; ...
+                '*.tif','TIFF Files (*.tif)'; ...
+                '*.xml','XML Files (*.xml)'; ...
+                '*.json','JSON Files (*.json)'}, ...
+                'Select one or more files', 'MultiSelect', 'on');
             
-                % Notify user of successful selection
-                TextIn = {['Selected images: ' app.file{1} ' and ' app.file{2}]};
+            if isequal(app.file, 0)
+                % No files selected
+                TextIn = {'No files selected. Please try again.'};
                 app.ListBox.Items = [app.ListBox.Items, TextIn'];
                 KLT_printItems(app);
                 pause(0.01);
                 app.ListBox.scroll('bottom');
+                return; % Exit if no files selected
+            end
+            
+            if ~iscell(app.file)
+                app.file = {app.file};
+            end
+            
+            % Group files by common identifier (first three tokens of the filename)
+            ImageGroups = struct('id', {}, 'tif', {}, 'xml', {}, 'json', {}, 'paths', {});
+            
+            for i = 1:length(app.file)
+                fullPath = fullfile(app.directory, app.file{i});
+                [~, baseName, ext] = fileparts(fullPath);
+                tokens = strsplit(baseName, '_');
+                if length(tokens) >= 3
+                    commonID = sprintf('%s_%s_%s', tokens{1}, tokens{2}, tokens{3});
+                else
+                    commonID = baseName;
+                end
+                
+                % Check if a group with this commonID already exists.
+                groupIdx = [];
+                for j = 1:length(ImageGroups)
+                    if strcmp(ImageGroups(j).id, commonID)
+                        groupIdx = j;
+                        break;
+                    end
+                end
+                if isempty(groupIdx)
+                    groupIdx = length(ImageGroups) + 1;
+                    ImageGroups(groupIdx).id = commonID;
+                    ImageGroups(groupIdx).tif = [];
+                    ImageGroups(groupIdx).xml = [];
+                    ImageGroups(groupIdx).json = [];
+                    ImageGroups(groupIdx).paths.tif = '';
+                    ImageGroups(groupIdx).paths.xml = '';
+                    ImageGroups(groupIdx).paths.json = '';
+                end
+                
+                fileType = lower(ext(2:end));
+                switch fileType
+                    case 'tif'
+                        try
+                            data = imread(fullPath);
+                            ImageGroups(groupIdx).tif = data;
+                            ImageGroups(groupIdx).paths.tif = fullPath;
+                            fprintf('Loaded TIFF: %s\n', app.file{i});
+                        catch ME
+                            warning('Error loading TIFF file "%s": %s', app.file{i}, ME.message);
+                        end
+                    case 'xml'
+                        try
+                            xmlDoc = xmlread(fullPath);
+                            ImageGroups(groupIdx).xml = xmlDoc;
+                            ImageGroups(groupIdx).paths.xml = fullPath;
+                            fprintf('Loaded XML: %s\n', app.file{i});
+                        catch ME
+                            warning('Error reading XML file "%s": %s', app.file{i}, ME.message);
+                        end
+                    case 'json'
+                        try
+                            jsonText = fileread(fullPath);
+                            jsonData = jsondecode(jsonText);
+                            ImageGroups(groupIdx).json = jsonData;
+                            ImageGroups(groupIdx).paths.json = fullPath;
+                            fprintf('Loaded JSON: %s\n', app.file{i});
+                        catch ME
+                            warning('Error reading JSON file "%s": %s', app.file{i}, ME.message);
+                        end
+                    otherwise
+                        warning('Unsupported file type: %s', fullPath);
+                end
+            end
+            
+            disp('File loading and grouping complete.');
+            disp(ImageGroups);
 
-                % Prompt to input tiem seapartion between captures.
+            % For the purpose of the image pair, ensure exactly two image groups exist.
+            if length(ImageGroups) ~= 2
+                TextIn = {'Please select files corresponding to exactly two images.'};
+                app.ListBox.Items = [app.ListBox.Items, TextIn'];
+                KLT_printItems(app);
+                pause(0.01);
+                app.ListBox.scroll('bottom');
+                return;  % Exit if not exactly two groups
+            end
+            
+            app.selectedImages = ImageGroups;
+            TextIn = {['Selected image groups: ' ImageGroups(1).id ' and ' ImageGroups(2).id]};
+            app.ListBox.Items = [app.ListBox.Items, TextIn'];
+            KLT_printItems(app);
+            pause(0.01);
+            app.ListBox.scroll('bottom');
+
+            % -------------------------------------------------------------------------
+            % Modification end.
+            % -------------------------------------------------------------------------
+
+                % Prompt to input time seapartion between captures.
                 prompt = {'Enter the time separation between captures (in seconds):'};
                 dlgtitle = 'Time Separation Input';
                 dims = [1 35];
@@ -806,7 +880,7 @@ classdef KLT < matlab.apps.AppBase
                 app.ListBox.scroll('bottom');
 
                 % Convert Image Pairs to a video.
-                KLT_imagePairToVideo(app, app.selectedImages, timeSeparation);
+                KLT_planetscopePairToVideo(app, app.selectedImages, timeSeparation);
 
 %% --------------- HD Image Pair ---------------
             end

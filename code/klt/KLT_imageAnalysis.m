@@ -32,7 +32,7 @@ end
 
 
 % Define the pre-processing settings
-app.prepro              = 1; %zero = disabled; one = enabled
+app.prepro              = 0; %zero = disabled; one = enabled
 if app.prepro == 1
     % assign some default settings - to be modified by the user
     app.pre_pro_params      = zeros(1,12); %empty array
@@ -40,7 +40,7 @@ if app.prepro == 1
     app.pre_pro_params(2)   = 1; %clahe
     app.pre_pro_params(3)   = 24; %clahesize
     app.pre_pro_params(4)   = 0; %highp
-    app.pre_pro_params(5)   = 8; %highpsize
+    app.pre_pro_params(5)   = 80; %highpsize
     app.pre_pro_params(6)   = 0; %intenscap
     app.pre_pro_params(7)   = 0; %wienerwurst
     app.pre_pro_params(8)   = 8; %wienerwurstsize
@@ -233,7 +233,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             end
             
             if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || ...
-               strcmp (app.ProcessingModeDropDown.Value, 'Iage Pair [beta]') == true % HD 20241018 added image pair.
+               strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == true % HD 20241018 added image pair.
                 
                 if app.s2.*1/app.videoFrameRate < V.Duration
                     V.CurrentTime = app.s2.*1/app.videoFrameRate;
@@ -243,8 +243,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
             end
             
             if strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == true | ...
-                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true | ...
-                    strcmp (app.OrientationDropDown.Value,'Planet [beta]') == true && ...
+                    strcmp (app.OrientationDropDown.Value,'Dynamic: Stabilisation') == true && ...
                     strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
                 
                 % Load the stabilised exported files
@@ -260,7 +259,36 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
                 else
                     break
                 end
-
+            elseif strcmp(app.OrientationDropDown.Value, 'Planet [beta]') == true && ...
+                   strcmp(app.ProcessingModeDropDown.Value, 'Numerical Simulation') == false
+                % New branch for Planet [beta] with new ROI input:
+                % Load the stabilised exported files as before
+                listing = dir(app.subDir);
+                for a = 1:length(listing)
+                    fileNamesIn(a,1) = cellstr(listing(a).name);
+                end
+                fileNamesIn = fileNamesIn(contains(fileNamesIn, '.jpg'));
+                Index = find(contains(fileNamesIn, fileNameIteration));
+                if Index > 0
+                    app.objectFrame = imread([app.subDir '\' char(fileNamesIn(Index))]);
+                    objectRegion = [1, 1, size(app.objectFrame, 2), size(app.objectFrame, 1)];
+                    % --- Begin My Additions: New ROI Input for Planet [beta] ---
+                    % Display the current stabilized frame and prompt the user for a new ROI.
+                    [roiPoints] = KLT_readPoints(app.objectFrame, 100, 4, app, [])'; 
+                    hold on;
+                    roiPoints = replace_num(roiPoints, 0, NaN);
+                    useVals = ~isnan(roiPoints(:,1));
+                    % Create a polyshape from the valid ROI points
+                    app.boundaryLimitsPx = polyshape(roiPoints(useVals,1), roiPoints(useVals,2));
+                    plot(app.boundaryLimitsPx);
+                    title('Close the window and continue');
+                    % Store only the vertices of the polygon for later use
+                    app.boundaryLimitsPx = app.boundaryLimitsPx.Vertices;
+                    % --- End My Additions: New ROI Input for Planet [beta] ---
+                    
+                else
+                    break
+                end
             elseif strcmp (app.OrientationDropDown.Value,'Dynamic: GPS + IMU') == true
                 % Load the stabilised exported files
                 listing = dir (app.directory_stab);

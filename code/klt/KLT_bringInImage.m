@@ -15,7 +15,12 @@ if strcmp (app.ProcessingModeDropDown.Value, 'Single Video') || strcmp (app.Proc
             try
                 textOutput = strjoin({app.directory, app.file}, '');
                 V=VideoReader(textOutput);
+
+            %if strcmp (app.ProcessingModeDropDown.Value, 'Image Pair [beta]') == 1
+                %I = readFrame(V); % new method for large files % already converted to gray
+            %else
                 I = rgb2gray(readFrame(V)); % new method for large files
+            %end
                 app.firstFrame = I;
                 app.imgsz = [V.Height V.Width];
                 TextIn = {'Original video succesfully loaded, please continue'};

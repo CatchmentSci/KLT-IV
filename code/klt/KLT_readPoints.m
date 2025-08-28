@@ -27,9 +27,16 @@ else
 end
 
 test1 = length(size(image));
-if test1 == 3
+if test1 == 3 && sum(size(app.boundaryLimitsPlanetPx)) == 0
     try
-        f1 = figure('units', 'normalized', 'outerposition',[0 0 1 1]);
+        %f1 = figure('units', 'normalized', 'outerposition',[0 0 1 1]);
+        image = rgb2gray(image);
+    catch
+        disp('Grayscale image being shown');
+    end
+
+elseif test1 == 3 && sum(size(app.boundaryLimitsPlanetPx)) > 0
+    try
         image = rgb2gray(image);
     catch
         disp('Grayscale image being shown');

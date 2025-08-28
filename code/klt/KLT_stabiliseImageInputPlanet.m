@@ -32,6 +32,8 @@ if length(app.firstFrame) > 1
         end
     end
     
+
+    
     pass = 1;
     answer = 'Yes';
     while pass < 3
@@ -151,7 +153,7 @@ if length(app.firstFrame) > 1
             end
             filenameJpg = [dirIn app.file(1:end-4) '_frame' fileNameIteration '.jpg' ];
             x = im2double(app.currentFrame) ./ max(im2double(app.currentFrame(:)));  % Scale to [0,1]
-            
+
             if s3 == 1 && exist(filenameJpg,'file') > 0
                 if pass == 1
                     line1 = ['Previously stabilised frames have been found in the output directory.'];
@@ -203,6 +205,50 @@ if length(app.firstFrame) > 1
             close (f1);
         catch
         end
+
+        % --- Begin My Additions: Global Orthophoto Cropping ---
+        % After all orthophotos for this pass have been written,
+        % read them in, compute a global common valid data region, and crop each.
+        fileList = dir(fullfile(dirIn, '*.jpg'));
+        if isempty(fileList)
+            warning('No orthophotos found in directory %s for cropping.', dirIn);
+        else
+            % Initialize globalMask from the first image
+            firstFile = fullfile(dirIn, fileList(1).name);
+            imgFirst = im2double(imread(firstFile));
+            imgFirst = imgFirst ./ max(imgFirst(:));  % Normalize
+            globalMask = (imgFirst > 0);
+            
+            % Loop over remaining orthophotos and update the global mask
+            for k = 2:length(fileList)
+                currentFile = fullfile(dirIn, fileList(k).name);
+                imgTemp = im2double(imread(currentFile));
+                imgTemp = imgTemp ./ max(imgTemp(:));  % Normalize
+                maskTemp = (imgTemp > 0);
+                globalMask = globalMask & maskTemp;
+            end
+            
+            % Determine the bounding box of the global valid region
+            [rowIdx, colIdx] = find(globalMask);
+            if ~isempty(rowIdx) && ~isempty(colIdx)
+                rmin = min(rowIdx); rmax = max(rowIdx);
+                cmin = min(colIdx); cmax = max(colIdx);
+            else
+                error('No common valid region found among orthophotos.');
+            end
+            
+            % Re-read and crop each orthophoto to the computed bounding box,
+            % then overwrite the file with the cropped image.
+            for k = 1:length(fileList)
+                currentFile = fullfile(dirIn, fileList(k).name);
+                img = im2double(imread(currentFile));
+                img = img ./ max(img(:));  % Normalize
+                croppedImg = img(rmin:rmax, cmin:cmax, :);
+                imwrite(im2uint8(croppedImg), currentFile);
+            end
+        end
+        % --- End My Additions: Global Orthophoto Cropping ---
+
         KLT_creatingVideosFromImages(app, pass, answer); % Create and play the stabilised video
         if pass < 2
             line1 = ['Would you like to refine the stabilisation further?'];
