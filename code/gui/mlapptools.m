@@ -335,13 +335,15 @@ classdef (Abstract) mlapptools
       % Since the above checks if a Controller exists, the below should work.
       
       hController = struct(struct(hUIFig).Controller);
+      
+      % assuming 2107 onwards
       % Check for Controller version:
-      switch subsref(ver('matlab'), substruct('.','Version'))
-        case {'9.0','9.1'} % R2016a or R2016b
-          hWin = hController.Container.CEF;
-        otherwise  % R2017a onward
-          hWin = struct(hController.PlatformHost).CEF;
-      end
+      %switch subsref(ver('matlab'), substruct('.','Version'))
+      %  case {'9.0','9.1'} % R2016a or R2016b
+      %    hWin = hController.Container.CEF;
+      %  otherwise  % R2017a onward
+      hWin = struct(hController.PlatformHost).CEF;
+      %end
       
       warning(warnState); % Restore warning state
       
