@@ -10,7 +10,7 @@ if strcmp (app.GCPData, 'From .csv file') == 1
     pause(0.01);
     app.ListBox.scroll('bottom');
     
-    if isempty(double(app.s2)) %|| double(app.s2) > 1
+    if isempty(double(app.s2))
         [app.GCPfile, app.GCPdirectory] = uigetfile({'*.csv' '.csv Files'},'Select a file',app.directory);
     end
     

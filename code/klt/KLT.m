@@ -257,6 +257,9 @@ classdef KLT < matlab.apps.AppBase
         initialVel
         finalVel
         wse_map_out
+        wse_routine
+        TransX_rotated
+        TransY_rotated
     end
 
 
@@ -319,10 +322,11 @@ classdef KLT < matlab.apps.AppBase
                             KLT_customFOV(app)
                         end
 
-                        wse_routine = 1;
-                        if wse_routine == 1
+                        app.wse_routine = 1;
+                        if app.wse_routine == 1
                             app.OrthophotosSwitch.Value = 'On'; % force orthophoto generation
                             app.OrthophotosSwitch.Enable = 'off'; % disable user changing the option
+                            KLT_modifying_domain(app,0); % modify the domain to optimise the rotation
                             KLT_imageAnalysis(app,0) %set as zero to run the wse reconstruction or -3 to avoid
                             i1 = -2:-1;
                         else

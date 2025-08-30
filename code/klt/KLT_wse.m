@@ -61,8 +61,8 @@ elseif  wsw_exp == 1 && app.prepro == 1
     [params]                = size(app.TransX); clear app.Transdem
     app.Transdem(1:params(1),1:params(2)) = app.WatersurfaceelevationmEditField.Value;
             
-    xyzA_wse{ei}    = xyzA(:,1:2);
-    xyzB_wse{ei}    = xyzB(:,1:2);
+    xyzA_wse{ei}    = xyzA_ortho_orig(:,1:2); % changed from xyzA
+    xyzB_wse{ei}    = xyzB_ortho_orig(:,1:2);
 
     for aa = ei
         if aa == 1
@@ -70,7 +70,7 @@ elseif  wsw_exp == 1 && app.prepro == 1
         end
         
         wse_map{aa,1} = app.Transdem;
-        [wse_map] = KLT_wse_solver(app,xyzA_wse,xyzB_wse,aa,wse_map);
+        [wse_map] = KLT_wse_solver_rotation(app,xyzA_wse{ei},xyzB_wse{ei},aa,wse_map);
 
         if aa == ei(end)
             app.wse_map_out = wse_map; % save the final solution

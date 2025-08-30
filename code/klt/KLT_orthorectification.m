@@ -1,11 +1,19 @@
-function [] = KLT_orthorectification(app)
+function [] = KLT_orthorectification(app, i)
+
+if exist('i','var') == 0
+    i = 1;
+end
 
 if strcmp (app.ProcessingModeDropDown.Value, 'Numerical Simulation') == true
     return
 end
 
 app.rollingGCPs = [];
-KLT_checkGcpCsvData(app)
+if app.wse_routine ~= 1 | app.videoNumber == 1
+    if i == 0
+        KLT_checkGcpCsvData(app)
+    end
+end
 
 A = (app.firstFrame);
 app.InitialGCP = app.gcpA;
@@ -117,11 +125,10 @@ if strcmp(app.OrientationDropDown.Value,['Stationary: Nadir']) == 1
     
 elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
         strcmp(app.OrientationDropDown.Value,'Dynamic: GCPs') == 1 || ...
-        strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == 1
+        strcmp (app.OrientationDropDown.Value,'Dynamic: GCPs + Stabilisation') == 1 
       
     % only optimise the camera model for the first video of the analysis
-    if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1
-        
+    if isempty(app.videoNumber) || app.videoNumber < 2 || app.startingVideo == 1        
         TextIn = {'Optimising the camera model'}; % Update the display
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
         TimeIn = strjoin(TimeIn, ' ');
@@ -245,7 +252,12 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
             end
             ii = ii + 1;
         end
-        
+
+        % no need to go any further if runnning the modifying domain fcn
+        if i == 0
+            return
+        end
+
         % Update the display to show the camera model output
         TextIn = {['Camera model optimised. RMSE = ' num2str(app.rmse) 'px']};
         TimeIn = {'***** ' char(datetime(now,'ConvertFrom','datenum' )) ' *****'};
@@ -327,7 +339,11 @@ elseif strcmp(app.OrientationDropDown.Value,'Stationary: GCPs') == 1 || ...
     if strcmp (app.OrthophotosSwitch.Value, 'On') == 1 || app.s2 > 0 % always called
         
         if ~isempty(app.directory_save_multiple) % Bring in the proper file
-            A = app.objectFrameStacked{app.s2};
+            try
+                A = app.objectFrameStacked{app.s2};
+            catch
+                A = app.objectFrameStacked{end};
+            end
         end
 
         % Interpolate the image so that it fits the DEM

@@ -9,7 +9,7 @@ app.visHR           = [];
 app.uvHR            = [];
 app.uvHR            = [];
 xyzA_conv           = [];
-wse_analysis        = 0;
+wse_analysis        = 1;
 
 % if wse analysis has already been undertaken re-establish proper
 % properties
@@ -120,7 +120,7 @@ end
 % Enter the start and stop of the video analysis
 % Only run for the first video
 if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
-    if wse_analysis == 0 % prevent it asking each time after wse reconstruction
+    %if wse_analysis == 0 % prevent it asking each time after wse reconstruction
 
         defaultValue    = {'0', num2str(round(app.videoDuration))};
         titleBar        = 'Define the start and end of the video in seconds';
@@ -133,7 +133,7 @@ if isempty(app.videoNumber) || app.videoNumber == 1 || app.startingVideo == 1
         else
             app.clipped = false;
         end
-    end
+    %end
 end
 
 % Ensure that the inputs for s2 and nFrame are okay for all orientations
@@ -774,7 +774,7 @@ while app.s2 < limiter_frame % MP 20240227 rather than minus 1
 
             app.objectFrame = rgb2gray(readFrame(V));
             KLT_orthorectificationProgessive(app)
-            app.objectFrame = PIVlab_preproc_KLT (app,app.rgbHR);
+            app.objectFrame = PIVlab_preproc (app,app.rgbHR);
             app.rgbHR = app.objectFrame;
             KLT_imageExport(app)
 
@@ -966,7 +966,7 @@ end
 try
     if length(app.boundaryLimitsM)>1
 
-        if wse_counter==1 % if calculating wse then we need to reinstate xyzA/B
+        if wse_counter==1  % if calculating wse then we need to reinstate xyzA/B
             xyzA = [app.finalVel{1}]; % using the final velocity solutions for the plots
             xyzB = [app.finalVel{2}];
         end
@@ -978,7 +978,7 @@ try
 
         % there's some errors in here - need to see why 'in' doesn't match
         % the other array sizes
-        if wse_counter==1
+        if wse_counter==1 && median(double(diff(restartWhen)~=1))
             app.adjustedVel = app.adjustedVel(in,1:2);
             app.vel         = app.vel(in,1:3);
             app.refValue    = app.refValue(in);
